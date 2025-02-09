@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.39">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Decimal.js - A Developer’s Handbook – Technical Manuals</title>
+<style>
+html {
+  color: #1a1a1a;
+  background-color: #fdfdfd;
+}
+body {
+  margin: 0 auto;
+  max-width: 36em;
+  padding-left: 50px;
+  padding-right: 50px;
+  padding-top: 50px;
+  padding-bottom: 50px;
+  hyphens: auto;
+  overflow-wrap: break-word;
+  text-rendering: optimizeLegibility;
+  font-kerning: normal;
+}
+@media (max-width: 600px) {
+  body {
+    font-size: 0.9em;
+    padding: 12px;
+  }
+  h1 {
+    font-size: 1.8em;
+  }
+}
+@media print {
+  html {
+    background-color: white;
+  }
+  body {
+    background-color: transparent;
+    color: black;
+    font-size: 12pt;
+  }
+  p, h2, h3 {
+    orphans: 3;
+    widows: 3;
+  }
+  h2, h3, h4 {
+    page-break-after: avoid;
+  }
+}
+p {
+  margin: 1em 0;
+}
+a {
+  color: #1a1a1a;
+}
+a:visited {
+  color: #1a1a1a;
+}
+img {
+  max-width: 100%;
+}
+svg {
+  height; auto;
+  max-width: 100%;
+}
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 1.4em;
+}
+h5, h6 {
+  font-size: 1em;
+  font-style: italic;
+}
+h6 {
+  font-weight: normal;
+}
+ol, ul {
+  padding-left: 1.7em;
+  margin-top: 1em;
+}
+li > ol, li > ul {
+  margin-top: 0;
+}
+ul > li:not(:has(> p)) > ul,
+ol > li:not(:has(> p)) > ul,
+ul > li:not(:has(> p)) > ol,
+ol > li:not(:has(> p)) > ol {
+  margin-bottom: 0;
+}
+ul > li:not(:has(> p)) > ul > li:has(> p),
+ol > li:not(:has(> p)) > ul > li:has(> p),
+ul > li:not(:has(> p)) > ol > li:has(> p),
+ol > li:not(:has(> p)) > ol > li:has(> p) {
+  margin-top: 1rem;
+}
+blockquote {
+  margin: 1em 0 1em 1.7em;
+  padding-left: 1em;
+  border-left: 2px solid #e6e6e6;
+  color: #606060;
+}
+code {
+  font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+  font-size: 85%;
+  margin: 0;
+  hyphens: manual;
+}
+pre {
+  margin: 1em 0;
+  overflow: auto;
+}
+pre code {
+  padding: 0;
+  overflow: visible;
+  overflow-wrap: normal;
+}
+.sourceCode {
+ background-color: transparent;
+ overflow: visible;
+}
+hr {
+  background-color: #1a1a1a;
+  border: none;
+  height: 1px;
+  margin: 1em 0;
+}
+table {
+  margin: 1em 0;
+  border-collapse: collapse;
+  width: 100%;
+  overflow-x: auto;
+  display: block;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+table caption {
+  margin-bottom: 0.75em;
+}
+tbody {
+  margin-top: 0.5em;
+  border-top: 1px solid #1a1a1a;
+  border-bottom: 1px solid #1a1a1a;
+}
+th {
+  border-top: 1px solid #1a1a1a;
+  padding: 0.25em 0.5em 0.25em 0.5em;
+}
+td {
+  padding: 0.125em 0.5em 0.25em 0.5em;
+}
+header {
+  margin-bottom: 4em;
+  text-align: center;
+}
+#TOC li {
+  list-style: none;
+}
+#TOC ul {
+  padding-left: 1.3em;
+}
+#TOC > ul {
+  padding-left: 0;
+}
+#TOC a:not(:hover) {
+  text-decoration: none;
+}
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<link href="../../favicon.ico" rel="icon">
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-K8N81FG076"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-K8N81FG076', { 'anonymize_ip': true});
+</script>
+<link rel="icon" type="image/x-icon" href="../../favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../../apple-touch-icon.png">
+<meta property="og:title" content="Decimal.js - A Developer’s Handbook – Technical Manuals">
+<meta property="og:site_name" content="Technical Manuals">
+</head><body><div class="navigation-header">
+    <nav>
+        <div>
+            <div class="logo">
+                <a href="../../" aria-label="Home">
+                    <span>Technical Manuals - Home</span>
+                </a>
+            </div>
+            <div class="nav-menu">
+                <ul>
+                    <li>
+                        <a href="../../about.html">
+                            <span class="menu-text">About</span>
+                        </a>
+                    </li>
+                    <li> 
+                        <a href="https://github.com/muthuspark" target="_blank">
+                            <span class="menu-text">Github</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://linkedin.com/in/krimuthu" target="_blank">
+                            <span class="menu-text">Linkedin</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</div>
+
+
+<link rel="stylesheet" href="../../styles.css">
+
+
+
+
+
+<header id="title-block-header">
+<h1 class="title">Decimal.js - A Developer’s Handbook</h1>
+
+</header>
+
+
+<h2 id="introduction">Introduction</h2>
+<h3 id="what-is-decimal.js">What is Decimal.js?</h3>
+<p>Decimal.js is a JavaScript library providing arbitrary-precision decimal arithmetic. Unlike JavaScript’s native <code>Number</code> type, which uses double-precision floating-point representation (IEEE 754), Decimal.js allows you to perform calculations with decimal numbers of any precision, avoiding the rounding errors and inaccuracies inherent in floating-point arithmetic. This is crucial for applications requiring exact decimal calculations, such as financial systems, accounting software, and scientific computations where precision is paramount. It handles numbers as strings, ensuring accurate representation and manipulation of decimal values.</p>
+<h3 id="why-use-decimal.js">Why use Decimal.js?</h3>
+<p>JavaScript’s built-in <code>Number</code> type suffers from well-known limitations when dealing with decimal numbers. Floating-point representation leads to rounding errors that can accumulate and produce incorrect results, particularly in calculations involving multiple operations or very small/large numbers. Decimal.js overcomes these limitations by providing:</p>
+<ul>
+<li><strong>Exact decimal representation:</strong> Numbers are represented internally with arbitrary precision, eliminating rounding errors.</li>
+<li><strong>Consistent results:</strong> Calculations always yield the mathematically correct result, within the specified precision.</li>
+<li><strong>Improved accuracy:</strong> Ideal for applications requiring absolute accuracy, preventing subtle bugs caused by floating-point inaccuracies.</li>
+<li><strong>Control over precision:</strong> You can specify the desired precision for calculations, adapting to the specific needs of your application.</li>
+<li><strong>Extended functionality:</strong> Decimal.js offers a comprehensive set of arithmetic and mathematical functions, extending beyond basic operations.</li>
+</ul>
+<h3 id="features-and-benefits">Features and Benefits</h3>
+<ul>
+<li><strong>Arbitrary Precision:</strong> Handle numbers with as many decimal places as needed.</li>
+<li><strong>Rounding Modes:</strong> Control how rounding is performed (e.g., round half up, round half even).</li>
+<li><strong>Various Arithmetic Operations:</strong> Supports addition, subtraction, multiplication, division, modulo, exponentiation, and more.</li>
+<li><strong>Comparison Functions:</strong> Provides methods for comparing decimal numbers (equals, greater than, less than, etc.).</li>
+<li><strong>Mathematical Functions:</strong> Includes functions like <code>sqrt</code>, <code>ln</code>, <code>log</code>, etc., with high precision.</li>
+<li><strong>String Conversion:</strong> Handles input and output as strings, preventing floating-point representation issues.</li>
+<li><strong>Error Handling:</strong> Provides mechanisms for handling potential errors during calculations (e.g., division by zero).</li>
+<li><strong>Well-Tested and Documented:</strong> Thoroughly tested and accompanied by comprehensive documentation.</li>
+</ul>
+<h3 id="installation-and-setup">Installation and Setup</h3>
+<p>Decimal.js can be installed via npm or yarn:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> install decimal.js</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># or</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">yarn</span> add decimal.js</span></code></pre></div>
+<p>After installation, you can import and use it in your JavaScript code:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Create Decimal objects</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> a <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="fl">1.23456789</span>)<span class="op">;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> b <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'0.0001'</span>)<span class="op">;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">// Perform calculations</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> sum <span class="op">=</span> a<span class="op">.</span><span class="fu">plus</span>(b)<span class="op">;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> product <span class="op">=</span> a<span class="op">.</span><span class="fu">times</span>(b)<span class="op">;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co">// Output the results (results are Decimal objects)</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(sum<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output: 1.23466789</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(product<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output: 0.000123456789</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">// Set precision globally</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>Decimal<span class="op">.</span><span class="fu">set</span>({ <span class="dt">precision</span><span class="op">:</span> <span class="dv">10</span> })<span class="op">;</span> <span class="co">//Optional global setting.</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co">//Alternatively, set precision for individual operations:</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> result <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="dv">1</span>)<span class="op">.</span><span class="fu">dividedBy</span>(<span class="dv">3</span>)<span class="op">.</span><span class="fu">toPrecision</span>(<span class="dv">3</span>)<span class="op">;</span> <span class="co">// Output: 0.333 </span></span></code></pre></div>
+<p>For browser usage without a module bundler, you can include the Decimal.js script directly in your HTML file. Download the <code>decimal.min.js</code> file from the project’s website and add a <code>&lt;script&gt;</code> tag to your HTML:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode html"><code class="sourceCode html"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">script</span><span class="ot"> src</span><span class="op">=</span><span class="st">"decimal.min.js"</span><span class="dt">&gt;&lt;/</span><span class="kw">script</span><span class="dt">&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">script</span><span class="dt">&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Use Decimal.js here,  Decimal is now a global object</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> a <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="dv">10</span>)<span class="op">;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;/</span><span class="kw">script</span><span class="dt">&gt;</span></span></code></pre></div>
+<p>Remember to adjust the path to <code>decimal.min.js</code> as needed. The global object approach is less preferred, as it can lead to conflicts with other libraries using the same name.</p>
+<h2 id="basic-usage">Basic Usage</h2>
+<h3 id="creating-decimal-objects">Creating Decimal Objects</h3>
+<p>Decimal objects are created using the <code>Decimal</code> constructor. The constructor accepts various input types:</p>
+<ul>
+<li><strong>Number:</strong> A JavaScript number. Note that precision might be lost due to inherent limitations of JavaScript numbers.</li>
+<li><strong>String:</strong> A string representation of a decimal number. This is generally the preferred method for maintaining precision.</li>
+<li><strong>Array:</strong> An array of integers representing the digits of the number. Useful for advanced scenarios.</li>
+<li><strong>Decimal:</strong> Another Decimal object; creates a copy.</li>
+</ul>
+<div class="sourceCode" id="cb4"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Creating Decimal objects from different inputs</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> a <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="fl">123.456</span>)<span class="op">;</span>            <span class="co">// From a Number</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> b <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'78.90'</span>)<span class="op">;</span>          <span class="co">// From a String - Recommended for maximum precision</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> c <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>([<span class="dv">1</span><span class="op">,</span> <span class="dv">2</span><span class="op">,</span> <span class="dv">3</span><span class="op">,</span> <span class="dv">4</span><span class="op">,</span> <span class="dv">5</span>])<span class="op">;</span>   <span class="co">// From an array of digits (represents 12345)</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> d <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(a)<span class="op">;</span>                 <span class="co">// From another Decimal object (Creates a copy)</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">toString</span>()<span class="op">,</span> b<span class="op">.</span><span class="fu">toString</span>()<span class="op">,</span> c<span class="op">.</span><span class="fu">toString</span>()<span class="op">,</span> d<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span></span></code></pre></div>
+<h3 id="arithmetic-operations--">Arithmetic Operations (+, -, *, /)</h3>
+<p>Decimal.js provides methods for all basic arithmetic operations. These methods return new Decimal objects, leaving the original operands unchanged:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> a <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'10.5'</span>)<span class="op">;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> b <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'2.5'</span>)<span class="op">;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> sum <span class="op">=</span> a<span class="op">.</span><span class="fu">plus</span>(b)<span class="op">;</span>      <span class="co">// Addition</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> difference <span class="op">=</span> a<span class="op">.</span><span class="fu">minus</span>(b)<span class="op">;</span> <span class="co">// Subtraction</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> product <span class="op">=</span> a<span class="op">.</span><span class="fu">times</span>(b)<span class="op">;</span>    <span class="co">// Multiplication</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> quotient <span class="op">=</span> a<span class="op">.</span><span class="fu">dividedBy</span>(b)<span class="op">;</span> <span class="co">// Division</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(sum<span class="op">.</span><span class="fu">toString</span>()<span class="op">,</span> difference<span class="op">.</span><span class="fu">toString</span>()<span class="op">,</span> product<span class="op">.</span><span class="fu">toString</span>()<span class="op">,</span> quotient<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">//Output: 13 8 26.25 4.2</span></span></code></pre></div>
+<p>These methods have chainable counterparts for improved readability (eg. <code>add</code>, <code>sub</code>, <code>mul</code>, <code>div</code>). Note that division by zero will throw an error.</p>
+<h3 id="comparison-operations">Comparison Operations (==, !=, &gt;, &lt;, &gt;=, &lt;=)</h3>
+<p>Decimal.js offers methods for comparing Decimal objects. These methods return boolean values:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> a <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'10'</span>)<span class="op">;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> b <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'10.00'</span>)<span class="op">;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> c <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'11'</span>)<span class="op">;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">equals</span>(b))<span class="op">;</span> <span class="co">// true - compares values, ignoring representation differences.</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">equals</span>(c))<span class="op">;</span> <span class="co">// false</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">greaterThan</span>(c))<span class="op">;</span> <span class="co">// false</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">lessThan</span>(c))<span class="op">;</span>  <span class="co">// true</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">greaterThanOrEqualTo</span>(b))<span class="op">;</span> <span class="co">// true</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">lessThanOrEqualTo</span>(b))<span class="op">;</span>  <span class="co">// true</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="co">//Inequality operators can also be used directly:</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">comparedTo</span>(b) <span class="op">===</span> <span class="dv">0</span>)<span class="op">;</span> <span class="co">// true, equivalent to a.equals(b)</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">comparedTo</span>(c) <span class="op">&lt;</span> <span class="dv">0</span>)<span class="op">;</span>  <span class="co">// true, equivalent to a.lessThan(c)</span></span></code></pre></div>
+<p>The <code>comparedTo</code> method returns -1 if the current Decimal object is less than the argument, 0 if equal, and 1 if greater than the argument.</p>
+<h3 id="rounding-modes">Rounding Modes</h3>
+<p>Decimal.js provides several rounding modes that control how results are rounded during calculations. These modes are specified using the <code>rounding</code> property in the configuration object (see Precision and Configuration below) or as an argument to specific methods like <code>toDecimalPlaces</code>.</p>
+<p>The available rounding modes are:</p>
+<ul>
+<li><code>Decimal.ROUND_UP</code>: Round away from zero.</li>
+<li><code>Decimal.ROUND_DOWN</code>: Round towards zero.</li>
+<li><code>Decimal.ROUND_CEIL</code>: Round towards positive infinity.</li>
+<li><code>Decimal.ROUND_FLOOR</code>: Round towards negative infinity.</li>
+<li><code>Decimal.ROUND_HALF_UP</code>: Round towards nearest neighbour. If equidistant, round away from zero.</li>
+<li><code>Decimal.ROUND_HALF_DOWN</code>: Round towards nearest neighbour. If equidistant, round towards zero.</li>
+<li><code>Decimal.ROUND_HALF_EVEN</code> (Banker’s rounding): Round towards nearest neighbour. If equidistant, round towards the even neighbour.</li>
+</ul>
+<div class="sourceCode" id="cb7"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>Decimal<span class="op">.</span><span class="fu">set</span>({ <span class="dt">rounding</span><span class="op">:</span> Decimal<span class="op">.</span><span class="at">ROUND_HALF_UP</span> })<span class="op">;</span> <span class="co">//Set global rounding mode</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> num <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'2.5'</span>)<span class="op">;</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(num<span class="op">.</span><span class="fu">toDecimalPlaces</span>(<span class="dv">0</span>)<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output: 3</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>Decimal<span class="op">.</span><span class="fu">set</span>({ <span class="dt">rounding</span><span class="op">:</span> Decimal<span class="op">.</span><span class="at">ROUND_HALF_EVEN</span> })<span class="op">;</span> <span class="co">//Set global rounding mode</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>num <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'2.5'</span>)<span class="op">;</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(num<span class="op">.</span><span class="fu">toDecimalPlaces</span>(<span class="dv">0</span>)<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output: 2</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>num <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'3.5'</span>)<span class="op">;</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(num<span class="op">.</span><span class="fu">toDecimalPlaces</span>(<span class="dv">0</span>)<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output: 4</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a></span></code></pre></div>
+<h3 id="precision-and-configuration">Precision and Configuration</h3>
+<p>The precision of Decimal.js calculations can be controlled globally using <code>Decimal.set()</code>, or individually for specific operations.</p>
+<ul>
+<li><p><strong>Global Precision:</strong> Sets the default precision for all subsequent calculations using <code>Decimal.set({ precision: value });</code>. <code>value</code> represents the number of decimal places.</p></li>
+<li><p><strong>Local Precision:</strong> Methods like <code>toDecimalPlaces()</code> and <code>toPrecision()</code> allow you to specify the precision for individual operations.</p></li>
+<li><p><strong>Rounding Mode:</strong> The rounding mode is also set using <code>Decimal.set({ rounding: mode })</code>, where <code>mode</code> is one of the rounding modes described above.</p></li>
+<li><p><strong>Other Configurations:</strong> The <code>Decimal.set()</code> method also allows configuring other options, such as the cryptographically secure random number generator. Consult the official documentation for complete details.</p></li>
+</ul>
+<div class="sourceCode" id="cb8"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Set global precision to 5 decimal places</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>Decimal<span class="op">.</span><span class="fu">set</span>({ <span class="dt">precision</span><span class="op">:</span> <span class="dv">5</span><span class="op">,</span> <span class="dt">rounding</span><span class="op">:</span> Decimal<span class="op">.</span><span class="at">ROUND_HALF_UP</span> })<span class="op">;</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> a <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'1.23456789'</span>)<span class="op">;</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output: 1.23457 (Rounded due to global precision and rounding mode)</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co">// Local precision override:</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">toDecimalPlaces</span>(<span class="dv">10</span>)<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output: 1.2345678900 (Overrides global precision)</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="co">//Changing global settings</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>Decimal<span class="op">.</span><span class="fu">set</span>({ <span class="dt">precision</span><span class="op">:</span> <span class="dv">10</span>})<span class="op">;</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output: 1.2345678900</span></span></code></pre></div>
+<h2 id="advanced-operations">Advanced Operations</h2>
+<h3 id="modulo-operation">Modulo Operation (%)</h3>
+<p>The modulo operation, represented by the <code>modulo</code> method (or its shorter alias <code>mod</code>), returns the remainder after division.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> a <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'10'</span>)<span class="op">;</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> b <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'3'</span>)<span class="op">;</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> remainder <span class="op">=</span> a<span class="op">.</span><span class="fu">modulo</span>(b)<span class="op">;</span> <span class="co">// or a.mod(b)</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(remainder<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output: 1</span></span></code></pre></div>
+<p>The result will always have the same sign as the divisor (<code>b</code> in this example). Division by zero will throw an error.</p>
+<h3 id="exponentiation">Exponentiation (**)</h3>
+<p>Exponentiation is performed using the <code>pow</code> method. The first argument is the base, and the second is the exponent.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> base <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'2'</span>)<span class="op">;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> exponent <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'5'</span>)<span class="op">;</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> result <span class="op">=</span> base<span class="op">.</span><span class="fu">pow</span>(exponent)<span class="op">;</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(result<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output: 32</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> negativeExponentResult <span class="op">=</span> base<span class="op">.</span><span class="fu">pow</span>(<span class="st">'-2'</span>)<span class="op">;</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(negativeExponentResult<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">//Output: 0.25</span></span></code></pre></div>
+<p>Both base and exponent can be Decimal objects or numbers. Note that fractional exponents will be subject to rounding based on configured precision.</p>
+<h3 id="square-root-sqrt">Square Root (sqrt)</h3>
+<p>The square root is calculated using the <code>sqrt</code> method.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> num <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'16'</span>)<span class="op">;</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> <span class="bu">root</span> <span class="op">=</span> num<span class="op">.</span><span class="fu">sqrt</span>()<span class="op">;</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="bu">root</span><span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output: 4</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> num2 <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'2'</span>)<span class="op">;</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> root2 <span class="op">=</span> num2<span class="op">.</span><span class="fu">sqrt</span>()<span class="op">;</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(root2<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output: 1.4142135623730951 (precision dependent)</span></span></code></pre></div>
+<p>The <code>sqrt</code> method will throw an error if the input is negative.</p>
+<h3 id="absolute-value-abs">Absolute Value (abs)</h3>
+<p>The absolute value of a Decimal object is obtained using the <code>abs</code> method.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> a <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'-10'</span>)<span class="op">;</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> b <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'5'</span>)<span class="op">;</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">abs</span>()<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output: 10</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(b<span class="op">.</span><span class="fu">abs</span>()<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output: 5</span></span></code></pre></div>
+<h3 id="decimal-to-number-conversion">Decimal to Number Conversion</h3>
+<p>Converting a Decimal object to a JavaScript number is done using the <code>toNumber()</code> method. Be aware that this conversion can lead to loss of precision due to the limitations of JavaScript’s floating-point representation.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> d <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'123.456789'</span>)<span class="op">;</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> n <span class="op">=</span> d<span class="op">.</span><span class="fu">toNumber</span>()<span class="op">;</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(n)<span class="op">;</span> <span class="co">// Output: 123.456789 (Might be slightly different due to floating point inaccuracies)</span></span></code></pre></div>
+<h3 id="number-to-decimal-conversion">Number to Decimal Conversion</h3>
+<p>As described in the Basic Usage section, a <code>Decimal</code> object can be created directly from a JavaScript number using the constructor. However, keep in mind that any inherent precision loss in the original JavaScript number will be carried over. Using string representation is generally recommended for maximum accuracy when creating decimals from numbers.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> n <span class="op">=</span> <span class="fl">123.456789</span><span class="op">;</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> d <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(n)<span class="op">;</span>       <span class="co">//Potentially lossy conversion</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> d2 <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(n<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">//Lossless conversion, preferred method if precision is important.</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(d<span class="op">.</span><span class="fu">toString</span>()<span class="op">,</span> d2<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output: 123.456789  123.456789 (may differ slightly depending on JavaScript engine and number representation)</span></span></code></pre></div>
+<p>Using <code>n.toString()</code> ensures the number is converted to a string before creating the <code>Decimal</code>, preventing potential inaccuracies.</p>
+<h2 id="mathematical-functions">Mathematical Functions</h2>
+<p>Decimal.js provides several advanced mathematical functions that operate on Decimal objects. These functions generally maintain the library’s high precision, although results might be subject to minor rounding based on the configured precision. Remember to always check the Decimal.js documentation for the most up-to-date information on function specifics and potential limitations.</p>
+<h3 id="trigonometric-functions-sin-cos-tan">Trigonometric Functions (sin, cos, tan)</h3>
+<p>These functions calculate the trigonometric values (sine, cosine, tangent) of an angle given in radians.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> angle <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="bu">Math</span><span class="op">.</span><span class="cn">PI</span> <span class="op">/</span> <span class="dv">4</span>)<span class="op">;</span> <span class="co">// 45 degrees in radians</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> sinValue <span class="op">=</span> angle<span class="op">.</span><span class="fu">sin</span>()<span class="op">;</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> cosValue <span class="op">=</span> angle<span class="op">.</span><span class="fu">cos</span>()<span class="op">;</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> tanValue <span class="op">=</span> angle<span class="op">.</span><span class="fu">tan</span>()<span class="op">;</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(sinValue<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output:  0.7071067811865476</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(cosValue<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output: 0.7071067811865476</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(tanValue<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output: 1</span></span></code></pre></div>
+<p>The input angle should be a Decimal object. The output is a new Decimal object representing the trigonometric value.</p>
+<h3 id="inverse-trigonometric-functions-asin-acos-atan">Inverse Trigonometric Functions (asin, acos, atan)</h3>
+<p>These functions compute the inverse trigonometric functions (arcsine, arccosine, arctangent), returning the angle in radians as a Decimal object. The input should be a Decimal object within the valid range for each function (-1 to 1 for asin and acos, any value for atan).</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> value <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'0.7071067811865476'</span>)<span class="op">;</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> asinValue <span class="op">=</span> value<span class="op">.</span><span class="fu">asin</span>()<span class="op">;</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> acosValue <span class="op">=</span> value<span class="op">.</span><span class="fu">acos</span>()<span class="op">;</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> atanValue <span class="op">=</span> value<span class="op">.</span><span class="fu">atan</span>()<span class="op">;</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(asinValue<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output:  0.7853981633974483</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(acosValue<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output: 0.7853981633974483</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(atanValue<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output: 0.615479708629172</span></span></code></pre></div>
+<p>Results are also Decimal objects. Note that the precision of the results depends on the library’s internal calculations and configured precision.</p>
+<h3 id="exponential-and-logarithmic-functions-exp-ln-log">Exponential and Logarithmic Functions (exp, ln, log)</h3>
+<ul>
+<li><code>exp</code>: Calculates the exponential function (e raised to the power of the input).</li>
+<li><code>ln</code>: Calculates the natural logarithm (base e).</li>
+<li><code>log</code>: Calculates the logarithm to a specified base (second argument). If no base is specified, it defaults to base 10.</li>
+</ul>
+<div class="sourceCode" id="cb17"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> num <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'2'</span>)<span class="op">;</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> base <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="dv">10</span>)<span class="op">;</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> expValue <span class="op">=</span> num<span class="op">.</span><span class="fu">exp</span>()<span class="op">;</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> lnValue <span class="op">=</span> num<span class="op">.</span><span class="fu">ln</span>()<span class="op">;</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> logBase10Value <span class="op">=</span> num<span class="op">.</span><span class="fu">log</span>(base)<span class="op">;</span>  <span class="co">//Log base 10</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> logBase2Value <span class="op">=</span> num<span class="op">.</span><span class="fu">log</span>(<span class="dv">2</span>)<span class="op">;</span>    <span class="co">//Log base 2</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(expValue<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span>     <span class="co">// Output: 7.38905609893065</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(lnValue<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span>      <span class="co">// Output: 0.6931471805599453</span></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(logBase10Value<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output: 0.3010299956639812</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(logBase2Value<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output: 1</span></span></code></pre></div>
+<p>Input and output are Decimal objects. Error handling for invalid inputs (e.g., ln of a non-positive number) should be considered.</p>
+<h3 id="hyperbolic-functions">Hyperbolic Functions</h3>
+<p>Decimal.js provides hyperbolic functions: <code>sinh</code>, <code>cosh</code>, <code>tanh</code>, <code>asinh</code>, <code>acosh</code>, and <code>atanh</code>. These functions mirror their trigonometric counterparts but operate on hyperbolic curves. Usage is analogous to the trigonometric functions described above, with input and output being Decimal objects.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> num <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="dv">1</span>)<span class="op">;</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(num<span class="op">.</span><span class="fu">sinh</span>()<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output: 1.1752011936438014</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(num<span class="op">.</span><span class="fu">cosh</span>()<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output: 1.5430806348152437</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(num<span class="op">.</span><span class="fu">tanh</span>()<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">// Output: 0.7615941559557649</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a></span></code></pre></div>
+<p>Remember to consult the official Decimal.js documentation for detailed information about the accuracy, range, and error handling of each function. Note that the results of these calculations can be sensitive to the configured precision. Higher precision settings will generally lead to more accurate results, but at the cost of increased computation time.</p>
+<h2 id="comparison-and-equality">Comparison and Equality</h2>
+<h3 id="comparing-decimal-objects">Comparing Decimal Objects</h3>
+<p>Decimal.js provides several methods for comparing Decimal objects. The core method is <code>comparedTo</code>, which offers a numerical comparison:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> a <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'10.5'</span>)<span class="op">;</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> b <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'10.500'</span>)<span class="op">;</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> c <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'11'</span>)<span class="op">;</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">comparedTo</span>(b))<span class="op">;</span> <span class="co">// Output: 0 (a and b are equal)</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">comparedTo</span>(c))<span class="op">;</span> <span class="co">// Output: -1 (a is less than c)</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(c<span class="op">.</span><span class="fu">comparedTo</span>(a))<span class="op">;</span> <span class="co">// Output: 1 (c is greater than a)</span></span></code></pre></div>
+<p><code>comparedTo</code> returns:</p>
+<ul>
+<li><code>0</code>: if the two numbers are equal.</li>
+<li><code>-1</code>: if the current Decimal is less than the argument.</li>
+<li><code>1</code>: if the current Decimal is greater than the argument.</li>
+</ul>
+<p>Other comparison methods offer a more convenient, boolean-based comparison:</p>
+<ul>
+<li><code>equals</code>: Checks for equality (ignores trailing zeros).</li>
+<li><code>greaterThan</code>, <code>lessThan</code>, <code>greaterThanOrEqualTo</code>, <code>lessThanOrEqualTo</code>: These methods provide straightforward boolean comparisons.</li>
+</ul>
+<div class="sourceCode" id="cb20"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> a <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'10.5'</span>)<span class="op">;</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> b <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'10.500'</span>)<span class="op">;</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">equals</span>(b))<span class="op">;</span>             <span class="co">// Output: true (equals ignores trailing zeros)</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">greaterThan</span>(b))<span class="op">;</span>        <span class="co">// Output: false</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">lessThan</span>(b))<span class="op">;</span>          <span class="co">// Output: false</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">greaterThanOrEqualTo</span>(b))<span class="op">;</span><span class="co">// Output: true</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">lessThanOrEqualTo</span>(b))<span class="op">;</span>  <span class="co">// Output: true</span></span></code></pre></div>
+<h3 id="testing-for-equality">Testing for Equality</h3>
+<p>When testing for equality, it’s crucial to understand how Decimal.js handles trailing zeros. The <code>equals</code> method provides a robust solution. It compares the numerical values, disregarding differences in the number of trailing zeros.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> a <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'1.000'</span>)<span class="op">;</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> b <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'1'</span>)<span class="op">;</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">equals</span>(b))<span class="op">;</span> <span class="co">// Output: true (Decimal.js considers them equal)</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">toString</span>() <span class="op">===</span> b<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">//Output: false (String comparison considers them different)</span></span></code></pre></div>
+<p>Directly comparing using the <code>===</code> operator on Decimal objects is generally not recommended for equality checks; instead, use the <code>equals</code> method.</p>
+<h3 id="handling-precision-differences">Handling Precision Differences</h3>
+<p>Decimal.js’s <code>equals</code> method inherently handles precision differences when comparing numerical values. However, if you need to compare numbers based on a specific level of precision, you can use methods like <code>toDecimalPlaces</code> or <code>toPrecision</code> before comparison:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> a <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'1.23456'</span>)<span class="op">;</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> b <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'1.23457'</span>)<span class="op">;</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> c <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'1.234567'</span>)<span class="op">;</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">equals</span>(c))<span class="op">;</span> <span class="co">// Output: false (different values)</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a><span class="co">//Comparing to 4 decimal places</span></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">toDecimalPlaces</span>(<span class="dv">4</span>)<span class="op">.</span><span class="fu">equals</span>(c<span class="op">.</span><span class="fu">toDecimalPlaces</span>(<span class="dv">4</span>)))<span class="op">;</span> <span class="co">// Output: true (equal when rounded to 4 decimal places)</span></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a><span class="co">//Comparing using toPrecision:</span></span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">toPrecision</span>(<span class="dv">5</span>)<span class="op">.</span><span class="fu">equals</span>(b<span class="op">.</span><span class="fu">toPrecision</span>(<span class="dv">5</span>)))<span class="op">;</span> <span class="co">//Output: false (different when rounded to 5 significant digits)</span></span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a<span class="op">.</span><span class="fu">toPrecision</span>(<span class="dv">5</span>)<span class="op">.</span><span class="fu">equals</span>(c<span class="op">.</span><span class="fu">toPrecision</span>(<span class="dv">5</span>)))<span class="op">;</span> <span class="co">//Output: true (equal when rounded to 5 significant digits)</span></span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a></span></code></pre></div>
+<p>This approach allows you to define the level of precision required for your equality checks. Always consider the appropriate precision needed for the context of your application.</p>
+<h2 id="error-handling">Error Handling</h2>
+<h3 id="common-errors-and-exceptions">Common Errors and Exceptions</h3>
+<p>Decimal.js throws exceptions in specific situations to indicate errors during calculations. The most common errors include:</p>
+<ul>
+<li><p><strong>Division by zero:</strong> Attempting to divide a Decimal object by zero (<code>dividedBy(0)</code> or <code>/ 0</code>) will throw a <code>DivisionByZeroError</code>.</p></li>
+<li><p><strong>Invalid input:</strong> Providing invalid input to the Decimal constructor or methods (e.g., non-numeric strings) might throw a <code>TypeError</code> or a more specific error related to the invalid input.</p></li>
+<li><p><strong>Overflow/Underflow:</strong> If the result of a calculation exceeds the maximum or minimum representable value (determined by the configured precision), an error might be thrown or the result might be clamped depending on the library’s configuration. Note that with sufficient precision, overflow and underflow should be unlikely.</p></li>
+<li><p><strong>Invalid rounding mode:</strong> Specifying an invalid rounding mode when configuring Decimal.js may throw an error.</p></li>
+</ul>
+<div class="sourceCode" id="cb23"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span> {</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> result <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="dv">10</span>)<span class="op">.</span><span class="fu">dividedBy</span>(<span class="dv">0</span>)<span class="op">;</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(result)<span class="op">;</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>} <span class="cf">catch</span> (e) {</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">error</span>(<span class="st">"Error:"</span><span class="op">,</span> e<span class="op">.</span><span class="at">message</span>)<span class="op">;</span> <span class="co">// Output: Error: Division by zero</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span> {</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> invalidDecimal <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'abc'</span>)<span class="op">;</span></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(invalidDecimal)<span class="op">;</span></span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>} <span class="cf">catch</span> (e) {</span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">error</span>(<span class="st">"Error:"</span><span class="op">,</span> e<span class="op">.</span><span class="at">message</span>)<span class="op">;</span> <span class="co">//Output will vary depending on the Decimal.js version and browser</span></span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>Always wrap potentially error-prone Decimal.js operations within <code>try...catch</code> blocks to handle exceptions gracefully.</p>
+<h3 id="debugging-techniques">Debugging Techniques</h3>
+<p>Debugging Decimal.js code often involves careful examination of inputs and outputs. Key debugging techniques include:</p>
+<ul>
+<li><p><strong>Console Logging:</strong> Use <code>console.log</code> to print the values of Decimal objects at different stages of your calculations. Pay close attention to the string representations of the Decimal objects (<code>toString()</code>) to ensure they reflect the expected values and precision.</p></li>
+<li><p><strong>Inspecting Intermediate Results:</strong> Break down complex calculations into smaller, more manageable steps. Log the intermediate results to identify where errors might be occurring.</p></li>
+<li><p><strong>Using a Debugger:</strong> Utilize your browser’s developer tools or a dedicated debugger to step through your code, inspect variables, and understand the flow of execution. This is particularly helpful when dealing with nested calculations or complex logic.</p></li>
+<li><p><strong>Testing with Known Values:</strong> Create unit tests with known inputs and expected outputs to verify the accuracy of your Decimal.js calculations. This helps identify unexpected behavior or inaccuracies.</p></li>
+<li><p><strong>Checking Precision:</strong> Ensure that the configured precision is adequate for your application’s needs. Insufficient precision can lead to rounding errors that might not be immediately apparent.</p></li>
+</ul>
+<h3 id="best-practices-for-error-prevention">Best Practices for Error Prevention</h3>
+<p>To prevent errors and ensure accuracy:</p>
+<ul>
+<li><p><strong>Use String Inputs:</strong> Whenever possible, provide Decimal.js with string representations of numbers. This avoids potential floating-point inaccuracies during parsing.</p></li>
+<li><p><strong>Check Inputs:</strong> Validate inputs before passing them to Decimal.js methods. This includes checking for null, undefined, or non-numeric values.</p></li>
+<li><p><strong>Handle Exceptions:</strong> Always wrap Decimal.js operations in <code>try...catch</code> blocks to handle potential exceptions.</p></li>
+<li><p><strong>Set Appropriate Precision:</strong> Configure the precision of Decimal.js to meet the accuracy requirements of your application. Higher precision improves accuracy but may affect performance.</p></li>
+<li><p><strong>Modular Code:</strong> Break down complex calculations into smaller, well-defined functions to improve readability, testability, and maintainability.</p></li>
+<li><p><strong>Unit Testing:</strong> Write comprehensive unit tests to validate your Decimal.js code. This helps detect errors early and ensures accuracy over time.</p></li>
+<li><p><strong>Consult Documentation:</strong> Familiarize yourself with the Decimal.js documentation to understand the functions, their limitations, and potential error scenarios.</p></li>
+</ul>
+<p>By adhering to these best practices, you can significantly reduce errors and build robust applications using Decimal.js.</p>
+<h2 id="performance-considerations">Performance Considerations</h2>
+<p>Decimal.js provides accurate decimal arithmetic, but its operations are generally slower than native JavaScript <code>Number</code> operations due to the overhead of arbitrary-precision calculations. Understanding performance considerations is crucial for building efficient applications.</p>
+<h3 id="optimizing-decimal-operations">Optimizing Decimal Operations</h3>
+<p>Several strategies can help optimize Decimal.js operations:</p>
+<ul>
+<li><p><strong>Minimize Object Creation:</strong> Creating Decimal objects repeatedly can impact performance. Reuse existing Decimal objects whenever possible, especially within loops.</p></li>
+<li><p><strong>Avoid Unnecessary Operations:</strong> Carefully review your calculations to eliminate redundant or unnecessary operations.</p></li>
+<li><p><strong>Batch Operations:</strong> If possible, group multiple operations into a single sequence rather than performing them individually. Some operations, like chained additions or multiplications, can be optimized internally.</p></li>
+<li><p><strong>Use efficient methods:</strong> Utilize the most efficient method for the task. For instance, <code>add</code> and <code>plus</code> do the same operation, but direct use of <code>add</code> might offer a slight performance advantage in some contexts. Check the documentation for nuanced differences.</p></li>
+<li><p><strong>Pre-allocate memory:</strong> In scenarios involving large arrays or collections of decimals, consider pre-allocating arrays to avoid repeated dynamic memory allocations. This is especially relevant for large-scale computations.</p></li>
+<li><p><strong>Leverage efficient data structures:</strong> Using appropriate data structures for large datasets (like typed arrays, if applicable) might help minimize memory overhead and potentially improve performance.</p></li>
+<li><p><strong>Consider alternative libraries:</strong> If performance is exceptionally critical and the precision requirements are not overly stringent, consider exploring other libraries offering faster decimal arithmetic (although usually with trade-offs in precision).</p></li>
+</ul>
+<div class="sourceCode" id="cb24"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Inefficient (repeated object creation)</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> sum <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="dv">0</span>)<span class="op">;</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (<span class="kw">let</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> <span class="dv">100000</span><span class="op">;</span> i<span class="op">++</span>) {</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  sum <span class="op">=</span> sum<span class="op">.</span><span class="fu">plus</span>(<span class="kw">new</span> <span class="fu">Decimal</span>(i))<span class="op">;</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a><span class="co">// More efficient (reusing object)</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> efficientSum <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="dv">0</span>)<span class="op">;</span></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (<span class="kw">let</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> <span class="dv">100000</span><span class="op">;</span> i<span class="op">++</span>) {</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>  efficientSum<span class="op">.</span><span class="fu">add</span>(i)<span class="op">;</span> <span class="co">//Using add directly</span></span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>The second example is more efficient as it avoids repeatedly creating new Decimal objects.</p>
+<h3 id="benchmarking-and-tuning">Benchmarking and Tuning</h3>
+<p>To measure and tune the performance of your Decimal.js code:</p>
+<ul>
+<li><p><strong>Use Benchmarking Tools:</strong> Employ benchmarking libraries like <code>benchmark.js</code> to measure the execution time of different code sections and compare optimization strategies.</p></li>
+<li><p><strong>Profile Your Code:</strong> Utilize browser profiling tools to identify performance bottlenecks within your Decimal.js code.</p></li>
+<li><p><strong>Iterative Optimization:</strong> Apply optimizations iteratively, measuring the performance impact of each change using benchmarking tools. This ensures you are focusing on the most significant performance improvements.</p></li>
+<li><p><strong>Analyze Results:</strong> Carefully analyze benchmarking results to understand the trade-offs between different optimization techniques.</p></li>
+</ul>
+<h3 id="strategies-for-large-scale-computations">Strategies for Large-Scale Computations</h3>
+<p>For large-scale computations with Decimal.js:</p>
+<ul>
+<li><p><strong>Parallel Processing:</strong> Consider using Web Workers to perform calculations in parallel, improving performance, especially on multi-core processors.</p></li>
+<li><p><strong>Asynchronous Operations:</strong> For tasks that do not require immediate results, use asynchronous operations to prevent blocking the main thread.</p></li>
+<li><p><strong>Data Chunking:</strong> Break down large datasets into smaller chunks to process them in batches. This can improve memory management and avoid excessive memory allocation.</p></li>
+<li><p><strong>Specialized Algorithms:</strong> If applicable, explore specialized algorithms designed for high-precision calculations that might offer better performance than naive implementations.</p></li>
+<li><p><strong>Caching:</strong> If calculations involve repeated operations on the same data, caching intermediate results can significantly reduce computational time.</p></li>
+</ul>
+<p>Remember that the choice of optimization strategies will depend heavily on the specific nature of your large-scale computation and the acceptable level of performance trade-offs. Profiling and benchmarking are essential for identifying the most effective optimizations.</p>
+<h2 id="api-reference">API Reference</h2>
+<p>This section provides a comprehensive reference to the Decimal.js API. Due to the extensive nature of the API, providing a completely detailed explanation of <em>every</em> method and property within this response is impractical. This overview will cover the key aspects and provide examples, encouraging you to consult the official Decimal.js documentation for the most complete and up-to-date information.</p>
+<h3 id="constructor-and-methods">Constructor and Methods</h3>
+<p>The core of Decimal.js is its constructor, <code>Decimal()</code>, and its numerous methods. The constructor creates a new Decimal object:</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> myDecimal <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'123.45'</span>)<span class="op">;</span></span></code></pre></div>
+<p>Numerous methods are available for arithmetic operations (<code>plus</code>, <code>minus</code>, <code>times</code>, <code>dividedBy</code>, <code>modulo</code>), comparison (<code>equals</code>, <code>greaterThan</code>, <code>lessThan</code>, etc.), mathematical functions (<code>sin</code>, <code>cos</code>, <code>sqrt</code>, <code>ln</code>, etc.), rounding and formatting (<code>toDecimalPlaces</code>, <code>toPrecision</code>, <code>toFixed</code>, <code>toString</code>), and more. These methods are chainable for improved readability and conciseness:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> result <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'10'</span>)<span class="op">.</span><span class="fu">plus</span>(<span class="dv">5</span>)<span class="op">.</span><span class="fu">times</span>(<span class="dv">2</span>)<span class="op">.</span><span class="fu">toDecimalPlaces</span>(<span class="dv">2</span>)<span class="op">;</span></span></code></pre></div>
+<h3 id="properties-and-attributes">Properties and Attributes</h3>
+<p>Decimal.js offers several properties, primarily for configuration and accessing internal information. Note that directly manipulating internal properties is generally discouraged and should be avoided unless you have a deep understanding of the library’s internal workings. Key properties include:</p>
+<ul>
+<li><code>Decimal.precision</code>: Gets or sets the global precision.</li>
+<li><code>Decimal.rounding</code>: Gets or sets the global rounding mode.</li>
+<li><code>Decimal.crypto</code>: Gets or sets whether to use a cryptographically secure random number generator.</li>
+</ul>
+<p>These properties are typically managed using the <code>Decimal.set()</code> method for configuration:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>Decimal<span class="op">.</span><span class="fu">set</span>({ <span class="dt">precision</span><span class="op">:</span> <span class="dv">10</span><span class="op">,</span> <span class="dt">rounding</span><span class="op">:</span> Decimal<span class="op">.</span><span class="at">ROUND_HALF_UP</span> })<span class="op">;</span></span></code></pre></div>
+<h3 id="detailed-explanation-of-each-method">Detailed Explanation of Each Method</h3>
+<p>A comprehensive explanation of <em>every</em> method would be too extensive for this context. The official Decimal.js documentation is the definitive source for detailed explanations. However, we can briefly touch on some key method categories:</p>
+<ul>
+<li><p><strong>Arithmetic:</strong> <code>plus</code>, <code>minus</code>, <code>times</code>, <code>dividedBy</code>, <code>modulo</code>, <code>pow</code> (exponentiation). These methods perform standard arithmetic operations with high precision.</p></li>
+<li><p><strong>Comparison:</strong> <code>equals</code>, <code>comparedTo</code>, <code>greaterThan</code>, <code>lessThan</code>, <code>greaterThanOrEqualTo</code>, <code>lessThanOrEqualTo</code>. These methods facilitate comparing Decimal objects.</p></li>
+<li><p><strong>Mathematical:</strong> <code>sin</code>, <code>cos</code>, <code>tan</code>, <code>asin</code>, <code>acos</code>, <code>atan</code>, <code>exp</code>, <code>ln</code>, <code>log</code>, <code>sqrt</code>, <code>abs</code>, and hyperbolic functions. These provide advanced mathematical capabilities.</p></li>
+<li><p><strong>Rounding &amp; Formatting:</strong> <code>toDecimalPlaces</code>, <code>toPrecision</code>, <code>toFixed</code>, <code>toString</code>. These control how the Decimal object is represented. Different rounding modes are available (<code>ROUND_UP</code>, <code>ROUND_DOWN</code>, <code>ROUND_HALF_UP</code>, <code>ROUND_HALF_EVEN</code>, etc.) and should be chosen appropriately.</p></li>
+<li><p><strong>Other Utility Methods:</strong> Decimal.js offers other helpful methods like <code>isFinite</code>, <code>isNaN</code>, <code>isZero</code>, and several utility functions.</p></li>
+</ul>
+<h3 id="examples-of-each-method">Examples of Each Method</h3>
+<p>Providing an example for every method would be excessively long. Instead, let’s illustrate a few important ones:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Arithmetic</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> sum <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'2.5'</span>)<span class="op">.</span><span class="fu">plus</span>(<span class="st">'3.7'</span>)<span class="op">;</span>         <span class="co">//Addition - Output: 6.2</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> diff <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="dv">10</span>)<span class="op">.</span><span class="fu">minus</span>(<span class="dv">3</span>)<span class="op">;</span>             <span class="co">//Subtraction - Output: 7</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> prod <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="dv">4</span>)<span class="op">.</span><span class="fu">times</span>(<span class="dv">5</span>)<span class="op">;</span>               <span class="co">//Multiplication - Output: 20</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> div <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="dv">10</span>)<span class="op">.</span><span class="fu">dividedBy</span>(<span class="dv">3</span>)<span class="op">;</span>           <span class="co">//Division - Output: 3.3333333333333335 (Precision Dependent)</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> mod <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="dv">17</span>)<span class="op">.</span><span class="fu">modulo</span>(<span class="dv">5</span>)<span class="op">;</span>              <span class="co">//Modulo - Output: 2</span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> pow <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="dv">2</span>)<span class="op">.</span><span class="fu">pow</span>(<span class="dv">3</span>)<span class="op">;</span>                   <span class="co">//Power - Output: 8</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a><span class="co">//Comparison</span></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> isEqual <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'1.00'</span>)<span class="op">.</span><span class="fu">equals</span>(<span class="st">'1'</span>)<span class="op">;</span>    <span class="co">//Equality - Output: true</span></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> greater <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="dv">5</span>)<span class="op">.</span><span class="fu">greaterThan</span>(<span class="dv">3</span>)<span class="op">;</span>      <span class="co">//GreaterThan - Output: true</span></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a><span class="co">//Rounding and Formatting</span></span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> rounded <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'12.3456'</span>)<span class="op">.</span><span class="fu">toDecimalPlaces</span>(<span class="dv">2</span>)<span class="op">;</span> <span class="co">//Output: 12.35</span></span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> precise <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'1234567'</span>)<span class="op">.</span><span class="fu">toPrecision</span>(<span class="dv">3</span>)<span class="op">;</span>   <span class="co">//Output: 1.23e+6</span></span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> formatted <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'12.34'</span>)<span class="op">.</span><span class="fu">toFixed</span>(<span class="dv">1</span>)<span class="op">;</span>      <span class="co">//Output: 12.3</span></span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a><span class="co">//Mathematical function</span></span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> sqrtResult <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="dv">16</span>)<span class="op">.</span><span class="fu">sqrt</span>()<span class="op">;</span>             <span class="co">//Output: 4</span></span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> lnResult <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="bu">Math</span><span class="op">.</span><span class="cn">E</span>)<span class="op">.</span><span class="fu">ln</span>()<span class="op">;</span>            <span class="co">//Output: 1</span></span></code></pre></div>
+<p>Refer to the official Decimal.js documentation for exhaustive method listings, detailed explanations, and further examples. Remember to install the library (<code>npm install decimal.js</code>) before running these code snippets.</p>
+<h2 id="examples-and-use-cases">Examples and Use Cases</h2>
+<p>Decimal.js excels in scenarios where precise decimal arithmetic is crucial, avoiding the pitfalls of JavaScript’s native floating-point numbers. Here are some compelling use cases:</p>
+<h3 id="financial-calculations">Financial Calculations</h3>
+<p>Financial applications demand utmost accuracy. Even small rounding errors can accumulate and lead to significant discrepancies in balances, interest calculations, or currency conversions. Decimal.js provides a robust solution:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Calculating compound interest</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> principal <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'1000'</span>)<span class="op">;</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> rate <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'0.05'</span>)<span class="op">;</span> <span class="co">// 5% interest rate</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> years <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'5'</span>)<span class="op">;</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> interest <span class="op">=</span> principal<span class="op">.</span><span class="fu">times</span>(rate<span class="op">.</span><span class="fu">times</span>(years))<span class="op">;</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> totalAmount <span class="op">=</span> principal<span class="op">.</span><span class="fu">plus</span>(interest)<span class="op">;</span></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">"Total amount after 5 years:"</span><span class="op">,</span> totalAmount<span class="op">.</span><span class="fu">toFixed</span>(<span class="dv">2</span>))<span class="op">;</span> <span class="co">//Output: 1250.00</span></span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a><span class="co">//Currency Conversion with precise exchange rates.</span></span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> amountInUSD <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'100'</span>)<span class="op">;</span></span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> exchangeRate <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'0.85'</span>)<span class="op">;</span> <span class="co">//USD to EUR</span></span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> amountInEUR <span class="op">=</span> amountInUSD<span class="op">.</span><span class="fu">times</span>(exchangeRate)<span class="op">;</span></span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">"Amount in EUR:"</span><span class="op">,</span> amountInEUR<span class="op">.</span><span class="fu">toFixed</span>(<span class="dv">2</span>))<span class="op">;</span> <span class="co">//Output: 85.00</span></span></code></pre></div>
+<p>This example demonstrates how Decimal.js ensures precise interest calculations and currency conversions, preventing accumulated rounding errors.</p>
+<h3 id="scientific-computations">Scientific Computations</h3>
+<p>Scientific computations frequently involve very small or very large numbers, where the limitations of floating-point arithmetic become apparent. Decimal.js enables accurate results even with extreme values:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Calculating Avogadro's number multiplied by a small factor:</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> avogadro <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'6.02214076e+23'</span>)<span class="op">;</span> <span class="co">// Avogadro's number</span></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> smallFactor <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'1e-10'</span>)<span class="op">;</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> result <span class="op">=</span> avogadro<span class="op">.</span><span class="fu">times</span>(smallFactor)<span class="op">;</span></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">"Result:"</span><span class="op">,</span> result<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">//Output will be precise</span></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a><span class="co">// Handling very small numbers in calculations involving exponents</span></span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> smallNumber <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'1e-20'</span>)<span class="op">;</span></span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> exponent <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="dv">10</span>)<span class="op">;</span></span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> poweredResult <span class="op">=</span> smallNumber<span class="op">.</span><span class="fu">pow</span>(exponent)<span class="op">;</span></span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">"Powered result:"</span><span class="op">,</span> poweredResult<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">//Output will maintain precision</span></span></code></pre></div>
+<p>In this example, Decimal.js precisely handles Avogadro’s number and a small factor without losing significant figures, a common issue with native floating point numbers.</p>
+<h3 id="cryptocurrency-applications">Cryptocurrency Applications</h3>
+<p>Cryptocurrency transactions involve precise amounts of digital assets. Decimal.js is invaluable for accurate calculations of balances, transaction fees, and exchanges:</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Calculating transaction fees:</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> transactionAmount <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'1.23456789'</span>)<span class="op">;</span> <span class="co">//BTC</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> feeRate <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'0.001'</span>)<span class="op">;</span> <span class="co">// 0.1% fee</span></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> transactionFee <span class="op">=</span> transactionAmount<span class="op">.</span><span class="fu">times</span>(feeRate)<span class="op">;</span></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">"Transaction fee:"</span><span class="op">,</span> transactionFee<span class="op">.</span><span class="fu">toFixed</span>(<span class="dv">8</span>))<span class="op">;</span> <span class="co">//Output will be precise to 8 decimal places</span></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a><span class="co">//Exchange calculations using precise exchange rate</span></span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> btcAmount <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'0.1'</span>)<span class="op">;</span></span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> ethExchangeRate <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'1600'</span>)<span class="op">;</span> <span class="co">//BTC to ETH</span></span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> ethAmount <span class="op">=</span> btcAmount<span class="op">.</span><span class="fu">times</span>(ethExchangeRate)<span class="op">;</span></span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">"ETH amount:"</span><span class="op">,</span> ethAmount<span class="op">.</span><span class="fu">toString</span>())<span class="op">;</span> <span class="co">//Output maintains precision</span></span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a></span></code></pre></div>
+<p>This example showcases how to accurately calculate transaction fees and handle cryptocurrency exchanges using Decimal.js, preserving the necessary level of precision for cryptocurrency transactions.</p>
+<h3 id="data-analysis">Data Analysis</h3>
+<p>Data analysis frequently involves calculations with decimal numbers, especially when dealing with financial, statistical, or scientific data. Maintaining accuracy is crucial for reliable results:</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Decimal <span class="im">from</span> <span class="st">'decimal.js'</span><span class="op">;</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="co">//Calculating the average of a set of decimal values:</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> values <span class="op">=</span> [<span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'1.2'</span>)<span class="op">,</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'2.5'</span>)<span class="op">,</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'3.7'</span>)<span class="op">,</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="st">'4.1'</span>)]<span class="op">;</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> sum <span class="op">=</span> <span class="kw">new</span> <span class="fu">Decimal</span>(<span class="dv">0</span>)<span class="op">;</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (<span class="kw">const</span> val <span class="kw">of</span> values) {</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>    sum <span class="op">=</span> sum<span class="op">.</span><span class="fu">plus</span>(val)<span class="op">;</span></span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> average <span class="op">=</span> sum<span class="op">.</span><span class="fu">dividedBy</span>(values<span class="op">.</span><span class="at">length</span>)<span class="op">;</span></span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">"Average:"</span><span class="op">,</span> average<span class="op">.</span><span class="fu">toFixed</span>(<span class="dv">2</span>))<span class="op">;</span> <span class="co">//Output: 2.88</span></span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a><span class="co">//Calculating Standard Deviation of a set of decimal values:  (requires additional helper functions beyond the scope of this example, but Decimal.js would be essential for accurate intermediate calculations)</span></span></code></pre></div>
+<p>Decimal.js ensures that aggregations like averages and statistical computations are performed with high accuracy, yielding reliable analytical results. While the standard deviation example is not fully elaborated here for brevity, it highlights the usefulness of the library in more complex data analysis tasks. You would use Decimal.js for precise calculations within the standard deviation formula.</p>
+<h2 id="contributing-to-decimal.js">Contributing to Decimal.js</h2>
+<p>Contributions to Decimal.js are welcome! This section outlines the process for contributing to the project.</p>
+<h3 id="development-setup">Development Setup</h3>
+<ol type="1">
+<li><p><strong>Fork the Repository:</strong> Fork the official Decimal.js repository on GitHub to your personal account.</p></li>
+<li><p><strong>Clone Your Fork:</strong> Clone your forked repository to your local machine:</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone git@github.com:<span class="op">&lt;</span>your-username<span class="op">&gt;</span>/decimal.js.git</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> decimal.js</span></code></pre></div></li>
+<li><p><strong>Install Dependencies:</strong> Install the necessary dependencies using npm or yarn:</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> install</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="co"># or</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="ex">yarn</span> install</span></code></pre></div></li>
+<li><p><strong>Set up Testing:</strong> Decimal.js uses a comprehensive test suite. Ensure the tests run correctly before making any changes. Run the tests using:</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> test</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="co"># or</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="ex">yarn</span> test</span></code></pre></div></li>
+</ol>
+<h3 id="coding-standards">Coding Standards</h3>
+<p>Decimal.js follows specific coding standards to ensure consistency and readability. Key aspects include:</p>
+<ul>
+<li><p><strong>Consistent Indentation:</strong> Use two spaces for indentation.</p></li>
+<li><p><strong>Meaningful Variable Names:</strong> Use descriptive variable names that clearly indicate their purpose.</p></li>
+<li><p><strong>Comments:</strong> Add clear and concise comments to explain complex logic or non-obvious code sections.</p></li>
+<li><p><strong>Code Style:</strong> Adhere to a consistent coding style (the existing codebase serves as a good guide).</p></li>
+<li><p><strong>ES6+ Features:</strong> Use modern JavaScript features (ES6+ and beyond where appropriate).</p></li>
+</ul>
+<p>Before submitting a pull request, ensure your code conforms to these standards. You can use linters like ESLint to help enforce the style guide automatically.</p>
+<h3 id="testing-and-quality-assurance">Testing and Quality Assurance</h3>
+<p>Decimal.js has a thorough test suite. Before submitting any changes, ensure that all existing tests pass and that you’ve added new tests to cover your changes. Thorough testing is essential to maintain the library’s accuracy and reliability. The test suite uses tools like Jasmine and Karma. Familiarize yourself with the testing process to effectively contribute.</p>
+<h3 id="submitting-pull-requests">Submitting Pull Requests</h3>
+<ol type="1">
+<li><p><strong>Create a Branch:</strong> Create a new branch for your changes from the <code>main</code> or <code>master</code> branch (depending on the repository’s main branch):</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> checkout <span class="at">-b</span> <span class="op">&lt;</span>your-branch-name<span class="op">&gt;</span></span></code></pre></div></li>
+<li><p><strong>Make Your Changes:</strong> Implement your changes, adhering to the coding standards and adding comprehensive tests.</p></li>
+<li><p><strong>Commit Your Changes:</strong> Commit your changes with clear and concise commit messages:</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> add .</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Your descriptive commit message"</span></span></code></pre></div></li>
+<li><p><strong>Push Your Branch:</strong> Push your branch to your forked repository:</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push origin <span class="op">&lt;</span>your-branch-name<span class="op">&gt;</span></span></code></pre></div></li>
+<li><p><strong>Open a Pull Request:</strong> On GitHub, open a pull request from your branch to the main branch of the official Decimal.js repository. Provide a clear description of your changes and address any feedback from the maintainers.</p></li>
+</ol>
+<p>Remember to follow the contribution guidelines provided in the official Decimal.js repository. The maintainers will review your pull request and provide feedback. Be prepared to address any comments or suggested improvements before your contribution is merged.</p>
+
+
+<script async="" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3609399560636561" crossorigin="anonymous"></script>
+
+
+
+
+</body></html>

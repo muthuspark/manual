@@ -1,0 +1,443 @@
+---
+title: "css3-mediaqueries.js - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction
+
+### What is css3-mediaqueries.js?
+
+`css3-mediaqueries.js` is a JavaScript library that provides a consistent and reliable way to handle CSS3 media queries across different browsers and devices.  It allows developers to detect and respond to changes in the browser viewport, device orientation, and other media features, even in browsers that don't fully support native CSS3 media query functionality.  Essentially, it acts as a polyfill, bridging the gap between modern media query support and older browsers.  The library offers a simple API to register callbacks that are executed when specific media queries match or unmatch.
+
+### Why use css3-mediaqueries.js?
+
+Using `css3-mediaqueries.js` offers several key advantages:
+
+* **Cross-browser compatibility:** Ensures consistent behavior across a wide range of browsers, including older ones that lack full CSS3 media query support. This guarantees your responsive design works as intended on a broader audience.
+* **Simplified implementation:** Provides a clean and easy-to-use JavaScript API, simplifying the process of handling media query events compared to writing custom browser-specific solutions.
+* **Improved performance:**  While it adds a layer of JavaScript, efficient implementation in the library minimizes performance overhead.  It avoids unnecessary recalculations and only triggers events when necessary.
+* **Maintainability:**  Using a dedicated library reduces code complexity and makes maintenance significantly easier, especially in larger projects.
+
+### Browser Compatibility
+
+While `css3-mediaqueries.js` aims to provide backward compatibility, it's crucial to understand that its primary purpose is to *enhance* support, not replace it completely.  Browsers with robust native CSS3 media query support will leverage those features preferentially; the library will only step in where native support is lacking or incomplete.  Therefore, it's generally recommended to style your pages with CSS media queries as the primary method, and use `css3-mediaqueries.js` to handle the remaining edge cases for older browsers.  The library itself is designed to be lightweight and should work in most modern and legacy browsers.  However, exceptionally old or uncommon browsers may still experience issues.
+
+### Installation and Setup
+
+The most common method of installation is via a package manager like npm or yarn:
+
+```bash
+npm install css3-mediaqueries
+# or
+yarn add css3-mediaqueries
+```
+
+After installation, you can include it in your project using a `<script>` tag:
+
+```html
+<script src="node_modules/css3-mediaqueries/css3-mediaqueries.js"></script>  
+```
+
+Alternatively, if you downloaded the library directly, include the appropriate `.js` file path.  After including the script, you can utilize the library's API to register and manage your media queries (refer to the API documentation for detailed usage instructions).  Remember to place the `<script>` tag either at the end of the `<body>` or within a `DOMContentLoaded` event listener to ensure the DOM is fully loaded before the library is used.
+
+
+## Core Functionality
+
+### Matching Media Queries
+
+`css3-mediaqueries.js` allows you to check if a given media query matches the current environment.  This is done using the `matchMedia` function, which takes a media query string as an argument and returns a `MediaQueryList` object.  This object has a `matches` property that's a boolean indicating whether the query currently matches.  Here's an example:
+
+```javascript
+const query = window.matchMedia('(min-width: 768px)');
+if (query.matches) {
+  // Apply styles for larger screens
+  console.log("Large screen detected!");
+} else {
+  // Apply styles for smaller screens
+  console.log("Small screen detected!");
+}
+
+// Listen for changes
+query.addListener(function(mql) {
+  if (mql.matches) {
+    // Styles to be applied when query matches.
+    console.log('Screen size changed to large.');
+  } else {
+    // Styles to be applied when query doesn't match
+    console.log('Screen size changed to small.');
+  }
+});
+```
+
+Note that while the example shows using `window.matchMedia`, `css3-mediaqueries.js` enhances this functionality for older browsers.
+
+### Adding and Removing Styles
+
+The library doesn't directly handle adding and removing CSS styles. It provides the mechanism to detect when a media query matches or unmatches. You'll need to use standard DOM manipulation techniques (e.g., `classList.add`, `classList.remove`, or direct style manipulation) to apply and remove styles based on the results of media query matching.
+
+
+```javascript
+const query = window.matchMedia('(max-width: 600px)');
+
+function handleQueryChange(mql) {
+  const element = document.getElementById('myElement');
+  if (mql.matches) {
+    element.classList.add('small-screen');
+    element.classList.remove('large-screen');
+  } else {
+    element.classList.remove('small-screen');
+    element.classList.add('large-screen');
+  }
+}
+
+query.addListener(handleQueryChange);
+handleQueryChange(query); //Initial check
+```
+
+This example adds/removes classes based on the match; you'd define the CSS rules for `.small-screen` and `.large-screen` separately.
+
+### Event Handling
+
+The primary mechanism for handling media query changes is through the `addListener` method of the `MediaQueryList` object.  This method takes a callback function as an argument.  The callback is executed whenever the match state of the media query changes (e.g., the user resizes the browser window, changes device orientation).  The callback receives a `MediaQueryList` object as its argument, which contains the updated `matches` property.  The `removeListener` method is used to remove previously added listeners.
+
+
+### Working with Different Media Types
+
+`css3-mediaqueries.js` supports all standard CSS media types and features. You can use any valid media query string in the `matchMedia` function, including those targeting print, screen, speech, etc., and those incorporating features like `min-width`, `max-height`, `orientation`, `resolution`, and more.  The library ensures consistent handling across browsers, allowing seamless interaction with different media types.  For example:
+
+```javascript
+const printQuery = window.matchMedia('print');
+if (printQuery.matches) {
+  // Apply styles specifically for print
+}
+```
+
+
+### Handling Multiple Queries
+
+You can use multiple `matchMedia` calls to handle several media queries simultaneously. Each call will return a separate `MediaQueryList` object, allowing independent event handling and state management for each query.  Remember to add appropriate listeners for each query to respond to changes correctly.
+
+```javascript
+const query1 = window.matchMedia('(min-width: 768px)');
+const query2 = window.matchMedia('(orientation: landscape)');
+
+query1.addListener(handleQuery1Change);
+query2.addListener(handleQuery2Change);
+
+function handleQuery1Change(mql){
+    //handle changes for query1
+}
+
+function handleQuery2Change(mql){
+    //handle changes for query2
+}
+
+```
+This allows for complex responsive design scenarios where behavior depends on multiple environmental factors.
+
+
+## Advanced Usage
+
+### Custom Query Functions
+
+While `css3-mediaqueries.js` primarily uses standard media query strings, you can enhance its functionality by creating custom query functions that perform more complex checks or integrate with other parts of your application.  These custom functions would internally use the `matchMedia` functionality of the library or its underlying browser support to determine the match state. For instance, you might create a function that checks for both screen size and device type:
+
+
+```javascript
+function isLargeTabletLandscape() {
+  const widthQuery = window.matchMedia('(min-width: 1024px)');
+  const orientationQuery = window.matchMedia('(orientation: landscape)');
+  return widthQuery.matches && orientationQuery.matches;
+}
+
+
+if (isLargeTabletLandscape()) {
+  // Apply styles for large tablet in landscape mode.
+}
+```
+
+This function leverages the core `matchMedia` functionality but encapsulates a more specific condition.
+
+
+### Asynchronous Operations
+
+Media query matching is typically a synchronous operation; however, if you need to perform asynchronous tasks based on media query changes, you should structure your code appropriately using Promises or async/await to ensure proper sequencing.  For example:
+
+```javascript
+async function handleQueryChange(mql) {
+    if (mql.matches) {
+        try{
+            const data = await fetch('/api/data'); // Example asynchronous operation
+            // Process the data
+        } catch(error) {
+            console.error("Error fetching data:", error);
+        }
+    } else {
+        // Handle the case where the query doesn't match.
+    }
+}
+
+const query = window.matchMedia('(min-width: 1200px)');
+query.addListener(handleQueryChange);
+```
+
+
+### Integration with Other Libraries
+
+`css3-mediaqueries.js` is designed to work alongside other JavaScript libraries.  There are no inherent conflicts.  Ensure your inclusion order is correct (avoiding conflicts if other libraries modify the `window.matchMedia` function), and you can use the results from this library to inform the behavior of other parts of your application.  For example, you could use this library to detect screen size and then dynamically load components from a framework like React or Vue based on the media query results.
+
+### Performance Optimization
+
+For optimal performance:
+
+* **Minimize listener usage:** Don't add unnecessary listeners.  Only attach listeners to the queries that directly affect your application's behavior.
+* **Efficient callbacks:** Keep your callback functions concise and performant. Avoid computationally intensive tasks within the listener.  If necessary, defer heavy processing to a separate function.
+* **Debouncing/throttling:** If rapid changes (like during rapid resizing) trigger your callbacks, consider implementing debouncing or throttling techniques to reduce the frequency of updates. This will prevent unnecessary DOM manipulations or other potentially expensive operations.
+
+### Debugging and Troubleshooting
+
+If you encounter problems:
+
+* **Browser console:** Check your browser's developer console for errors or warnings.  `css3-mediaqueries.js` itself is relatively simple and unlikely to throw many errors, but errors in your custom code using the library will be visible here.
+* **Media query validation:** Verify your media query strings for syntax errors.  Use browser developer tools to inspect whether the queries are actually being matched as you intend.
+* **Testing across browsers:**  Test your implementation in multiple browsers to ensure consistent behavior.  Discrepancies might indicate issues with browser-specific quirks that are not fully addressed by the polyfill.
+* **Simplified test cases:** If debugging complex interactions, try creating simplified test cases to isolate potential problems.  Start with a minimal example using a single media query to pinpoint the source of any issues.
+
+Remember to consult the library's source code or any associated unit tests for additional troubleshooting information.
+
+
+## API Reference
+
+This section details the API available within `css3-mediaqueries.js`.  Note that the exact API may vary slightly depending on the version of the library; always refer to the latest documentation for the most accurate information.  The examples below assume you've included the library in your project and have access to the `matchMedia` function.
+
+### Constructor Options
+
+The `matchMedia` function, which is the core of the library, doesn't directly have constructor options in the same way a class might.  The options are implicitly provided through the media query string itself.  The `matchMedia` function accepts a single argument:
+
+* **`mediaQueryString` (string):**  A valid CSS media query string. This string defines the conditions that must be met for the query to match. This is where you specify options like `min-width`, `max-height`, `orientation`, etc.  Any valid CSS media query string is accepted.
+
+```javascript
+const query = window.matchMedia('(min-width: 768px) and (orientation: landscape)'); //Example
+```
+
+### `addListener()` Method
+
+The `addListener()` method attaches a callback function to a `MediaQueryList` object. This callback function will be executed whenever the match state of the media query changes.
+
+* **`listener` (function):**  A callback function that takes a single argument: a `MediaQueryList` object representing the updated state of the media query.  The `MediaQueryList` object has a `matches` property (boolean) indicating whether the query currently matches.
+
+```javascript
+const query = window.matchMedia('(min-width: 500px)');
+query.addListener(function(mql) {
+  if (mql.matches) {
+    console.log('Media query now matches!');
+  } else {
+    console.log('Media query no longer matches.');
+  }
+});
+```
+
+### `removeListener()` Method
+
+The `removeListener()` method removes a previously added listener from a `MediaQueryList` object.  This is crucial for preventing memory leaks or unwanted behavior when a listener is no longer needed.
+
+* **`listener` (function):** The callback function that was previously added using `addListener()`.
+
+```javascript
+const query = window.matchMedia('(min-width: 500px)');
+const myListener = function(mql) { /* ... */ };
+query.addListener(myListener);
+// ... later, when you no longer need the listener ...
+query.removeListener(myListener);
+```
+
+### `matches` Property
+
+The `matches` property of the `MediaQueryList` object is a boolean that indicates whether the media query currently matches the browser's environment.
+
+```javascript
+const query = window.matchMedia('(max-width: 600px)');
+console.log(query.matches); // true or false
+```
+
+
+### `getMatchedStyles()` Method
+
+This method is **not** part of the standard `MediaQueryList` object.  The library itself doesn't inherently provide a method to directly fetch applied styles based on media query matches. Styles are applied through standard CSS rules using the information provided by the `matches` property. The developer needs to manage style changes manually based on the `matches` state.
+
+
+### `destroy()` Method
+
+There is no inherent `destroy()` method within the `css3-mediaqueries.js` API or the standard `MediaQueryList` object.  To cleanup, simply remove any event listeners using `removeListener()`.  The library's resources are managed automatically by the browser's garbage collection once they are no longer referenced.  This implies that once there are no more references to a `MediaQueryList` object and its associated listeners, the browser will reclaim the memory.
+
+
+
+
+## Examples
+
+These examples demonstrate how to use `css3-mediaqueries.js` in various scenarios. Remember to include the library in your HTML file before using these code snippets.
+
+### Basic Media Query Matching
+
+This example shows how to detect if the screen width is greater than 768 pixels and apply different styles accordingly.
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Basic Media Query</title>
+<style>
+.large-screen {
+  font-size: 24px;
+}
+.small-screen {
+  font-size: 16px;
+}
+</style>
+<script src="css3-mediaqueries.js"></script> </head>
+<body>
+
+<p id="myText">This is some text.</p>
+
+<script>
+  const query = window.matchMedia('(min-width: 768px)');
+
+  function handleQueryChange(mql) {
+    const textElement = document.getElementById('myText');
+    if (mql.matches) {
+      textElement.classList.add('large-screen');
+      textElement.classList.remove('small-screen');
+    } else {
+      textElement.classList.add('small-screen');
+      textElement.classList.remove('large-screen');
+    }
+  }
+
+  query.addListener(handleQueryChange);
+  handleQueryChange(query); // Initial check
+</script>
+
+</body>
+</html>
+```
+
+### Responsive Image Handling
+
+This example demonstrates how to dynamically switch between different images based on screen width.
+
+```javascript
+const query = window.matchMedia('(max-width: 600px)');
+const img = document.getElementById('myImage');
+const smallImg = 'small.jpg';
+const largeImg = 'large.jpg';
+
+function handleImageChange(mql) {
+  img.src = mql.matches ? smallImg : largeImg;
+}
+
+query.addListener(handleImageChange);
+handleImageChange(query); //Initial check
+
+```
+
+Remember to replace  `'small.jpg'` and `'large.jpg'` with the actual paths to your images and to include the image element with the id `myImage` in your HTML.
+
+
+### Dynamic Styling Based on Device Orientation
+
+This example changes the background color based on whether the device is in portrait or landscape mode.
+
+```javascript
+const query = window.matchMedia('(orientation: landscape)');
+const body = document.body;
+
+function handleOrientationChange(mql) {
+  body.style.backgroundColor = mql.matches ? 'lightblue' : 'lightcoral';
+}
+
+query.addListener(handleOrientationChange);
+handleOrientationChange(query); //Initial check
+```
+
+
+### Complex Media Query Scenarios
+
+This example combines multiple media queries to apply different styles based on screen width and resolution.
+
+```javascript
+const query1 = window.matchMedia('(min-width: 1024px)');
+const query2 = window.matchMedia('(min-resolution: 2dppx)');
+const element = document.getElementById('myElement');
+
+function handleQueryChanges() {
+  if (query1.matches && query2.matches) {
+    element.classList.add('high-res-large');
+    element.classList.remove('low-res-large', 'high-res-small', 'low-res-small');
+  } else if (query1.matches) {
+    element.classList.add('low-res-large');
+    element.classList.remove('high-res-large', 'high-res-small', 'low-res-small');
+  } else if (query2.matches) {
+    element.classList.add('high-res-small');
+    element.classList.remove('high-res-large', 'low-res-large', 'low-res-small');
+  } else {
+    element.classList.add('low-res-small');
+    element.classList.remove('high-res-large', 'low-res-large', 'high-res-small');
+  }
+}
+
+
+query1.addListener(handleQueryChanges);
+query2.addListener(handleQueryChanges);
+handleQueryChanges(); //Initial check
+
+```
+
+Remember to define the CSS classes (`high-res-large`, `low-res-large`, etc.) in your stylesheet and include an element with the ID `myElement` in your HTML.  This demonstrates a more sophisticated use case where different styles are applied based on a combination of multiple media query conditions.  Remember that the order of conditionals within the `handleQueryChanges` function determines which styles are applied if multiple queries match.
+
+
+## Contributing
+
+We welcome contributions to `css3-mediaqueries.js`!  Whether you're fixing bugs, adding features, or improving documentation, your help is valuable.  Please follow these guidelines to ensure a smooth and efficient contribution process.
+
+### Coding Style Guidelines
+
+Maintain consistency with the existing codebase.  Generally, follow these guidelines:
+
+* **Indentation:** Use 2 spaces for indentation.
+* **Line length:** Keep lines under 80 characters.
+* **Naming conventions:** Use camelCase for variables and functions.
+* **Comments:**  Write clear and concise comments to explain complex logic or non-obvious code sections.
+* **Semicolons:** Use semicolons consistently to terminate statements.
+
+
+Before submitting a pull request, ensure your code adheres to these guidelines.  You can use a linter (e.g., ESLint) to automatically check for style violations.
+
+### Testing Procedures
+
+Thorough testing is crucial.  Before submitting any code changes, run the existing test suite to ensure your modifications don't introduce regressions.  The test suite likely uses a testing framework (e.g., Jest, Mocha) and may involve unit tests to check individual functions and integration tests to verify that different parts of the library work together correctly.  The project should have clear instructions on how to run the tests (often in a `README.md` file).  If adding new features or fixing bugs, write new tests to cover the changes you've made.  Aim for high test coverage.
+
+### Submitting Pull Requests
+
+1. **Fork the repository:** Create a fork of the `css3-mediaqueries.js` repository on GitHub.
+2. **Create a branch:** Create a new branch for your changes. Use descriptive branch names (e.g., `fix-bug-123`, `feature-new-query-type`).
+3. **Make your changes:** Implement your changes, following the coding style guidelines and writing tests.
+4. **Commit your changes:** Commit your changes with clear and concise commit messages.  Explain what you've changed and why.
+5. **Push your branch:** Push your branch to your forked repository.
+6. **Create a pull request:** Create a pull request from your branch to the main branch of the original repository.  Provide a detailed description of your changes and address any comments or suggestions from the maintainers.
+
+Your pull request will be reviewed by the project maintainers.  Be prepared to address any feedback or make necessary revisions.
+
+
+### Reporting Bugs
+
+If you discover a bug in `css3-mediaqueries.js`, please report it by creating a new issue on the GitHub repository.  Provide the following information:
+
+* **Clear title:** Summarize the issue in the title.
+* **Detailed description:** Describe the bug clearly and concisely.  Include steps to reproduce the problem and any relevant error messages.
+* **Browser and version:** Specify the browser and version you're using.
+* **Operating system:** Indicate the operating system you're using.
+* **Library version:** Specify the version of `css3-mediaqueries.js` you are using.
+* **Code snippet:** If possible, include a minimal, reproducible code snippet that demonstrates the bug.
+
+
+The more information you provide, the easier it will be to diagnose and fix the bug.  You can also attach screenshots or screen recordings if that helps clarify the issue.
+

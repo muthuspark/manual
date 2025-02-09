@@ -1,0 +1,682 @@
+---
+title: "Shepherd - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction to Shepherd
+
+### What is Shepherd?
+
+Shepherd is a JavaScript library for creating interactive, guided tours and onboarding experiences for your web applications.  It allows you to easily highlight specific elements on your page and provide context-sensitive instructions to guide users through your application's features. Shepherd offers a simple, yet powerful API for creating tours with various customization options, enabling developers to build engaging and effective onboarding flows.  It's designed to be lightweight and unobtrusive, seamlessly integrating into existing projects without impacting performance.
+
+
+### Key Features and Benefits
+
+* **Intuitive API:** Shepherd provides a clean and easy-to-use API, making it simple to create complex tours with minimal code.
+* **Customizable Steps:**  Each step in your tour can be highly customized, allowing you to control the content, position, and appearance of each element.  You can use Markdown for step descriptions and easily incorporate images and other media.
+* **Flexible Positioning:** Shepherd automatically positions steps intelligently around the target element, ensuring they remain visible and readable.  Manual adjustments are also possible.
+* **Multiple Step Types:** Create various types of steps, such as highlights, tooltips, or even full-screen overlays.
+* **Accessibility Focus:** Shepherd is built with accessibility in mind, ensuring your tours are usable for everyone.  Keyboard navigation and screen reader compatibility are prioritized.
+* **Lightweight and Performant:** Shepherd is designed to be lightweight, minimizing its impact on your application's performance.
+* **Extensibility:** Shepherd's architecture allows for easy extension and customization to fit your specific needs.
+
+
+### Getting Started: Installation and Setup
+
+Shepherd can be installed via npm or yarn:
+
+```bash
+npm install shepherd.js
+# or
+yarn add shepherd.js
+```
+
+Once installed, include Shepherd in your project:
+
+```javascript
+import Shepherd from 'shepherd.js';
+
+// or if using a bundler like webpack, you can import it directly
+// import Shepherd from 'shepherd.js';
+
+const tour = new Shepherd.Tour({
+  defaults: {
+    classes: 'shepherd-theme-arrows', // Add a theme to your tours
+  },
+});
+
+// Add steps here (see Example Use Cases below)
+
+tour.start();
+```
+
+Include the necessary CSS. You can either include a pre-built theme, or create your own.  Many themes are available on the [Shepherd.js website](link-to-website-here). For example, to use the default theme:
+
+
+```html
+<link rel="stylesheet" href="path/to/shepherd.css" />
+```
+
+
+Replace `"path/to/shepherd.css"` with the actual path to your CSS file.
+
+
+### Example Use Cases
+
+Here are a few examples to demonstrate Shepherd's usage:
+
+**Basic Tour:**
+
+```javascript
+const tour = new Shepherd.Tour({
+  defaultStepOptions: {
+    cancelIcon: {
+      enabled: true
+    }
+  }
+});
+
+tour.addStep({
+  id: 'welcome',
+  text: 'Welcome to our app!',
+  attachTo: { element: '.welcome-message', on: 'bottom' },
+});
+
+tour.addStep({
+  id: 'button',
+  text: 'Click this button to continue!',
+  attachTo: { element: '#next-button', on: 'bottom' },
+});
+
+tour.start();
+```
+
+**Tour with Custom Classes and Elements:**
+
+```javascript
+const tour = new Shepherd.Tour();
+
+tour.addStep({
+  id: 'custom-step',
+  text: 'This step has a custom class!',
+  attachTo: { element: '#myElement', on: 'bottom' },
+  classes: 'my-custom-class', // Add custom CSS class
+  buttons: [
+    {
+        text: 'Next',
+        action: tour.next
+    }
+  ]
+});
+
+tour.start();
+```
+
+Remember to replace placeholders like `.welcome-message` and `#next-button` with actual selectors for your elements.  Refer to the Shepherd.js documentation for more advanced features and customization options.
+
+
+## Core Concepts
+
+### Tours and Steps
+
+Shepherd organizes guided tours using two core concepts: **Tours** and **Steps**.
+
+* **Tours:** A tour represents the entire guided experience.  It's a container that holds one or more steps. You create a tour instance, add steps to it, and then start the tour to begin the guided experience. A tour can have options for overall behavior like `showCancelLink`,  `exitOnEsc`, and `scrollToStep`.
+
+* **Steps:** A step is a single unit of instruction within a tour. Each step targets a specific element on the page, providing context-sensitive information or guidance.  A step includes properties such as `id`, `text` (the content to display),  `attachTo` (specifies the element to attach to and its position relative to the element), and optional customizations like `buttons`, `classes`, and `when`.  The `when` property allows for conditional rendering of steps.
+
+The relationship is hierarchical:  a tour contains multiple steps, which are sequentially presented to the user during the tour.  Navigation between steps is usually handled automatically by Shepherd, though custom button actions allow developers full control over tour flow.
+
+
+### Shepherd Elements and Components
+
+Shepherd generates several HTML elements and components as part of its tours. Understanding these components is essential for customization and styling.  Key elements include:
+
+* **Shepherd Container:** A top-level element that houses the entire tour. This is typically a `<div>` with a class like `shepherd-container`.  This element provides the overall structure for the tour and allows you to add custom styling to affect all steps.
+
+* **Step Container:** Each step within the tour is wrapped in its own container element (usually a `<div>`).  This container has styling specific to the step's theme and contains all step content.
+
+* **Step Content:** This area holds the text, images, and other content defined in the step's options.  You can customize this by manipulating the generated markup or providing custom templates.
+
+* **Shepherd Buttons:** Buttons (e.g., "Next," "Cancel," "Back") are essential for tour navigation and are rendered as part of each step unless explicitly disabled.  Their styling and behavior can be completely customized.
+
+* **Arrow:**  Many step types utilize an arrow to visually indicate the element the step is attached to.  The arrow's position and appearance are theme-dependent.
+
+
+### Shepherd Configuration Options
+
+Shepherd offers various configuration options to customize the tour's behavior and appearance. These options can be set at the tour level (affecting all steps) or at the individual step level.  Key configuration options include:
+
+* **`defaultStepOptions`:**  Sets default options applied to all steps in the tour unless overridden by individual step options.  This is ideal for consistently applying styles or behaviors across a tour.
+
+* **`showCancelLink`:** Controls the display of a cancel link allowing users to exit the tour prematurely.
+
+* **`exitOnEsc`:**  Enables exiting the tour when the Escape key is pressed.
+
+* **`scrollToStep`:** Controls whether the page automatically scrolls to make the current step visible.
+
+* **`keyboardNavigation`:**  Allows keyboard navigation within steps and the tour.
+
+* **`classes`:**   Allows adding custom CSS classes to the tour container for global styling.
+
+
+You can customize individual steps using options such as `text`, `attachTo`, `buttons`, `classes`, `beforeShowPromise`, `afterShowPromise`, `beforeHidePromise`, and `afterHidePromise` allowing granular control over specific steps' appearance and behaviour.  These properties are documented fully in the Shepherd.js API Reference.
+
+
+### Creating Custom Shepherd Elements
+
+Shepherd allows for extensive customization, and you can create your own custom elements to extend its functionality. To create custom elements, you would typically create a new step type that utilizes a custom template and overrides default step rendering.  This involves creating a new component that extends Shepherd's base Step class, defining its template (HTML structure), and potentially defining custom methods for behavior.  This requires a deeper understanding of Shepherd's internal structure and potentially its use of React or a similar framework, depending on the chosen approach. The Shepherd documentation should provide examples and best practices for extending Shepherd with custom elements.  This is an advanced topic, and creating custom elements often requires familiarity with JavaScript frameworks and template engines.
+
+
+## Building Tours
+
+### Defining Tour Steps
+
+Defining tour steps involves creating step objects and adding them to the tour instance. Each step object requires an `id` (a unique identifier), and typically includes `text` (the content displayed in the step), and `attachTo` (specifying the target element and its relative position).  Here's an example:
+
+```javascript
+const tour = new Shepherd.Tour();
+
+tour.addStep({
+  id: 'welcome-step',
+  text: 'Welcome to our application!',
+  attachTo: { element: '#welcome-message', on: 'bottom' },
+});
+
+tour.addStep({
+  id: 'search-step',
+  text: 'Use the search bar to find what you need.',
+  attachTo: { element: '#search-bar', on: 'top' },
+});
+
+tour.start();
+```
+
+The `attachTo` property is crucial.  `element` is a CSS selector for the target element, and `on` specifies the position relative to the element (`top`, `bottom`, `left`, `right`).  Additional options within `attachTo` offer finer control over positioning (see Step Positioning and Alignment).  Remember to replace `'#welcome-message'` and `'#search-bar'` with the actual selectors for your elements.
+
+
+### Step Positioning and Alignment
+
+Precise positioning is vital for a user-friendly tour.  The `attachTo` property's `on` option determines initial placement, but Shepherd provides more control:
+
+* **`on`:** (`top`, `bottom`, `left`, `right`) Defines the position relative to the target element.
+
+* **`offset`:** An object `{ left: number, top: number }` to adjust the position further, allowing fine-tuning.  Positive values move the step away from the target.
+
+* **`element`:** The CSS selector of the target element to attach to. This can be an ID, class, or any valid CSS selector.
+
+* **`boundary`:** Optionally specify a boundary element. The step will avoid overflowing the boundary.
+
+Example with offset:
+
+```javascript
+tour.addStep({
+  id: 'offset-step',
+  text: 'This step is offset 20px to the right and 10px down.',
+  attachTo: { element: '#my-element', on: 'bottom', offset: { left: 20, top: 10 } },
+});
+```
+
+Experiment with `on` and `offset` to find the best placement for each step within your application's layout.  The `boundary` option is particularly useful for handling steps near the edges of the viewport.
+
+
+### Step Content and Customization
+
+Step content goes beyond simple text.  You can include:
+
+* **`text`:**  The main content displayed in the step.  Supports basic Markdown formatting.
+
+* **`title`:** An optional title for the step.
+
+* **`buttons`:** An array of custom buttons (see Adding Buttons and Actions).
+
+* **`template`:** A custom HTML template for the step's content.  Allows for highly-customized step designs.  This is an advanced option.
+
+* **`classes`:** Add custom CSS classes for styling.
+
+Example with title and classes:
+
+```javascript
+tour.addStep({
+  id: 'styled-step',
+  title: 'Important Information',
+  text: 'This step uses custom styling.',
+  classes: 'my-custom-step-class',
+  attachTo: { element: '#important-info', on: 'top' },
+});
+```
+
+Remember to define the CSS for `.my-custom-step-class` in your stylesheet to apply custom styling.  Using a `template` allows for the most control, creating entirely custom step layouts.
+
+
+### Adding Buttons and Actions
+
+Shepherd's default buttons ("Next," "Back," "Cancel") are customizable, and you can add your own.  The `buttons` array in a step's options allows you to define custom buttons and actions:
+
+```javascript
+tour.addStep({
+  id: 'custom-buttons',
+  text: 'This step has custom buttons!',
+  buttons: [
+    {
+      text: 'Continue',
+      action: tour.next,
+    },
+    {
+      text: 'Skip this step',
+      action: tour.show, // Or any custom function
+    },
+  ],
+  attachTo: { element: '#custom-buttons-area', on: 'bottom' },
+});
+```
+
+`action` can be any function.  Shepherd provides `tour.next`, `tour.back`, `tour.cancel`, and `tour.show` to control tour navigation.  You can also define your own custom functions to perform actions on button clicks.
+
+
+### Advanced Step Options (e.g., scroll behavior)
+
+Shepherd offers several advanced options for fine-grained control:
+
+* **`scrollTo`:** Automatically scroll the page to make the step visible.  Can be a boolean (`true` or `false`) or a custom function for more complex scrolling behaviors.
+
+* **`canClose`:**  Determines if the step can be closed by the user (e.g., clicking outside).
+
+* **`beforeShowPromise` and `afterShowPromise`:** Allow executing asynchronous operations before and after a step is shown. Useful for animations or loading data.
+
+* **`beforeHidePromise` and `afterHidePromise`:**  Similar to the `show` promises but for hiding a step.
+
+* `when`: Allows conditional step rendering based on a function returning a boolean.
+
+
+Example using `beforeShowPromise`:
+
+```javascript
+tour.addStep({
+  id: 'async-step',
+  text: 'This step loads data asynchronously.',
+  beforeShowPromise: () => {
+    return fetch('/my-data').then(response => response.json()); // Simulates async data loading
+  },
+  attachTo: { element: '#async-data', on: 'bottom' },
+});
+```
+
+These advanced options provide fine-grained control over the tour's behavior and integrate seamlessly with asynchronous operations, creating truly dynamic and engaging guided experiences.
+
+
+## Tour Navigation and Control
+
+### Back and Next Buttons
+
+Shepherd provides built-in "Back" and "Next" buttons for standard sequential tour navigation.  These buttons are automatically included in each step unless explicitly overridden using the `buttons` option.  The "Next" button advances the tour to the next step, while the "Back" button navigates to the previous step.  The behavior of these buttons is managed internally by Shepherd.  If you remove the default buttons via the `buttons` array you will need to provide your own custom buttons that call the `tour.next()` and `tour.back()` methods.
+
+### Canceling a Tour
+
+Users can cancel a Shepherd tour using the default "Cancel" button (if enabled via configuration options) or by pressing the Escape key (if `exitOnEsc` is enabled).  Programmatically, you can cancel a tour using the `tour.cancel()` method. This abruptly ends the tour, closing all open steps.
+
+To enable the cancel button you should set `showCancelLink` to `true` in the `Shepherd.Tour` options:
+
+```javascript
+const tour = new Shepherd.Tour({
+  showCancelLink: true
+});
+```
+
+### Conditional Logic and Routing
+
+Shepherd doesn't directly support conditional branching within a tour based on user actions or data. However, you can achieve conditional routing using custom logic and the `when` option in steps, combined with the `tour.show()` method to control which step is displayed next.
+
+The `when` property accepts a function. If the function returns `false`, the step is skipped. This allows you to conditionally show or hide steps based on conditions checked in your function:
+
+```javascript
+const tour = new Shepherd.Tour();
+
+tour.addStep({
+  id: 'step1',
+  when: () => someConditionIsTrue(), //Your conditional logic here
+  // ...
+});
+
+tour.addStep({
+  id: 'step2',
+  // ...
+});
+
+// Example of a function to conditionally show a step
+function someConditionIsTrue() {
+  return localStorage.getItem('hasVisitedBefore') === null;
+}
+tour.start();
+```
+
+The `tour.show(stepId)` method allows you to explicitly navigate to a specific step, bypassing the default sequential flow.  This enables creating complex tour flows based on user interactions or dynamic data.
+
+
+### Custom Navigation Controls
+
+You can replace or supplement the default Shepherd navigation buttons with your own custom buttons.  This gives complete control over the user interface and the tour's flow.  You do this by defining custom buttons within the `buttons` array of a step's options, as shown previously. The actions of your custom buttons will call `tour.next()`, `tour.back()`, `tour.cancel()`, or `tour.show(stepId)`.
+
+
+### Handling User Interactions
+
+Shepherd itself doesn't directly handle user interactions beyond button clicks. You'll typically use standard JavaScript event listeners (e.g., `click`, `mouseover`) on your application's elements to trigger actions within your Shepherd tour.  These actions might involve:
+
+* **Showing a specific step:** Use `tour.show(stepId)` to immediately display a particular step.
+
+* **Advancing or going back:** Use `tour.next()` or `tour.back()` to control the tour's flow.
+
+* **Modifying step content:**  Dynamically update step content based on user interaction (requires updating the step's text or other properties).
+
+* **Completing the tour:**  Call `tour.complete()` to explicitly end the tour.
+
+
+By combining event listeners and Shepherd's API methods, you create interactive tours that respond to user behavior and dynamic application state.  Remember to ensure appropriate error handling and updates of the tour’s internal state to avoid unexpected behavior.
+
+
+## Styling and Theming
+
+### Default Styling
+
+Shepherd comes with a default CSS stylesheet that provides a basic, functional appearance for your tours. This default styling ensures a consistent look and feel across different browsers and devices.  However, the default styles are designed to be easily overridden or extended with your own custom styles. The default styles prioritize readability and accessibility.  You'll likely want to customize the appearance to match your application's branding.
+
+### Custom CSS and Styling
+
+You can customize Shepherd's appearance using custom CSS.  You can add custom CSS classes to the tour container and individual steps using the `classes` option.  This allows you to target specific elements within Shepherd's generated markup and apply your own styling rules.
+
+Remember that Shepherd generates its own HTML structure.  Inspect the generated HTML in your browser's developer tools to identify the appropriate classes and elements to target with your custom CSS.  For example, you could target the default step container using a class such as `shepherd-element` or individual elements within the steps.
+
+To add a custom CSS class to a step:
+
+```javascript
+tour.addStep({
+  id: 'custom-styled-step',
+  text: 'This step has custom styling applied!',
+  classes: 'my-custom-class',
+  attachTo: { element: '#myElement', on: 'bottom' },
+});
+
+```
+
+Then, in your CSS file:
+
+```css
+.my-custom-class {
+  background-color: #f0f0f0;
+  border-radius: 5px;
+  padding: 10px;
+}
+```
+
+
+### Theming with CSS Variables
+
+Modern CSS allows for creating themes using CSS variables (custom properties).  You can define your theme's colors, fonts, and other styles using CSS variables and then apply those variables throughout your stylesheet.  This makes it easy to switch between different themes without needing to modify many individual CSS rules.  Shepherd doesn't directly manage themes but it's well-suited for theming using CSS variables.  You define your variables, then target the appropriate Shepherd classes and elements with your themed CSS.
+
+Example of defining a theme using CSS variables:
+
+```css
+:root {
+  --shepherd-primary-color: #007bff;
+  --shepherd-background-color: #f8f9fa;
+  --shepherd-text-color: #333;
+}
+
+.shepherd-element {
+  background-color: var(--shepherd-background-color);
+  color: var(--shepherd-text-color);
+}
+
+.shepherd-button {
+  background-color: var(--shepherd-primary-color);
+  color: white;
+}
+```
+
+This approach improves maintainability and makes it simpler to create and switch between multiple themes.
+
+
+### Creating Custom Themes
+
+To create a fully custom theme, create a new CSS file containing all your styles.  This file should completely or partially override the default Shepherd styles.  Remember to include this new stylesheet in your application, replacing or supplementing the default Shepherd stylesheet.  You can achieve this by creating new classes for elements and assigning them as the `classes` option for the steps within your `Shepherd.Tour` or using CSS variables as described above. A well-structured approach involves creating a set of CSS classes that specifically target Shepherd's elements and applying them through the `classes` option on steps or the tour itself.  Consider using a CSS preprocessor (like Sass or Less) to manage larger and more complex themes effectively.
+
+
+## Advanced Topics
+
+### Integrating with other JavaScript libraries
+
+Shepherd is designed to be compatible with other JavaScript libraries.  However, the specific integration approach depends on the library.  For example, integrating with a UI framework like React, Vue, or Angular usually involves creating custom components that wrap Shepherd's functionality and manage state.  Ensure that you handle potential conflicts between the libraries' event handling or DOM manipulation.  Consider carefully how Shepherd's DOM manipulation might interact with other libraries modifying the same elements.  Careful planning and testing are essential to avoid unexpected behavior or conflicts.
+
+
+### Accessibility Considerations
+
+Accessibility is crucial for inclusive design.  When creating tours with Shepherd, follow these best practices:
+
+* **Keyboard Navigation:**  Ensure your tours are fully navigable using only a keyboard.  Shepherd supports keyboard navigation by default, but verify its functionality in your specific implementation.
+
+* **Screen Reader Compatibility:** Use clear and concise text descriptions in your steps.  Avoid relying solely on visual cues; provide textual equivalents for all interactive elements.  Ensure that the step content is semantically correct for screen readers to interpret effectively.
+
+* **ARIA Attributes:** Consider using appropriate ARIA attributes to enhance accessibility.  For example, you might add `aria-label` or `aria-describedby` to elements to provide more context to assistive technologies.
+
+* **Color Contrast:** Ensure sufficient color contrast between text and background colors for readability.  Automated tools can help verify color contrast ratios.
+
+* **Focus Management:** Handle focus appropriately when navigating between steps to prevent confusion and ensure proper focus management for assistive technologies.
+
+
+### Internationalization and Localization
+
+To support multiple languages, you'll need to internationalize (i18n) and localize (l10n) your tours. This involves:
+
+* **Separating text from code:** Store all text strings (step titles, descriptions, button labels) in separate language files (e.g., JSON).
+
+* **Dynamically loading text:**  Use your application's i18n library (or a custom solution) to load and display the appropriate text strings based on the user's locale or preferred language.
+
+* **Date, number, and currency formatting:** Ensure proper formatting of dates, numbers, and currencies according to the user's locale.
+
+* **Right-to-left (RTL) language support:**  If supporting RTL languages, ensure your CSS and layout adapt correctly. Shepherd should generally handle RTL languages automatically, but test thoroughly.
+
+
+### Performance Optimization
+
+For optimal performance:
+
+* **Minimize DOM manipulation:**  Shepherd tries to minimize DOM manipulation but avoid unnecessary changes or updates to the DOM within your tour steps.
+
+* **Lazy loading:** Load resources (images, data) for steps only when they're about to be shown.
+
+* **Efficient selectors:** Use efficient CSS selectors when targeting elements in `attachTo`.
+
+* **Avoid blocking operations:** Use asynchronous operations (promises) within `beforeShowPromise` and similar functions to avoid blocking the main thread.
+
+* **Optimize images:** Use optimized images to reduce loading times.
+
+
+### Troubleshooting and Debugging
+
+If you encounter issues:
+
+* **Check the console:** Look for JavaScript errors in your browser's developer console.
+
+* **Inspect the DOM:** Use your browser's developer tools to inspect the generated HTML structure and CSS styling of your tours.
+
+* **Simplify your tour:** Create a minimal, reproducible example to isolate the problem.
+
+* **Review the documentation:** Refer to the Shepherd documentation for common issues and solutions.
+
+* **Community support:** If you can't find a solution, consider seeking help from the Shepherd community (if one exists) or by submitting an issue on the project's issue tracker (if available).  Provide a clear description of the problem, including relevant code snippets and screenshots.
+
+
+## API Reference
+
+This section provides a detailed overview of the Shepherd.js API.  Note that specific options and their data types might vary depending on the Shepherd.js version.  Always refer to the most current documentation for the most accurate information.
+
+### Shepherd Constructor
+
+The `Shepherd.Tour` constructor creates a new tour instance.
+
+```javascript
+const tour = new Shepherd.Tour({ options });
+```
+
+`options` is an object containing configuration options for the tour (see `options object properties` below).
+
+
+### `addStep()` method
+
+Adds a new step to the tour.
+
+```javascript
+tour.addStep({
+  id: 'stepId', // Required: Unique identifier for the step
+  text: 'Step content', // Step text (can be HTML)
+  attachTo: { element: '#targetElement', on: 'bottom' }, // Required: Target element and position
+  // ... other step options
+});
+```
+
+Returns the tour instance.
+
+
+### `show()` method
+
+Shows a specific step in the tour.
+
+```javascript
+tour.show('stepId');
+```
+
+`stepId` is the unique identifier of the step to show.  If the step doesn't exist, it will likely throw an error or have no effect.  Returns the tour instance.
+
+
+### `hide()` method
+
+Hides the currently active step.
+
+```javascript
+tour.hide();
+```
+
+Returns the tour instance.
+
+
+### `next()` method
+
+Advances the tour to the next step.
+
+```javascript
+tour.next();
+```
+
+Returns the tour instance.  If it's the last step, it might complete the tour or trigger an event depending on the configuration.
+
+
+### `back()` method
+
+Navigates to the previous step in the tour.
+
+```javascript
+tour.back();
+```
+
+Returns the tour instance.  If it's the first step, it might have no effect or trigger a specific event.
+
+
+### `cancel()` method
+
+Cancels and closes the tour.
+
+```javascript
+tour.cancel();
+```
+
+Returns the tour instance.  This method typically cleans up the tour's elements from the DOM.
+
+
+### `on()` method
+
+Attaches an event listener to the tour.
+
+```javascript
+tour.on('complete', () => {
+  console.log('Tour completed!');
+});
+```
+
+The first argument is the event name (e.g., `'complete'`, `'start'`, `'cancel'`, `'show'`, `'hide'`).  The second argument is the callback function to execute when the event occurs.  Returns the tour instance.
+
+
+### `off()` method
+
+Removes an event listener from the tour.
+
+```javascript
+tour.off('complete', myCompletionHandler);
+```
+
+The first argument is the event name; the second is the callback function to remove.  Returns the tour instance.
+
+
+### `options` object properties
+
+The `options` object passed to the `Shepherd.Tour` constructor allows for configuring various aspects of the tour.  Key properties include:
+
+* `defaults`: An object containing default options applied to all steps unless overridden at the individual step level.
+* `showCancelLink`: Boolean indicating whether to show a cancel link.
+* `exitOnEsc`: Boolean indicating whether to allow exiting the tour with the Escape key.
+* `keyboardNavigation`: Boolean enabling keyboard navigation through steps.
+* `scrollToStep`: Boolean indicating whether to scroll the page to make the active step visible.
+* `classes`: String or array of strings to add custom CSS classes to the tour.
+* `useModalOverlay`: Boolean to enable a modal overlay behind the steps.
+* `modalOverlayOpeningPadding`: Number specifying padding for the modal overlay.
+* `confirmCancel`: Boolean to show a confirmation before canceling the tour.
+* `confirmCancelMessage`: String to customize confirmation message.
+* `steps`: An array of steps that make up the tour.  Steps defined here are added to the tour automatically upon initialization.  Useful for defining the tour steps directly in the constructor.
+
+
+This is not an exhaustive list, and specific options and their availability might depend on the Shepherd.js version. Consult the latest official documentation for a complete and up-to-date list of options and their functionalities.  Note that many options can also be specified directly at the step level, overriding the tour-level defaults.
+
+
+## Appendix
+
+### Frequently Asked Questions (FAQ)
+
+* **Q: How do I style my Shepherd tour?**  A: You can customize Shepherd's appearance using custom CSS classes applied to the tour container and individual steps via the `classes` option.  You can also create completely custom themes using CSS variables or by creating a new stylesheet to override or extend the default styles.  Inspect the generated HTML in your browser's developer tools to identify the classes and elements to target.
+
+* **Q: How can I make my tours accessible?** A: Ensure keyboard navigation works correctly, provide alternative text for images and visual cues, use sufficient color contrast, and consider using ARIA attributes where appropriate.  Test your tours with assistive technologies.
+
+* **Q: How do I add custom buttons?** A: Use the `buttons` array within a step's options to define custom buttons and their associated actions (e.g., `tour.next()`, `tour.back()`, custom functions).
+
+* **Q: My tour isn't working correctly. What should I do?** A: Check your browser's developer console for JavaScript errors.  Simplify your tour to a minimal example to isolate the problem.  Review the documentation and search for similar issues online or in the Shepherd community (if one exists).
+
+* **Q: How do I integrate Shepherd with my React/Vue/Angular app?** A: You'll typically create a custom component that wraps Shepherd's functionality and manages its state within your framework.  Handle potential conflicts between the libraries.
+
+
+### Glossary of Terms
+
+* **Step:** A single unit of instruction or information within a Shepherd tour.  Each step targets a specific element on the page.
+
+* **Tour:**  The entire guided experience, encompassing one or more steps.
+
+* **`attachTo`:**  A property defining the element to which a step is attached and its position relative to that element.
+
+* **`on`:**  Specifies the position of a step relative to its target element (e.g., `top`, `bottom`, `left`, `right`).
+
+* **`offset`:**  An adjustment value to reposition a step relative to its `attachTo` element.
+
+* **Modal Overlay:** A semi-transparent overlay covering the page background, ensuring that the tour steps are the primary focus.
+
+* **Theme:** A set of CSS styles defining the visual appearance of the tour.
+
+
+### Contributing to Shepherd
+
+If you'd like to contribute to Shepherd, please refer to the project's contribution guidelines (if available).  These guidelines typically include information on setting up the development environment, coding style, testing procedures, and the process for submitting pull requests.  Contributions might involve bug fixes, feature enhancements, documentation improvements, or creation of new examples.
+
+*(Note:  This section should be replaced with links to actual contribution guidelines if the project has them.)*
+
+
+### License Information
+
+Shepherd is licensed under the [License Name] license.  See the LICENSE file for more details.
+
+*(Note: Replace "[License Name]" with the actual license name of the Shepherd project.  This section should also include a link to the LICENSE file if one is present in the project.)*
+

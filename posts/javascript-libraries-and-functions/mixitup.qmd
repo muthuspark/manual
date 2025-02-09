@@ -1,0 +1,626 @@
+---
+title: "Mixitup - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Getting Started
+
+### Installation
+
+MixItUp can be installed via npm, yarn, or by including the minified JavaScript and CSS files directly in your project.
+
+**npm:**
+
+```bash
+npm install mixitup
+```
+
+**yarn:**
+
+```bash
+yarn add mixitup
+```
+
+**CDN (for quick prototyping):**  Include the following `<script>` and `<link>` tags in your HTML `<head>`:
+
+```html
+<link href="https://cdn.jsdelivr.net/npm/mixitup@latest/dist/mixitup.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mixitup@latest/dist/mixitup.min.js"></script>
+```
+Remember to replace `"https://cdn.jsdelivr.net/npm/mixitup@latest/dist/..."` with the correct path if you are using a different CDN or local files.
+
+
+### Basic Usage
+
+Once installed, MixItUp is initialized on a container element. This container should contain the items you wish to filter and sort.  The basic initialization looks like this:
+
+```javascript
+const mixer = mixitup(containerEl);
+```
+
+Where `containerEl` is a DOM element selector string (e.g., `'#container'`), or a DOM element itself.  This will initialize MixItUp with its default settings.  More advanced configurations are possible using options (see the full documentation for details).
+
+
+### Markup Requirements
+
+Your HTML should contain a container element that holds the items you want to filter and sort.  Each item within the container should have a class that can be used for filtering or sorting.  For example:
+
+```html
+<div id="container">
+  <div class="mix category-1 category-2">Item 1</div>
+  <div class="mix category-2 category-3">Item 2</div>
+  <div class="mix category-1">Item 3</div>
+</div>
+```
+
+Here, `category-1`, `category-2`, and `category-3` are example classes used for filtering. The `mix` class is required for each item to be managed by MixItUp.  You can add more descriptive classes as needed for styling and other purposes.
+
+
+### Quick Start Example
+
+This example demonstrates a basic setup with filtering.
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MixItUp Quick Start</title>
+  <link href="https://cdn.jsdelivr.net/npm/mixitup@latest/dist/mixitup.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div id="container">
+  <div class="mix category-web category-design">Web Design</div>
+  <div class="mix category-web category-development">Web Development</div>
+  <div class="mix category-design">Graphic Design</div>
+</div>
+
+<button data-filter=".category-web">Web</button>
+<button data-filter=".category-design">Design</button>
+<button data-filter="all">All</button>
+
+<script src="https://cdn.jsdelivr.net/npm/mixitup@latest/dist/mixitup.min.js"></script>
+<script>
+  const mixer = mixitup('#container');
+</script>
+
+</body>
+</html>
+```
+
+Remember to replace the CDN links with your local paths if you installed MixItUp locally. This example shows how to filter elements by clicking the buttons; the `data-filter` attribute on each button tells MixItUp which elements to show.  The `all` filter shows all elements.  Further interaction functionalities like sorting will require additional configuration which is explained further in the advanced usage section of the documentation.
+
+
+## Core Functionality
+
+### Filtering
+
+MixItUp's filtering functionality allows you to display only the items that match specific criteria.  Filtering is achieved using selectors that target classes or attributes on your items.
+
+**Basic Filtering:**
+
+Filtering is triggered using the `filter()` method:
+
+```javascript
+mixer.filter('.category-a'); // Shows only items with class 'category-a'
+mixer.filter('all'); // Shows all items
+mixer.filter('none'); // Hides all items
+mixer.filter('.category-a, .category-b'); // Shows items with class 'category-a' or 'category-b'
+```
+
+You can also filter using more complex selectors, including those with negation (`\:not()`), attribute selectors (`[attribute="value"]`), and more.
+
+**Filtering with Multiple Selectors:**
+
+Combine selectors to filter based on multiple criteria.  For instance, to show only items that have *both* `category-a` and `category-b` classes, you need to use the `filter` method appropriately. While `.category-a.category-b` might seem logical, using an intersection of selectors is recommended for complex scenarios to prevent ambiguity:
+
+```javascript
+mixer.filter(function(item) {
+  return item.classList.contains('category-a') && item.classList.contains('category-b');
+});
+```
+
+**Dynamic Filtering:**
+
+You can dynamically filter your items by passing a selector string to the `filter()` method. This is useful when you want to react to user interactions, such as selecting options in a dropdown menu.  For example, update the filter based on a dropdown selection:
+
+```javascript
+const select = document.getElementById('filter-select');
+select.addEventListener('change', function() {
+  mixer.filter(this.value);
+});
+```
+
+
+### Sorting
+
+MixItUp allows sorting items based on different criteria.  You specify the sorting criteria using the `sort()` method.
+
+**Basic Sorting:**
+
+```javascript
+mixer.sort('default'); // Resets to the default order
+mixer.sort('name:asc'); // Sorts by the 'name' attribute in ascending order
+mixer.sort('name:desc'); // Sorts by the 'name' attribute in descending order
+```
+
+The attribute used for sorting must be available in your items (either as a data attribute or a class).
+
+**Sorting with Multiple Criteria:**
+
+Sort by multiple criteria by passing an array of sort strings:
+
+```javascript
+mixer.sort([
+  'name:asc',
+  'date:desc'
+]); // Sorts by name ascending, then by date descending
+```
+
+**Custom Sorting:**
+
+For more complex sorting scenarios, you can provide a custom sorting function:
+
+
+```javascript
+mixer.sort(function(a, b) {
+    //Custom comparison function for comparing 'a' and 'b'
+    return a.dataset.value - b.dataset.value; //Example numerical sorting
+});
+
+```
+
+
+### Pagination
+
+MixItUp doesn't directly handle pagination, but you can easily implement it by combining its filtering and sorting capabilities with some simple DOM manipulation.  You'll need to manage the display of items yourself, showing only the items for the current page.  For instance, you might show 10 items per page and use buttons to navigate through them.
+
+
+### Multi-Mix
+
+MixItUp can be used to manage multiple instances on a single page.  Simply initialize MixItUp on different container elements separately:
+
+```javascript
+const mixer1 = mixitup('#container1');
+const mixer2 = mixitup('#container2');
+```
+
+Each `mixer` instance is independent and you can control them individually.  Events fired by one instance are not passed to others.
+
+
+
+### Events
+
+MixItUp provides a rich set of events that you can listen for to respond to changes in the layout. Events are triggered at different stages of the filter and sort operations, allowing you to update the UI or perform other actions based on the current state of the mix. Some of the most common events include:
+
+* `mixStart`: Fired just before a mix animation begins.
+* `mixEnd`: Fired after a mix animation has completed.
+* `mixClick`: Fired when a filter button is clicked.
+* `mixFilter`: Fired when the filter changes.
+* `mixSort`: Fired when the sort changes.
+* `mixLoad`: Fired when the initial load is complete.
+* `fail`: Fired when an error occurs during initialization or filtering.
+
+Attach event listeners using the `on()` method:
+
+```javascript
+mixer.on('mixEnd', function(state) {
+  console.log('Mix complete!', state); // 'state' object contains information about the current state
+});
+```
+
+You can also use `off()` to remove event listeners and `once()` to trigger an event listener only once.  Refer to the complete API documentation for a full list of available events and their properties.
+
+
+## Configuration Options
+
+MixItUp offers a wide range of configuration options to customize its behavior and appearance.  These options are passed as an object to the `mixitup()` constructor.
+
+
+### Selectors
+
+Selectors define which elements MixItUp should manage and which elements act as controls for filtering and sorting.
+
+*   `target`: (string, default: `'.mix'`)  The selector for the items to be mixed.  These are the elements that will be filtered, sorted, and animated.
+*   `filter`: (string, default: `'.filter'`) The selector for the filter buttons or controls. MixItUp will listen for clicks on these elements.
+*   `sort`: (string, default: `'.sort'`) The selector for the sort controls.  These allow the user to change the sorting order.  Similar to `filter`, these elements usually use the `data-sort` attribute to define the sort criteria.
+
+
+### Controls
+
+Controls configure how MixItUp interacts with filter and sort buttons.  This section describes attributes commonly used within those controls.
+
+*   `data-filter`: (string) Used within elements selected by `filter` selector. Defines the filter selector string that is used when the control is activated.  e.g., `.category-a` or `all`.
+*   `data-sort`: (string) Used within elements selected by the `sort` selector.  Defines the sort criteria (e.g., `name:asc`, `date:desc`). Multiple sort criteria can be added by separating them with commas.
+*   `data-toggle`:  (string, Boolean) If the element should show/hide on click, `'toggle'` or boolean true will show/hide the element.
+*   `data-group`: (string) Used for grouping filter controls.  All controls with the same `data-group` value are treated as a mutually exclusive set; only one control within a group can be active at a time.
+
+
+
+### Layout
+
+Layout options affect the arrangement of items within the container.
+
+*   `containerClassName`: (string) A class name applied to the container element.
+*   `animation`: {  (object) Contains options that configure the animation.  See Animation section below.
+*   `callbacks`: {  (object) Contains options related to callback functions.
+
+
+### Animation
+
+Animation options control the visual effects of filtering and sorting.
+
+*   `animation`: {
+    *   `enable`: (boolean, default: `true`) Enables or disables animations.
+    *   `effects`: (string, default: `'fade scale'`) Specifies the animation effects (e.g., 'fade', 'scale', 'translateY', 'rotateX'). Multiple effects can be separated by spaces.
+    *   `duration`: (number, default: `600`) Animation duration in milliseconds.
+    *   `easing`: (string, default: 'ease') Easing function (e.g., 'ease', 'ease-in-out', 'linear').
+    *   `stagger`: (number, default: 0) Stagger delay between animations in milliseconds.
+    *   `reverseOut`: (boolean) Enables reverse animation on filter out.
+
+*   `transition`: (string) Allows the use of CSS transitions for animation.
+
+
+### Testing and Debugging
+
+* **Browser Console:**  The browser's developer console is crucial for debugging.  MixItUp logs warnings and errors to the console, providing information about potential issues.
+* **Event Listeners:**  Use the MixItUp event system to log the state of the mixer at various points during the filtering and sorting process, helping identify issues in the sequence of events.
+* **Simplified HTML:** Create a minimal, reproducible example to isolate the problem when reporting issues.  This makes it easier to diagnose the root cause.
+* **API Documentation:** Carefully review the MixItUp API documentation to understand the correct usage of methods and options.
+
+
+
+
+## Advanced Techniques
+
+### Custom Animations
+
+While MixItUp provides several built-in animation effects, you can create fully custom animations using CSS transitions or JavaScript animations.  For CSS transitions, define your animation styles and use the `transition` configuration option. For more complex animations, you can use JavaScript animation libraries in conjunction with MixItUp's events.
+
+**CSS Transitions:**  Define the animation in your CSS and set the `transition` option in MixItUp's configuration:
+
+```css
+.mix {
+  transition: transform 0.5s ease, opacity 0.5s ease; /* Define transition properties */
+}
+
+.mix.mix-show {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.mix.mix-hide {
+  transform: scale(0.5);
+  opacity: 0;
+}
+
+```
+
+```javascript
+const mixer = mixitup({
+    container: '#container',
+    transition: 'transform 0.5s ease, opacity 0.5s ease' // Using CSS transitions
+});
+```
+
+**JavaScript Animations:**  Use MixItUp's events (`mixStart`, `mixEnd`) to trigger your custom JavaScript animations.
+
+
+### Data Attributes
+
+Data attributes are extremely useful for managing data associated with each item, especially when working with complex filtering or sorting.  You can store any kind of information within data attributes. For example, you could store the name, price, and category of a product in data attributes, then filter and sort based on this data:
+
+
+```html
+<div class="mix" data-name="Product A" data-price="19.99" data-category="electronics">...</div>
+<div class="mix" data-name="Product B" data-price="29.99" data-category="clothing">...</div>
+```
+
+You would then access these attributes within your filtering and sorting functions, or use them in the `data-sort` attribute of your controls to sort:
+
+
+```javascript
+mixer.sort('data-price:asc');  //Sort by price ascending
+```
+
+
+### Working with AJAX
+
+MixItUp can seamlessly integrate with AJAX to load and update content dynamically.  Use AJAX to fetch data from a server, then update the container with the new content. You'll need to re-initialize MixItUp after updating the container's contents to manage the newly added items.   For instance:
+
+```javascript
+$.ajax({
+  url: '/products.json',
+  success: function(data) {
+    // Update the container with the new data
+    $('#container').html(data);
+
+    // Re-initialize MixItUp
+    mixer = mixitup('#container');
+  }
+});
+```
+
+
+### Integration with Other Libraries
+
+MixItUp can be combined with other JavaScript libraries, such as those for UI components (dropdowns, modals), image loading, and more.  Ensure proper initialization order to avoid conflicts.  For example,  initialize MixItUp after any library that modifies the DOM.
+
+
+### Performance Optimization
+
+For large datasets, optimize performance by:
+
+* **Lazy Loading:**  Load items only when they are needed (e.g. using pagination).  Avoid loading all items at once.
+* **Caching:** Cache frequently used data or processed items to avoid redundant calculations.
+* **CSS Optimization:** Use efficient CSS selectors and minimize unnecessary styles.
+* **Debouncing/Throttling:**  Use debouncing or throttling to prevent excessive calls to the MixItUp API on fast user interactions (e.g., rapid filtering).
+* **Minimize DOM manipulation:** Manipulate the DOM efficiently when updating the container. Consider using Document Fragments to minimize reflows and repaints.
+* **Efficient selectors:** Use simple selectors whenever possible instead of complex or deep selectors that could potentially lead to longer searching times.
+
+
+
+
+## API Reference
+
+This section details the core API methods available for interacting with a MixItUp instance.  Remember to replace `mixer` with your MixItUp instance variable.  All methods, unless otherwise specified, return the instance of `mixer` for method chaining.  Refer to the complete documentation for detailed explanations of parameters and return values.
+
+### mixitup()
+
+Initializes a new MixItUp instance.
+
+```javascript
+const mixer = mixitup(target, options);
+```
+
+*   `target`: (string or HTMLElement) The selector string or DOM element representing the container element.
+*   `options`: (object) An object containing configuration options (see Configuration Options section).
+
+
+### filter()
+
+Filters the items based on a selector.
+
+```javascript
+mixer.filter(selector, animate, callback);
+```
+
+*   `selector`: (string or function) The selector string or a function that returns a boolean indicating whether an item should be shown.
+*   `animate`: (boolean, optional) Whether to animate the filtering operation.  Defaults to `true`.
+*   `callback`: (function, optional) A callback function executed after filtering is complete.
+
+
+### sort()
+
+Sorts the items based on the given criteria.
+
+```javascript
+mixer.sort(sortString, animate, callback);
+```
+
+*   `sortString`: (string or array of strings or function) The sort string or an array of sort strings defining the sorting criteria, or a custom comparison function.  See the Sorting section for details.
+*   `animate`: (boolean, optional) Whether to animate the sorting operation.  Defaults to `true`.
+*   `callback`: (function, optional) A callback function executed after sorting is complete.
+
+
+### toggleFilter()
+
+Toggles the filter state of a given selector string.
+
+```javascript
+mixer.toggleFilter(selector, animate, callback);
+```
+
+*   `selector`: (string) Selector string to toggle the filter state of.
+*   `animate`: (boolean, optional) Whether to animate the filtering operation. Defaults to `true`.
+*   `callback`: (function, optional) A callback function executed after the filter is toggled.
+
+
+### show()
+
+Shows the items matching the given selector.
+
+```javascript
+mixer.show(selector, animate, callback);
+```
+
+*   `selector`: (string) Selector string for items to show.
+*   `animate`: (boolean, optional) Whether to animate the showing operation. Defaults to `true`.
+*   `callback`: (function, optional) A callback function executed after items are shown.
+
+
+### hide()
+
+Hides the items matching the given selector.
+
+```javascript
+mixer.hide(selector, animate, callback);
+```
+
+*   `selector`: (string) Selector string for items to hide.
+*   `animate`: (boolean, optional) Whether to animate the hiding operation. Defaults to `true`.
+*   `callback`: (function, optional) A callback function executed after items are hidden.
+
+
+### insertBefore()
+
+Inserts the given element(s) before the target element.
+
+```javascript
+mixer.insertBefore(element, targetElement);
+```
+* `element`: (HTMLElement or array of HTMLElements) Element(s) to insert.
+* `targetElement`: (HTMLElement) Element before which the new element(s) will be inserted.
+
+
+### insertAfter()
+
+Inserts the given element(s) after the target element.
+
+```javascript
+mixer.insertAfter(element, targetElement);
+```
+* `element`: (HTMLElement or array of HTMLElements) Element(s) to insert.
+* `targetElement`: (HTMLElement) Element after which the new element(s) will be inserted.
+
+
+
+### append()
+
+Appends the given element(s) to the container.
+
+```javascript
+mixer.append(element);
+```
+* `element`: (HTMLElement or array of HTMLElements) Element(s) to append.
+
+
+### prepend()
+
+Prepends the given element(s) to the container.
+
+```javascript
+mixer.prepend(element);
+```
+* `element`: (HTMLElement or array of HTMLElements) Element(s) to prepend.
+
+
+### remove()
+
+Removes the given element(s) from the container.
+
+```javascript
+mixer.remove(element, animate, callback);
+```
+* `element`: (HTMLElement or array of HTMLElements) Element(s) to remove.
+* `animate`: (boolean, optional) Whether to animate the removal operation. Defaults to `true`.
+* `callback`: (function, optional) A callback function executed after elements are removed.
+
+
+### destroy()
+
+Destroys the MixItUp instance, removing event listeners and resetting the container.
+
+```javascript
+mixer.destroy();
+```
+
+
+### isMixing()
+
+Returns a boolean indicating whether a mix animation is currently in progress.
+
+```javascript
+const isMixing = mixer.isMixing();
+```
+
+
+### getState()
+
+Returns an object representing the current state of the mixer.
+
+```javascript
+const state = mixer.getState();
+```
+
+
+### getContainer()
+
+Returns the container element.
+
+```javascript
+const container = mixer.getContainer();
+```
+
+
+### getTarget()
+
+Returns the target element(s).
+
+```javascript
+const target = mixer.getTarget();
+```
+
+
+### resetFilters()
+
+Resets all filters to their default state.
+
+```javascript
+mixer.resetFilters(animate, callback);
+```
+* `animate`: (boolean, optional) Whether to animate the reset operation. Defaults to `true`.
+* `callback`: (function, optional) A callback function executed after filters are reset.
+
+
+### resetSort()
+
+Resets the sort order to its default state.
+
+```javascript
+mixer.resetSort(animate, callback);
+```
+* `animate`: (boolean, optional) Whether to animate the reset operation. Defaults to `true`.
+* `callback`: (function, optional) A callback function executed after sorting is reset.
+
+
+### forceRefresh()
+
+Forces MixItUp to re-calculate the layout and positions of its items.  Useful after significant DOM manipulations outside of MixItUp's control.
+
+```javascript
+mixer.forceRefresh();
+```
+
+
+
+## Troubleshooting
+
+This section covers common issues encountered when using MixItUp, debugging techniques, and known limitations.
+
+
+### Common Issues
+
+* **MixItUp not working:** Ensure that you have correctly included the MixItUp library (JavaScript and CSS) in your project and that your markup meets the requirements (container element with items and, optionally, filter and sort controls). Check the browser's developer console for errors.  Verify that the selector you are using for the container element is correct. Double-check that your initialization code is correctly targeting the container element and is executed after the DOM is fully loaded.
+
+* **Animations not working:** Check that animations are enabled in the configuration (`animation.enable: true`). Make sure your CSS transitions or animations are correctly defined and that there are no CSS conflicts preventing them from working. Verify that the `animation.effects` setting is correctly specified.
+
+* **Filtering/Sorting not working correctly:**  Carefully review your selectors, data attributes (if used), and sorting criteria.  Ensure that the data you are using for filtering and sorting is correctly structured and accessible.  Make sure your selector strings are accurate and that you're using the correct methods (`filter()`, `sort()`). Inspect your data for unexpected characters or values that may interfere with filtering.
+
+
+* **Elements not appearing or disappearing as expected:** Verify your selectors to ensure that the correct elements are being targeted. Check for conflicting styles that might be hiding or repositioning the elements. Check the browser's developer console for errors or warnings and inspect the generated HTML.
+
+* **Javascript Errors:** The browser's developer console will display errors.  Carefully examine the error message and the line number to pinpoint the source of the problem.
+
+* **Conflicts with other libraries:** If using other JavaScript libraries, ensure there are no conflicting selectors or event handlers.  Consider the order in which libraries are loaded.
+
+* **Performance issues:** If working with large datasets, implement performance optimization techniques as outlined in the Advanced Techniques section.
+
+
+
+### Debugging Tips
+
+* **Use the browser's developer tools:** The browser's developer console is invaluable for debugging.  Use it to inspect the DOM, set breakpoints, and examine variables.
+
+* **Simplify your code:**  Create a minimal, reproducible example to isolate the problem. This helps in quickly identifying the root cause.
+
+* **Check the MixItUp console logs:** MixItUp logs warnings and errors to the console, providing information about potential problems.
+
+* **Step through the code:** Use your debugger to step through the code line by line, examining variables and the state of the DOM.
+
+* **Check for conflicting CSS:** Inspect your CSS rules to ensure no styles are interfering with MixItUp's layout and animations.
+
+* **Enable verbose logging:**  Set the MixItUp config `debug` option (if available) to `true` or use `console.log` statements within your MixItUp callbacks to output information about the state of the mixer at different points in its operation.
+
+
+### Known Limitations
+
+* **Complex Nested Structures:**  MixItUp is designed to work best with relatively flat lists of items.  Performance may degrade when working with deeply nested structures.
+
+* **Extremely Large Datasets:**  While MixItUp handles reasonably large datasets, performance will inevitably decrease with exceptionally large numbers of items. Implement optimizations like pagination or lazy loading to mitigate this.
+
+* **Browser Compatibility:** While generally well-supported, some very old or unusual browsers might not fully support all features.  Test across target browsers.
+
+* **CSS Transition Limitations:** Certain CSS transitions or animations may not work seamlessly with all browsers or versions.  You might need to use JavaScript fallback animations or a polyfill for older browsers.
+
+* **Complex Animations:** While MixItUp allows customization, extremely complex animations may require more advanced JavaScript animation libraries for optimal results.  MixItUp may not directly support very bespoke animation requirements.
+

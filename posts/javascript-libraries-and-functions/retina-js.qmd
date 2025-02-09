@@ -1,0 +1,286 @@
+---
+title: "Retina JS - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction to Retina.js
+
+### What is Retina.js?
+
+Retina.js is a small JavaScript library that provides a simple and efficient way to serve high-resolution images to devices with retina displays (or other high-density displays).  It works by detecting the device pixel ratio and automatically swapping standard-resolution images with their higher-resolution counterparts.  This is achieved by appending `@2x` (or a custom suffix, configurable via options) to the filename of your images.  For example, if you have an image named `image.png`, Retina.js will look for `image@2x.png` and use it if the device's pixel ratio is greater than 1.
+
+### Why use Retina.js?
+
+Using Retina.js offers several key advantages:
+
+* **Improved Visual Quality:**  Provides crisper, sharper images on high-resolution screens, leading to a better user experience.
+* **Simplified Implementation:**  Handles the complex logic of detecting device pixel ratios and swapping images automatically, saving you significant development time and effort.
+* **Lightweight and Efficient:**  The library itself is very small, minimizing the performance impact on your website.
+* **Maintainable Code:**  Keeps your image management organized and avoids the need for complex server-side solutions or conditional image serving.
+
+
+### Setting up Retina.js
+
+Setting up Retina.js is straightforward:
+
+1. **Include the library:** Download the `retina.min.js` file from the project repository and include it in your HTML file, preferably just before the closing `</body>` tag:
+
+   ```html
+   <script src="retina.min.js"></script>
+   ```
+
+2. **No further configuration (optional):** Retina.js automatically detects high-resolution displays and replaces images.  If your high-resolution images are named with the `@2x` suffix, you are ready to go.
+
+3. **Custom Suffix (optional):** You can specify a custom suffix for your high-resolution images using the `retina.configure` method. For example, to use `-2x` instead of `@2x`, add this code *before* including the Retina.js script:
+
+   ```javascript
+   retina.configure({use_min_width: false, suffix: "-2x"});
+   ```
+
+   This configuration also sets `use_min_width` to `false`, which prevents Retina.js from considering the image's minimum dimensions during replacement.
+
+
+### Browser Compatibility
+
+Retina.js is designed to be compatible with a wide range of modern browsers.  However, it relies on JavaScript for functionality.  While it should work in most older browsers, optimal performance and image replacement are guaranteed in modern browsers that support the `devicePixelRatio` property.  Specifically, the library is designed to work with browsers supporting this standard and has been tested across major browsers such as Chrome, Firefox, Safari, and Edge.  Older browsers without this support will simply render the standard-resolution images.
+
+
+## Core Concepts
+
+### Retina Detection
+
+Retina.js's core functionality hinges on its ability to accurately detect retina displays or high-density screens.  This detection relies on the browser's `window.devicePixelRatio` property. This property returns a value representing the ratio of physical pixels to device-independent pixels (DIPs). A value greater than 1 indicates a high-resolution display.  Retina.js checks this value upon initialization. If the `devicePixelRatio` is greater than 1, it proceeds to look for higher-resolution image alternatives.
+
+
+### Image Swapping
+
+The core mechanism of Retina.js is image swapping. Once a high-resolution display is detected, the library iterates through images on the page.  It analyzes the `src` attribute of each `<img>` tag. If the filename ends with a standard suffix (defaulting to `@2x`, but configurable), it attempts to locate a corresponding high-resolution image.  The high-resolution image's filename is constructed by appending the configured suffix to the base filename. For instance, if the original image is `image.jpg`, it will look for `image@2x.jpg` (or `image-2x.jpg` if the suffix is configured accordingly). If this high-resolution image exists, it replaces the standard-resolution image's `src` attribute, resulting in a seamless swap to the higher-resolution alternative.  This process happens automatically and asynchronously, minimizing disruption to the page load.
+
+
+### Responsive Images
+
+Retina.js primarily focuses on serving high-resolution images for high-density displays; it does *not* inherently handle responsive design (adjusting image size based on screen dimensions). While Retina.js can be used in conjunction with other responsive image techniques (like `srcset` or using CSS media queries to load different images based on screen size), it doesn't directly manage image resizing or selection based on screen width or viewport size.  It only handles the resolution aspect.  You will need to implement other responsive image solutions to adapt image sizes to different screen sizes if needed.
+
+
+### Background Images
+
+Retina.js directly supports background images applied via CSS.  The library detects the `background-image` CSS property and attempts to locate a higher-resolution counterpart for background images as well. The same naming convention and suffix configuration applies. If a high-resolution background image is found (e.g., `background@2x.png` for `background.png`), it replaces the standard-resolution background image.  The approach is similar to the image swapping for `<img>` tags, efficiently serving sharper backgrounds on retina displays.  Note that it will only look for high-resolution image replacements if the `background-image` is set to a URL (e.g., `url('background.png')`). It does not handle background images set using linear gradients or other non-image methods.
+
+
+## API Reference
+
+### Retina.js Constructor
+
+Retina.js doesn't have a formal constructor in the traditional sense.  Its functionality is initiated implicitly when the script is included in your HTML.  The library automatically begins its detection and image-swapping process without requiring explicit object creation.  However, the `retina.configure()` method allows configuration options to be set *before* the library's implicit initialization.
+
+
+### Retina.checkRetina()
+
+This method explicitly checks if the current device has a retina display.  It returns a boolean value: `true` if a high-resolution display is detected, `false` otherwise.  While the automatic initialization usually handles this check, `checkRetina()` can be useful for custom logic or debugging purposes.  For example:
+
+```javascript
+if (retina.checkRetina()) {
+  console.log("Retina display detected!");
+}
+```
+
+### Retina.init()
+
+This method manually initiates the Retina.js image-swapping process.  Normally, Retina.js automatically starts after the DOM is ready.  However, if you need to trigger the process later, such as after dynamic content is added to the page, you can call `retina.init()`.  This restarts the entire image scanning and replacement process.  Note that calling it multiple times is generally unnecessary and could cause redundant processing.
+
+
+### Retina.isRetina()
+
+This method is functionally equivalent to `retina.checkRetina()`.  It provides a convenient alternative name for checking retina display status and returns a boolean value indicating whether a high-resolution display is detected.
+
+
+### Retina.swap()
+
+This method allows you to manually swap a specific image with its higher-resolution counterpart.  It takes a single argument, which is a DOM element (an `<img>` tag).  Retina.js will attempt to find the high-resolution version of the image associated with the provided element and replace the source attribute if found.  This can be helpful for dynamically added images or in situations where you need finer-grained control over the swapping process.  Example:
+
+```javascript
+const myImage = document.getElementById("myImage");
+retina.swap(myImage);
+```
+
+
+### Retina.afterLoad()
+
+This method provides a callback function that executes after Retina.js has completed its image-swapping process. It takes a function as an argument which will be executed once all image replacements are finished.  This is beneficial for actions that depend on the high-resolution images being fully loaded, such as animations or effects involving these images.
+
+```javascript
+retina.afterLoad(function() {
+  console.log("All high-resolution images loaded!");
+  // Perform actions that depend on the high-resolution images being available
+});
+```
+
+
+## Advanced Usage
+
+### Custom Image Paths
+
+By default, Retina.js assumes your high-resolution images are in the same location as their standard-resolution counterparts, with only the filename suffix differing (e.g., `image.png` and `image@2x.png`).  However, you might have a different organizational structure for your assets.  To accommodate this, you can use a custom function to specify how high-resolution image paths should be determined.  This involves overriding the `retina.src` property, which is a function that receives the original image URL and should return the URL for the high-resolution image.
+
+
+```javascript
+retina.configure({
+  retina_src: function(src) {
+    // Example: If your high-res images are in a 'retina' subfolder
+    return src.replace(/\.png$/, '@2x.png').replace(/\/images\//, '/images/retina/');
+    // Or any custom logic to generate the high-resolution image path based on 'src'
+  }
+});
+
+```
+
+This example replaces `.png` with `@2x.png` and prepends `/images/retina/` to the path. Replace this with your specific logic to map standard to high-resolution image paths.
+
+
+### Using Retina.js with Frameworks (React, Angular, Vue)
+
+Retina.js is compatible with various JavaScript frameworks. The core integration method remains consistent: include the Retina.js script and let its automatic detection and replacement handle images.  However, the *timing* of inclusion and image loading might vary slightly depending on your framework's lifecycle.
+
+* **React:**  Include Retina.js after your React application renders, or within a component's `useEffect` hook that runs after the initial render, ensuring the DOM elements are available for Retina.js to process.
+* **Angular:** Include Retina.js in your Angular application similarly, making sure it runs after the DOM is fully rendered.  You might leverage Angular's lifecycle hooks to execute the Retina.js initialization at the appropriate time.
+* **Vue:** In Vue, include Retina.js after your Vue application mounts or within a `mounted` lifecycle hook to ensure DOM elements are available.
+
+In all cases, ensure that any custom image paths are appropriately handled within your framework's component structure.
+
+### Handling Different Screen Densities
+
+While `devicePixelRatio` provides a good indicator, it might not perfectly capture all screen density variations.  Some devices might have pixel ratios between 1 and 2 (e.g., 1.5x).  Retina.js's default behavior is to only swap images when `devicePixelRatio` is strictly greater than 1. To handle variations, you can implement custom logic.  You could modify the `retina.src` function (as mentioned in "Custom Image Paths") to check `devicePixelRatio` directly and choose images based on its value. For instance, you could provide images with `@1.5x` suffix for devices with pixel ratio around 1.5.
+
+### Troubleshooting and Debugging
+
+* **Images not swapping:** Check your image filenames. Ensure the high-resolution images are correctly named with the configured suffix (defaulting to `@2x`).  Inspect the browser's developer console (usually by pressing F12) for any JavaScript errors.  Also, ensure Retina.js is included correctly and the `devicePixelRatio` is greater than 1.
+
+* **Conflicting libraries:**  If you encounter unexpected behavior, check for conflicts with other JavaScript libraries that might manipulate images or the DOM.
+
+* **Custom configurations:** Verify that your custom configuration (like the `retina.configure` method with custom suffixes or custom `retina.src` function) is correctly set *before* including the Retina.js script.
+
+* **Debugging with `console.log`:**  Use `console.log` statements strategically throughout your code to inspect values, particularly `devicePixelRatio` and the image paths used by Retina.js.  This will help you pinpoint the source of issues.
+
+
+## Best Practices
+
+### Optimizing Images for Retina Displays
+
+While Retina.js handles the image swapping, optimizing your images is crucial for performance and visual quality.  Simply using larger images doesn't guarantee better results; optimization is key.
+
+* **Proper Image Formats:** Use appropriate image formats.  JPEG is generally preferred for photographic images, while PNG is better for images with sharp lines, text, or transparency.  Consider WebP for superior compression if browser compatibility allows.
+
+* **Compression:**  Compress your images to reduce their file size without significant quality loss.  Tools like TinyPNG, ImageOptim, or online compression services can help.  Aim for a balance between file size and visual quality.
+
+* **Resolution:**  Ensure your high-resolution images (`@2x` versions) have roughly double the dimensions (width and height) of their standard-resolution counterparts.  Avoid excessively large images that increase load times unnecessarily.
+
+* **Image Editing:** When preparing your images, optimize them for web use.  Avoid excessive metadata and unnecessary data within image files.
+
+
+### Improving Performance
+
+Retina.js is lightweight, but you can further enhance performance:
+
+* **Lazy Loading:** If you have many images on a page, consider lazy loading techniques. This only loads images when they are visible in the viewport, preventing unnecessary downloads initially.
+
+* **Asynchronous Loading:** Retina.js operates asynchronously, but ensure all your other scripts and images are also loaded asynchronously to avoid blocking the initial rendering of the page.
+
+* **Minimize HTTP Requests:** Combine images where possible (e.g., using CSS sprites) to minimize the number of individual requests to the server.
+
+* **Caching:** Ensure your images are properly cached by the browser to reduce repeated downloads on subsequent page visits.  Use appropriate HTTP headers for efficient caching.
+
+
+### Accessibility Considerations
+
+Retina.js itself doesn't directly impact accessibility.  However, best practices for images in general should be followed:
+
+* **Alt Text:** Always provide meaningful `alt` text for your `<img>` tags. This is essential for screen readers and users with visual impairments.  The `alt` text should describe the image's content and purpose.
+
+* **Semantic HTML:**  Use appropriate HTML elements and structure your page semantically.  Don't rely solely on images to convey information.
+
+* **Color Contrast:** Ensure sufficient color contrast between your images and the background to ensure readability for all users.
+
+
+### Maintaining Code Quality
+
+* **Version Control:**  Use a version control system (like Git) to manage your codebase and track changes.  This allows for easier collaboration, rollback of changes, and overall improved project management.
+
+* **Clear Naming Conventions:** Use descriptive and consistent naming conventions for your files, variables, and functions.
+
+* **Modular Code:** Break down your code into smaller, reusable modules to make it more maintainable and easier to test.
+
+* **Testing:** Implement thorough testing procedures to ensure your code functions correctly and to prevent regressions.
+
+* **Documentation:** Keep your code well-documented with comments and comprehensive explanations.  This will help you and other developers understand the code's purpose and functionality.
+
+* **Code Reviews:** If collaborating on the project, conduct code reviews to catch potential issues and share knowledge among team members.
+
+
+## Examples
+
+### Basic Image Swapping
+
+This example demonstrates the simplest use case: automatically swapping standard-resolution images with their high-resolution counterparts.  Assume you have `image.png` and `image@2x.png` in the same directory.
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Retina.js Basic Example</title>
+</head>
+<body>
+
+<img src="image.png" alt="My Image">
+
+<script src="retina.min.js"></script> 
+</body>
+</html>
+```
+
+Retina.js will automatically detect if the device has a high pixel ratio and replace the `src` attribute of the `<img>` tag with `image@2x.png` if it exists.
+
+
+### Responsive Images with Retina.js
+
+Retina.js doesn't directly handle responsive images (changing image size based on screen size).  You need to combine it with other responsive image techniques. This example uses the `srcset` attribute, which Retina.js complements by providing the correct resolution for each size.
+
+```html
+<img srcset="image-small.png 300w, image.png 600w, image@2x.png 1200w" 
+     sizes="(max-width: 600px) 300px, 600px" 
+     src="image.png" alt="My Responsive Image">
+<script src="retina.min.js"></script>
+```
+
+Here, `image-small.png`, `image.png`, and `image@2x.png` are provided as options, and the browser will choose the most appropriate one based on the viewport size. Retina.js will ensure the highest resolution image suitable for the viewport size is used if the device pixel ratio warrants it.
+
+
+### Handling Background Images
+
+Retina.js also supports background images.  Ensure your high-resolution background image is named accordingly (e.g., `background@2x.png` for `background.png`).
+
+```html
+<div style="background-image: url('background.png'); height: 200px;"></div>
+<script src="retina.min.js"></script>
+```
+
+Retina.js will detect the background image and, if the pixel ratio is high, replace the URL with `background@2x.png`.
+
+
+### Complex Scenarios
+
+This example demonstrates handling images with custom suffixes and using a custom function to define the high-resolution image path.  Imagine high-resolution images are in a subdirectory called 'retina'.
+
+```html
+<img src="images/product.jpg" alt="Product Image">
+<script>
+retina.configure({
+  suffix: "-highres",  // Custom suffix
+  retina_src: function(src) {
+    return src.replace(/\.jpg$/, "-highres.jpg").replace('/images/', '/images/retina/');
+  }
+});
+</script>
+<script src="retina.min.js"></script>
+```
+
+This will look for `images/retina/product-highres.jpg` as the high-resolution counterpart.  Remember to adapt the paths and suffix to match your specific file structure and naming conventions.  Also, ensure that the `retina.configure()` method is called *before* including the `retina.min.js` script.
+

@@ -1,0 +1,406 @@
+---
+title: "Enquire JS - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction to Enquire.js
+
+### What is Enquire.js?
+
+Enquire.js is a lightweight JavaScript library designed for responsive design. It provides a simple and elegant way to listen for changes in the browser viewport's size and orientation, triggering specific actions or CSS changes based on predefined media queries.  Unlike other solutions, Enquire.js focuses on providing a clean API for handling media query matching, without imposing a specific structure or methodology for your responsive design implementation. This makes it highly versatile and adaptable to various project needs.
+
+### Why use Enquire.js?
+
+Enquire.js offers several advantages over manually handling window resize events or using complex CSS frameworks:
+
+* **Simplicity and Ease of Use:**  Its API is incredibly straightforward, making it easy to learn and implement, even for developers new to responsive design techniques.
+* **Efficiency:** Enquire.js efficiently manages media query listening, avoiding unnecessary recalculations and improving performance. It only fires events when a media query's state actually changes.
+* **Flexibility:** It doesn't dictate how you structure your responsive design. You can integrate it seamlessly into existing projects and workflows.
+* **Unmatched Reliability:** Unlike relying on `window.resize` which can fire excessively, Enquire.js provides a stable and reliable way to detect media query changes, even across different browsers and devices.
+* **Lightweight:** Enquire.js has a tiny footprint, minimizing the impact on your application's load time and performance.
+
+
+### Setting up Enquire.js
+
+Enquire.js can be included in your project using various methods:
+
+* **CDN:** Include the library directly from a CDN like jsDelivr:  `<script src="https://cdn.jsdelivr.net/npm/enquire.js@2.0.0/dist/enquire.js"></script>`
+
+* **npm:** If you're using npm, install it with: `npm install enquire.js` and then import it into your JavaScript file using a module bundler like Webpack or Parcel.
+
+* **Download:** Download the library from the project's repository and include it in your HTML file.
+
+
+### Basic usage example.
+
+This example demonstrates how to listen for changes to a media query and log a message to the console:
+
+```javascript
+enquire.register("screen and (max-width: 768px)", {
+  match: function() {
+    console.log("Screen width is now 768px or less.");
+  },
+  unmatch: function() {
+    console.log("Screen width is now greater than 768px.");
+  }
+});
+```
+
+This code registers a listener for the media query `screen and (max-width: 768px)`.  The `match` function is executed when the media query becomes true (screen width is 768px or less), and the `unmatch` function is executed when it becomes false (screen width is greater than 768px).  Remember to replace the console logs with your desired actions.  You can register multiple listeners for different media queries as needed.
+
+
+## Core Concepts
+
+### Media Queries
+
+Enquire.js operates based on CSS media queries.  A media query is a way to apply different styles based on characteristics of the device displaying the page, such as screen width, orientation, resolution, and more.  Enquire.js uses the string representation of a media query (e.g., `"screen and (min-width: 768px)"`) to define the conditions under which registered listeners should be activated or deactivated.  Understanding CSS media queries is fundamental to effectively using Enquire.js.  Refer to the CSS Media Queries specification for a comprehensive understanding of syntax and capabilities.
+
+### Match Media API
+
+Enquire.js leverages the browser's native `matchMedia` API (or a polyfill if the API is not available) to monitor changes in media query states.  The `matchMedia` API provides a way to programmatically check if a given media query matches the current environment.  Enquire.js abstracts the complexities of the `matchMedia` API, providing a simpler and more developer-friendly interface. It handles the event listeners for media query changes, ensuring that your registered handlers are called only when necessary and reducing the overhead associated with continuous monitoring.
+
+### Listeners and Handlers
+
+In Enquire.js, listeners are registered using the `enquire.register()` method.  A listener consists of a media query string and a set of handlers. The handlers are functions that execute when the media query's state changes:
+
+* **`match`:** This function is called when the media query becomes true (the conditions of the query are met).
+* **`unmatch`:** This function is called when the media query becomes false (the conditions of the query are no longer met).
+
+
+These handlers can contain any JavaScript code you need to execute in response to the media query's state change, such as adjusting the layout, modifying CSS classes, or updating DOM elements.
+
+### Unmatched Media Queries
+
+When a media query is initially registered and the current environment doesn't match the query's conditions, the `match` handler will not be executed.  Only when the environment changes and the query becomes true will the `match` handler be triggered. Similarly, if a media query is currently matched and the environment changes such that the query is no longer met, only then will the `unmatch` handler be executed. Enquire.js intelligently manages this state, ensuring efficient resource usage and only triggering actions when necessary.  This behavior is crucial for preventing unnecessary computations and maintaining a performant application.
+
+
+## API Reference
+
+### Enquire.register()
+
+The core function of Enquire.js.  It registers a listener for a given media query.
+
+**Syntax:**
+
+```javascript
+enquire.register(query, listener);
+```
+
+* **`query` (String):** The media query string (e.g., `"screen and (min-width: 600px)"`).
+* **`listener` (Object):** An object containing the `match` and `unmatch` handler functions.  See the "Listener object" section below for details.
+
+**Returns:**  An object representing the registered listener (see "Match object").  This object can be used later to unregister the listener.
+
+**Example:**
+
+```javascript
+const myListener = enquire.register("(min-width: 768px)", {
+  match: function() { /* code to execute when query matches */ },
+  unmatch: function() { /* code to execute when query unmatches */ }
+});
+```
+
+### Enquire.unregister()
+
+Unregisters a previously registered listener.  This prevents the listener from being triggered by further media query changes.
+
+**Syntax:**
+
+```javascript
+enquire.unregister(listener);
+```
+
+* **`listener` (Object):** The listener object returned by `enquire.register()`.
+
+**Example:**
+
+```javascript
+enquire.unregister(myListener);
+```
+
+### Enquire.match()
+
+This method allows you to check if a given media query currently matches the browser environment without registering a listener.
+
+**Syntax:**
+
+```javascript
+enquire.match(query);
+```
+
+* **`query` (String):** The media query string to check.
+
+**Returns:** `true` if the query matches, `false` otherwise.
+
+
+### Enquire.unmatch()
+
+This method is not directly exposed by Enquire.js as the `unmatch` functionality is handled implicitly within the `enquire.register()` mechanism.  The state of a media query's match is automatically tracked and the appropriate handler is called.
+
+
+### Listener object
+
+The `listener` object passed to `enquire.register()` must have the following structure:
+
+```javascript
+{
+  match: function() { /* code to execute on match */ },
+  unmatch: function() { /* code to execute on unmatch */ }
+}
+```
+
+Both `match` and `unmatch` are optional. If one is omitted, no action will be taken when the respective event occurs.
+
+### Match object
+
+The object returned by `enquire.register()`. It contains the registered media query and the listener functions.  Primarily used with `enquire.unregister()`.  The internal structure of this object is not directly exposed and should not be relied upon.
+
+### Handling Events
+
+Enquire.js handles the underlying media query events via the `matchMedia` API. Your provided `match` and `unmatch` functions are executed when the associated media query's state changes.  No manual event handling (like attaching listeners to the `window.resize` event) is needed or recommended when using Enquire.js as it provides this functionality directly and efficiently.
+
+
+## Advanced Usage
+
+### Using multiple media queries
+
+You can register multiple listeners for different media queries independently:
+
+```javascript
+enquire.register('(min-width: 768px)', {
+  match: function() { /* Actions for large screens */ },
+  unmatch: function() { /* Actions when screen is smaller than 768px */}
+});
+
+enquire.register('(orientation: landscape)', {
+  match: function() { /* Actions for landscape orientation */ },
+  unmatch: function() { /* Actions for portrait orientation */ }
+});
+```
+
+Each call to `enquire.register()` creates an independent listener.
+
+
+### Nesting media queries
+
+While Enquire.js doesn't directly support nesting media queries within the `register` function's query string, you can achieve similar results by using more complex, combined media queries. For instance, to target both landscape orientation and screens wider than 1024px:
+
+```javascript
+enquire.register('(orientation: landscape) and (min-width: 1024px)', {
+  match: function() { /* Actions for landscape orientation and wide screens */ },
+  unmatch: function() { /* Actions when not both conditions are met */ }
+});
+```
+
+
+### Managing multiple listeners
+
+When dealing with numerous listeners, it's crucial to keep track of the listener objects returned by `enquire.register()`.  This allows for precise control, enabling you to unregister specific listeners when needed, preventing memory leaks, and avoiding unexpected behavior.  Use descriptive variable names for your listeners to improve code readability and maintainability. Consider using an array to store listener objects for easier management if you have a substantial number.
+
+```javascript
+const listeners = [];
+listeners.push(enquire.register('(max-width: 600px)', { /* ... */ }));
+listeners.push(enquire.register('(min-width: 1024px)', { /* ... */ }));
+
+// ... later, to unregister all listeners:
+listeners.forEach(listener => enquire.unregister(listener));
+```
+
+### Conditional logic and actions
+
+Within your `match` and `unmatch` handlers, you can employ any JavaScript conditional logic and perform various actions based on the media query state.  This allows for highly customized responses to different screen sizes and device capabilities.
+
+```javascript
+enquire.register('(max-width: 480px)', {
+  match: function() {
+    if (document.querySelector('.my-element')) {
+      document.querySelector('.my-element').style.display = 'none';
+    }
+    // ... other actions
+  },
+  unmatch: function() {
+    if (document.querySelector('.my-element')) {
+      document.querySelector('.my-element').style.display = 'block';
+    }
+     // ... other actions
+  }
+});
+```
+
+
+### Integration with other libraries
+
+Enquire.js is designed to be unobtrusive and easily integrated with other JavaScript libraries and frameworks.  It doesn't impose any specific structure or methodology on your project, allowing you to use it alongside other tools for responsive design, DOM manipulation, or state management. For example, you could combine it with a CSS framework like Bootstrap or a JavaScript framework like React, Vue, or Angular to create a robust responsive application.  You simply integrate Enquire.js to handle the media query detection, and use your framework of choice to manage the actual application logic and UI updates.
+
+
+## Troubleshooting
+
+### Common errors
+
+* **`enquire is not defined`:** This error indicates that Enquire.js hasn't been correctly included in your project. Double-check that the `<script>` tag referencing the Enquire.js file is present in your HTML and that the path is accurate.  Also verify that the script is included *before* any code that attempts to use `enquire`.
+
+* **`Uncaught TypeError: listener.match is not a function`:** This error means that the `listener` object passed to `enquire.register()` is missing the `match` function (or the `unmatch` function, if you're trying to use it). Ensure that your `listener` object has both `match` and `unmatch` properties, each assigned a function.
+
+* **Media query not working as expected:**  Carefully review your media query syntax.  Typos or incorrect use of media query features can lead to unexpected behavior.  Use the browser's developer tools (usually F12) to inspect the applied CSS and check if your media queries are matching correctly.  Test your queries in different browsers and screen sizes.
+
+* **Handlers not being triggered:** Ensure that the conditions of your media query actually change within the browser's viewport.  If you're targeting screen size, make sure you resize the browser window; for orientation, rotate your device.
+
+
+### Debugging tips
+
+* **Use your browser's developer tools:** The browser's developer tools (usually accessed by pressing F12) are invaluable for debugging JavaScript.  Set breakpoints in your `match` and `unmatch` functions to examine the state of your application at the moment the handlers are triggered.
+
+* **Console logging:** Use `console.log()` statements strategically within your handlers to track the execution flow and check the values of relevant variables.  This can help pinpoint where problems occur.
+
+* **Simplify your code:**  If you're encountering problems with complex queries or numerous listeners, try simplifying your code to isolate the problem. Test individual media queries and listeners separately to determine which part of your code is causing the issue.
+
+* **Check your media query in a CSS stylesheet:** Before using it with Enquire.js, test the media query in a CSS file to make sure it behaves as expected in the browser.  This helps rule out syntax errors or incorrect media query logic.
+
+
+### Performance considerations
+
+* **Avoid unnecessary listeners:**  Only register listeners for the media queries you absolutely need.  Too many listeners can impact performance, especially on lower-powered devices.
+
+* **Efficient handlers:** Keep your `match` and `unmatch` handlers concise and efficient.  Avoid performing heavy computations or DOM manipulations that could slow down the browser.
+
+* **Optimize DOM manipulation:** If your handlers manipulate the DOM, use techniques to minimize the number of DOM changes.  This is particularly important when dealing with large or complex DOM structures.
+
+* **Debouncing/throttling:** If you're making multiple changes within the handlers, consider using debouncing or throttling techniques to reduce the frequency of updates and improve responsiveness.
+
+
+### Browser compatibility
+
+Enquire.js aims for broad browser compatibility and uses a polyfill for older browsers that don't support the `matchMedia` API.  However, extremely outdated browsers may have limited or no support.  While Enquire.js itself should function correctly, your specific use case might rely on features or behaviours not consistently supported across all browsers.  Thorough testing across different browsers (including older versions and mobile browsers) is recommended, especially if your application has complex interactions with CSS or the DOM.  Ensure any polyfills you need are included appropriately.
+
+
+## Examples and Best Practices
+
+### Responsive navigation
+
+A common use case for Enquire.js is creating responsive navigation menus.  For example, you might want to hide a complex navigation menu on smaller screens and replace it with a simpler hamburger menu:
+
+
+```javascript
+enquire.register("(max-width: 767px)", {
+  match: function() {
+    // Show hamburger menu, hide full navigation
+    document.getElementById("hamburger-menu").style.display = "block";
+    document.getElementById("full-navigation").style.display = "none";
+  },
+  unmatch: function() {
+    // Hide hamburger menu, show full navigation
+    document.getElementById("hamburger-menu").style.display = "none";
+    document.getElementById("full-navigation").style.display = "block";
+  }
+});
+```
+
+This assumes you have elements with the IDs "hamburger-menu" and "full-navigation" in your HTML.  Remember to adjust the media query and element IDs to match your specific HTML structure.
+
+### Adaptive images
+
+Enquire.js can be used to load different images based on screen size or other media query conditions.  This can improve performance by loading smaller images on smaller screens:
+
+```javascript
+enquire.register("(max-width: 480px)", {
+  match: function() {
+    document.getElementById("my-image").src = "small-image.jpg";
+  },
+  unmatch: function() {
+    document.getElementById("my-image").src = "large-image.jpg";
+  }
+});
+```
+
+Again, adjust the media query, image paths, and element ID to fit your implementation.  Consider using a more robust image loading approach (e.g. using `srcset` attribute if supported) for a more efficient and robust solution in production.
+
+### Layout adjustments
+
+Enquire.js can help create various layout adjustments based on screen size.  For example, you might change the number of columns in a grid layout:
+
+```javascript
+enquire.register("(min-width: 1024px)", {
+  match: function() {
+    // Change grid layout to 3 columns
+    document.body.classList.add("three-column-layout");
+    document.body.classList.remove("two-column-layout");
+  },
+  unmatch: function() {
+    // Change grid layout to 2 columns
+    document.body.classList.remove("three-column-layout");
+    document.body.classList.add("two-column-layout");
+  }
+});
+```
+
+This example relies on CSS classes defining the 2 and 3 column layouts.   This approach is generally preferable to directly manipulating inline styles.
+
+
+### Code examples and snippets
+
+For more comprehensive and detailed code examples, refer to the Enquire.js project's documentation and examples.  The official resources often provide practical implementations and best practices that go beyond the basic usage shown here.  Searching for "Enquire.js examples" on sites like CodePen or GitHub will also reveal numerous community-contributed examples showcasing different applications of the library.  Remember to always consult the official documentation for the most up-to-date information and best practices.
+
+
+## Contributing to Enquire.js
+
+This section outlines how to contribute to the Enquire.js project.  Contributions, including bug reports, feature requests, and code improvements, are highly valued.
+
+### Setting up the development environment
+
+1. **Clone the repository:** Start by forking the Enquire.js repository on GitHub and cloning your fork to your local machine:
+
+   ```bash
+   git clone git@github.com:YOUR_USERNAME/enquire.js.git
+   ```
+   Replace `YOUR_USERNAME` with your GitHub username.
+
+2. **Install dependencies:** Navigate to the project directory and install the necessary packages using npm:
+
+   ```bash
+   cd enquire.js
+   npm install
+   ```
+
+3. **Run the development server:** Enquire.js uses a simple development server for testing. Start it using:
+
+   ```bash
+   npm start
+   ```
+
+   This will start a local server and open the test page in your browser.  Changes you make to the source code will automatically trigger a rebuild and refresh the browser.
+
+
+### Testing and code style guidelines
+
+* **Testing:** Enquire.js uses a testing framework (check the project's `package.json` for details).  Before submitting any code changes, ensure that all tests pass.  Run the tests using:
+
+   ```bash
+   npm test
+   ```
+
+   Add new tests for any new features or bug fixes you implement.
+
+* **Code style:** Adhere to the existing coding style of Enquire.js.  Consistent formatting and code style improve readability and maintainability.  Use the project's linting tools to check your code style (if available).
+
+
+### Submitting pull requests
+
+1. **Create a branch:** Create a new branch for your changes from the `main` or `develop` branch (check the project's main branch name):
+
+   ```bash
+   git checkout -b feature/my-new-feature
+   ```
+
+2. **Make your changes:** Implement your bug fixes, features, or improvements.  Write clear and concise commit messages that explain your changes.
+
+3. **Run tests:** Ensure that all tests pass before submitting your pull request.
+
+4. **Push your branch:** Push your branch to your forked repository:
+
+   ```bash
+   git push origin feature/my-new-feature
+   ```
+
+5. **Create a pull request:** Go to your forked repository on GitHub and create a pull request to merge your branch into the main Enquire.js repository.  Provide a clear description of your changes and address any feedback provided by the maintainers.
+
+Before submitting a pull request, ensure that your changes are well-documented, thoroughly tested, and adhere to the project's coding style guidelines.  Clear and concise communication is essential for a smooth and efficient contribution process.
+

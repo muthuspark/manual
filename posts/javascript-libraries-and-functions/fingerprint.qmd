@@ -1,0 +1,373 @@
+---
+title: "Fingerprint - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction
+
+### What is FingerprintJS?
+
+FingerprintJS is a JavaScript library that generates unique fingerprints for web browsers.  These fingerprints are not based on personally identifiable information (PII) but rather on a combination of browser settings, installed plugins, fonts, and other device characteristics.  The resulting fingerprint is a hash, providing a robust and anonymized identifier for a particular browser instance, allowing for device identification without revealing sensitive data.  It's designed to be resilient against attempts to spoof or change the fingerprint.
+
+### Why use FingerprintJS?
+
+FingerprintJS provides a robust and privacy-respecting solution for identifying and tracking devices across sessions and websites. This is invaluable for various applications where identifying returning users is crucial without relying on cookies or other potentially unreliable or privacy-invasive methods. Its key advantage lies in its ability to identify users even when cookies are disabled or deleted, offering a more persistent and accurate tracking mechanism.  It also helps mitigate fraud and abuse by identifying potentially malicious activity.
+
+### Key Features and Benefits
+
+* **Unique Browser Identification:** Generates a highly unique and stable fingerprint for each browser instance.
+* **Privacy-Preserving:**  Does not collect or store any PII. Fingerprints are anonymized hashes.
+* **Resilient to Spoofing:** Designed to be resistant to various techniques used to manipulate browser characteristics.
+* **Cross-Platform Compatibility:** Works across a wide range of browsers and operating systems.
+* **Lightweight and Efficient:** Minimal impact on website performance.
+* **Flexible Integration:** Easy integration into existing web applications using simple APIs.
+* **Regular Updates:**  The library is regularly updated to adapt to changes in browser technology and to improve accuracy and security.
+
+
+### Use Cases
+
+FingerprintJS finds application in a diverse range of scenarios, including:
+
+* **Fraud Detection:** Identifying potentially fraudulent activities based on unusual patterns in device fingerprints.
+* **User Analytics:** Tracking user behavior across sessions without relying on cookies, providing more accurate and complete data.
+* **Personalized Experiences:** Delivering personalized content and recommendations based on consistent device identification.
+* **A/B Testing:** More accurately measuring the impact of A/B testing variations by tracking unique visitors across sessions.
+* **Access Control and Authentication:** Enhancing security measures by providing an additional layer of identification alongside other authentication methods.
+* **Bot Detection:** Identifying and mitigating bot traffic on websites.
+* **Cross-Device Tracking:**  (With limitations) Tracking users across multiple devices, offering a more holistic view of user behavior.  (Note: This requires additional server-side logic and consideration for user privacy.)
+
+
+
+## Getting Started
+
+### Installation
+
+FingerprintJS is available via npm and a CDN.  Choose the method that best suits your project setup.
+
+**npm:**
+
+```bash
+npm install fingerprintjs-pro
+```
+
+**CDN (for quick prototyping or smaller projects):**
+
+Include the following script tag in your HTML file, replacing `<YOUR_API_KEY>` with your actual API key (obtained after registration):
+
+```html
+<script src="https://cdn.fingerprintjs.com/agent.js"></script>
+<script>
+  // Your FingerprintJS code here
+</script>
+```
+
+Remember to replace `"https://cdn.fingerprintjs.com/agent.js"` with the correct CDN URL if using a different version. Check the official FingerprintJS documentation for the most up-to-date CDN links.
+
+
+### API Key
+
+An API key is required to use FingerprintJS Pro.  You will obtain this key after registering an account on the FingerprintJS website.  This key is crucial for accessing the FingerprintJS service and should be kept confidential.  Never expose it directly in client-side code (like embedding it in a publicly accessible JavaScript file); instead, use server-side processing to handle the API key and communicate with the FingerprintJS API.
+
+
+### Basic Implementation
+
+Here's a basic example demonstrating how to get a visitor's fingerprint using the FingerprintJS Pro library (using the npm version):
+
+
+```javascript
+import FingerprintJS from '@fingerprintjs/fingerprintjs-pro';
+
+const fpPromise = FingerprintJS.load();
+
+fpPromise.then(fp => {
+  fp.get().then(result => {
+    console.log(result.visitorId); // This is the visitor ID.  Send this to your server for processing.
+    console.log(result.visitorData); // This contains detailed visitor data. Send this to your server for processing.
+  });
+});
+```
+
+**Important Security Note:**  Never directly process or store the `visitorId` or `visitorData` on the client-side.  Always send this data to your secure backend server for processing and storage. This prevents potential security vulnerabilities.
+
+
+### Browser Compatibility
+
+FingerprintJS aims for broad browser compatibility. It is supported on all major modern browsers including:
+
+* Chrome
+* Firefox
+* Safari
+* Edge
+* Opera
+
+While the library strives for compatibility with older browsers, some features might have limitations. For optimal performance and feature support, it's recommended to use up-to-date and supported browser versions.  Consult the official FingerprintJS documentation for the most current information on browser support and potential limitations.
+
+
+## Core API
+
+### `getFingerprint()`
+
+The `getFingerprint()` method (or its equivalent depending on the library version) is the primary function for obtaining the browser fingerprint. It returns a promise that resolves with an object containing the fingerprint data.  The exact structure of this object might vary slightly depending on the library version, but it generally includes a `visitorId` (a unique identifier for the visitor) and potentially other visitor data.  This method internally handles the collection and processing of various browser characteristics to generate the unique fingerprint.  Always handle the promise using `.then()` to access the fingerprint data and `.catch()` to handle potential errors.
+
+**Example (Illustrative - adapt to your specific library version):**
+
+```javascript
+fpPromise.then(fp => {
+  fp.getFingerprint().then(fingerprintData => {
+    console.log(fingerprintData); // Contains visitorId and other data.  Send this to your server.
+  }).catch(error => {
+    console.error("Error getting fingerprint:", error);
+  });
+});
+
+```
+
+### `getAgent()`
+
+This method (if available in your library version) provides access to the underlying FingerprintJS agent object.  This gives you more fine-grained control over the fingerprinting process. It might be useful for advanced customization, accessing low-level settings, or debugging purposes.  Refer to the specific documentation of your FingerprintJS library version for details on the methods and properties exposed by the agent object.
+
+### `getVisitorId()`
+
+This method (if available, and often directly present within the result of `getFingerprint()` ) returns a unique identifier for the visitor.  This ID is typically a short, alphanumeric string that represents the visitor's browser fingerprint.  It is crucial to understand that this ID is *not* directly tied to any personally identifiable information.   This ID is the core element used to track visitors across sessions.  As with other methods, always send this ID to your secure server for processing and storage – never directly manipulate or store it client-side.
+
+### Advanced Options
+
+The FingerprintJS library typically offers advanced options to customize the fingerprinting process.  This might include specifying which components to include or exclude in the fingerprint, setting the level of accuracy, controlling the timeout, and handling various other parameters.  Consult the official documentation for your specific FingerprintJS version to understand the available configuration options.  These options might involve passing an options object to the `getFingerprint()` or initialization methods.
+
+
+### Error Handling
+
+Proper error handling is crucial when working with the FingerprintJS API. The `getFingerprint()` method returns a promise, allowing you to use `.catch()` to handle potential errors.  Common errors include network issues, browser incompatibilities, or limitations in accessing certain browser characteristics.  Always implement robust error handling to gracefully manage these situations and prevent unexpected behavior in your application.  Provide users with informative feedback if an error occurs, and log errors for debugging purposes.  Error messages will often provide clues regarding the cause of the issue.
+
+**Example:**
+
+```javascript
+fpPromise.then(fp => {
+  fp.get().then(result => {
+    // Success
+  }).catch(error => {
+    console.error('FingerprintJS error:', error); // Log error for debugging
+    // Handle error appropriately, e.g., show an error message to the user
+    // or fallback to alternative identification methods.
+  });
+});
+```
+
+
+## Advanced Usage
+
+### Customizing the Fingerprint
+
+While FingerprintJS aims to provide a robust and reliable fingerprint by default, you might need to customize it in certain scenarios. This could involve selectively including or excluding specific components from the fingerprint generation process.  For example, if you are concerned about the impact of a specific component (like a particular browser plugin) on fingerprint uniqueness or stability, you might choose to exclude it.  The exact methods for customization will depend on the specific version of the FingerprintJS library you are using.  Consult the official documentation for details on how to configure the fingerprint components and parameters. This may involve passing configuration objects during initialization or using specific API calls to fine-tune the process.  Remember that any customization might affect the uniqueness and stability of the generated fingerprints, potentially impacting the effectiveness of your application.
+
+
+### Data Privacy Considerations
+
+Data privacy is paramount when using FingerprintJS.  Never store or process the visitorId or any other fingerprint data directly on the client-side. Always transmit this information securely to your backend server using HTTPS.  Your server-side processing should adhere to all relevant data privacy regulations (such as GDPR, CCPA, etc.).  Implement appropriate security measures to protect the fingerprint data stored on your server, and ensure compliance with all applicable laws and user consent policies.  Transparency with your users is essential; inform them about your use of fingerprint technology and how you handle their data.  Consider providing options for users to opt out or control the collection of their fingerprint data (though complete opt-out might limit functionality in your application).  Consider using techniques like data minimization and purpose limitation to limit the scope of data collected and its usage.
+
+### Integration with Existing Systems
+
+Integrating FingerprintJS into an existing system might require adapting your existing workflows and data structures. This may involve adding new database fields to store the `visitorId`, modifying your backend logic to handle fingerprint data, and updating your reporting and analytics systems to incorporate the new data source.  You'll need to design how the `visitorId` interacts with your existing user identification and authentication mechanisms.  Consider using a consistent naming convention for your fingerprint data and integrate it seamlessly with your logging and debugging infrastructure.  Thorough testing is crucial to ensure that the integration is successful and doesn't cause unexpected problems in your existing system.
+
+### Performance Optimization
+
+FingerprintJS is designed to be lightweight and efficient, but you can further optimize its performance in your application.  Avoid unnecessary calls to the `getFingerprint()` method; if you only need the fingerprint once per session, retrieve it only once and store it securely (on the server-side).  Consider using techniques like caching to store the fingerprint on your server to reduce the number of calls to the FingerprintJS API.  If performance remains a concern after basic optimization, review the configuration options of the library; selectively excluding certain components might slightly reduce processing time, but consider the trade-off to fingerprint uniqueness.  Properly profiling your application's performance will help identify any bottlenecks related to FingerprintJS usage.  Always use the most updated version of the FingerprintJS library, as newer versions may include performance enhancements.
+
+
+## Visitor Identification
+
+### Understanding Visitor IDs
+
+The core of FingerprintJS is its ability to generate unique `visitorId`s.  These IDs are not tied to any personally identifiable information (PII). Instead, they are derived from a hash of various browser characteristics, resulting in a unique identifier for each browser instance.  The `visitorId` remains relatively stable across sessions as long as the browser configuration and environment remain unchanged.  However, significant changes to the browser (e.g., installing new plugins, changing fonts, clearing browser data) *may* lead to a different `visitorId` being generated.  This is a key factor to consider when using `visitorId`s for tracking and identifying returning visitors.  It's crucial to understand that a `visitorId` represents a browser instance, not necessarily a specific individual.  Multiple users could potentially share the same device and therefore the same `visitorId`.
+
+### Managing Visitor IDs
+
+Effective management of `visitorId`s is essential for accurate user tracking and analysis.  The primary method for managing `visitorId`s is through your server-side infrastructure.  When a `visitorId` is obtained from the client-side (using the FingerprintJS API), immediately transmit it securely to your server.   Your server should then store the `visitorId` persistently, linking it to any relevant user data or session information.  This is the central repository for managing visitor identification.  Develop robust procedures on the server for handling potential issues like duplicate `visitorId`s (which could indicate a change in browser configuration or a technical issue) and designing processes for updating or managing IDs as needed.
+
+
+### ID Persistence and Storage
+
+The `visitorId` itself is not stored on the client-side.  Storing it client-side is a significant security risk.  Instead, your server is responsible for persistent storage of the `visitorId`.  Choose a suitable database technology (like SQL, NoSQL, or a key-value store) to store the `visitorId` along with other relevant data associated with the visitor.  Design your database schema to effectively link `visitorId`s to user sessions, user accounts (if applicable), and any other relevant information.  Implement appropriate security measures to protect the `visitorId` data from unauthorized access or modification.   Consider the potential scale of your application when choosing a storage solution; ensure it can handle the expected volume of `visitorId` data.
+
+### ID Rotation and Expiration
+
+While `visitorId`s are designed to be relatively stable, there might be situations where you want to manage the lifespan of these IDs.  Consider implementing an ID rotation strategy to periodically generate new `visitorId`s for existing users.  This could be based on a time interval (e.g., rotating IDs every 30 days) or triggered by significant changes in the browser configuration detected by FingerprintJS.  Similarly, you might implement an expiration policy for `visitorId`s that have not been used for a certain period, freeing up storage space and managing data retention.  The specific implementation of ID rotation and expiration depends on your application's requirements and data retention policies.  Always comply with relevant data privacy regulations when managing the lifecycle of `visitorId`s.
+
+
+## Data Analysis and Reporting
+
+### Interpreting Fingerprint Data
+
+The data obtained from FingerprintJS primarily consists of the `visitorId` and potentially other browser-related information. The `visitorId` itself doesn't directly reveal personal information; it's an anonymized identifier for a specific browser instance.  The value of this data lies in its ability to track unique browser instances across sessions, even when cookies are disabled or cleared.  By analyzing the frequency and patterns of `visitorId` occurrences, you can gain insights into user behavior, website traffic, and other key metrics.   Don't attempt to reverse-engineer the `visitorId` to obtain PII; this is not possible, and attempts to do so would violate the design and privacy principles of FingerprintJS.  Instead, focus on analyzing the patterns and trends derived from the `visitorId` data within the context of your application's goals.
+
+
+### Data Visualization
+
+Effective data visualization is crucial for understanding the insights derived from FingerprintJS data.  You can use various visualization techniques to represent your data, depending on your analytical goals.  For example:
+
+* **Time series graphs:**  Show the number of unique visitors over time.
+* **Geographic maps:** Visualize visitor distribution based on IP address (Note: IP addresses are not directly provided by FingerprintJS but can be obtained separately and linked to the `visitorId`).
+* **Histograms:** Illustrate the distribution of visitor engagement metrics.
+* **Scatter plots:** Explore relationships between different metrics.
+
+Choose visualization tools that are appropriate for your data volume and the complexity of your analysis.  Consider using specialized business intelligence (BI) tools or data visualization libraries to create insightful dashboards and reports.
+
+
+### Analyzing Trends and Patterns
+
+Analyzing the patterns and trends in your FingerprintJS data allows you to draw meaningful conclusions about user behavior and website traffic.  For example, you can:
+
+* **Identify returning visitors:** Track the frequency of `visitorId` appearances to understand user loyalty and engagement.
+* **Measure the effectiveness of marketing campaigns:** Analyze the impact of different campaigns on unique visitor counts.
+* **Detect fraudulent activities:** Identify unusual patterns in `visitorId` activity that may suggest fraudulent behavior.
+* **Optimize website design:** Understand user navigation patterns to improve website usability and conversion rates.
+* **Assess the impact of A/B testing:** Track unique visitors across different A/B test variations to measure their effectiveness.
+
+Remember to consider potential biases in your data and to validate your findings using multiple data sources when necessary.
+
+
+### Dashboard Integration
+
+Integrating FingerprintJS data into your existing dashboards provides a comprehensive view of your website's performance and user behavior.  This integration typically involves linking your data storage (where `visitorId`s and associated data are stored) to your dashboarding tool.  Many popular dashboarding platforms (such as Tableau, Power BI, or custom-built dashboards) allow you to connect to various data sources and visualize the data in interactive dashboards.  This allows you to monitor key metrics derived from FingerprintJS data, such as unique visitor counts, returning visitor rates, and engagement metrics.  Customizing dashboards to highlight relevant metrics for your specific business needs is crucial for maximizing the value of your data analysis.  Regularly reviewing and updating your dashboards helps ensure that your analyses stay relevant and insightful.
+
+
+## Security and Privacy
+
+### Data Security and Encryption
+
+Security and encryption are paramount when handling fingerprint data.  Never transmit or store `visitorId`s or any associated data in plain text.  Always use HTTPS to securely transmit data between your client-side application and your server.  Implement robust server-side security measures to protect your database from unauthorized access, including strong passwords, regular security audits, and intrusion detection systems.  Encrypt your fingerprint data both in transit and at rest using industry-standard encryption algorithms.  Regularly review and update your security protocols to address emerging threats and vulnerabilities.  Consider employing techniques like data masking or tokenization to further protect sensitive data associated with `visitorId`s.  Use appropriate access control mechanisms to limit access to fingerprint data to authorized personnel only.
+
+
+### Compliance with Privacy Regulations
+
+FingerprintJS is designed to be privacy-respecting, but you must ensure that your implementation complies with all applicable privacy regulations, such as GDPR, CCPA, and other relevant laws in your target jurisdictions.  This includes obtaining appropriate user consent before collecting and processing fingerprint data.  Clearly and transparently inform users about your use of FingerprintJS and how their data is handled in your privacy policy.  Ensure that your data processing activities are lawful, fair, and transparent.  Implement procedures for users to exercise their rights, such as the right to access, rectification, erasure, and data portability, as mandated by relevant regulations.  Maintain meticulous records of your data processing activities to demonstrate compliance with regulatory requirements.  Consult with legal counsel to ensure that your implementation fully complies with all relevant privacy laws and regulations.
+
+
+### Ethical Considerations
+
+Beyond legal compliance, ethical considerations are crucial when using FingerprintJS.  Always prioritize user privacy and avoid practices that could be perceived as intrusive or deceptive.   Be transparent about your use of fingerprint technology and avoid misleading users about its purpose.  Respect user choices and allow them to opt out of fingerprint tracking if they wish.  Use the data responsibly and avoid engaging in practices that could harm users or violate their trust.  Consider the potential societal impacts of your application and ensure that its benefits outweigh any potential risks to user privacy.   Regularly review your practices to address evolving ethical concerns and best practices in data privacy.
+
+
+### Best Practices for Data Handling
+
+Follow these best practices to ensure secure and responsible data handling:
+
+* **Minimize data collection:** Only collect the necessary fingerprint data.
+* **Limit data retention:** Delete fingerprint data when it's no longer needed.
+* **Secure data storage:** Use strong encryption and access controls.
+* **Regular security audits:** Regularly assess your security measures.
+* **Incident response plan:** Have a plan in place to handle data breaches.
+* **Data anonymization:** Explore techniques to further anonymize fingerprint data.
+* **Transparency and user consent:** Obtain informed consent from users.
+* **Regular updates:** Keep your FingerprintJS library and security software updated.
+* **Employee training:** Train your employees on data security and privacy best practices.
+* **Third-party risk management:** Carefully vet any third-party vendors involved in data processing.
+
+Adhering to these best practices reduces the risk of security breaches and protects user privacy.  Regularly review and update your procedures to maintain the highest standards of security and privacy.
+
+
+## Troubleshooting
+
+### Common Issues and Solutions
+
+Here are some common issues encountered when using FingerprintJS and their potential solutions:
+
+* **`visitorId` is not generated:**  Check your API key is correct and that you have correctly integrated the FingerprintJS library. Ensure you're handling the promise returned by the `getFingerprint()` method appropriately. Network connectivity issues might prevent the fingerprint generation. Verify your server-side is correctly receiving and processing the data. Check the browser console for JavaScript errors.
+
+* **Inconsistent `visitorId`s:**  Significant changes to the browser configuration (e.g., installing plugins, clearing cache, updating browser) can result in a new `visitorId`. This is expected behavior.  Ensure that your application logic accounts for this possibility and handles the changes gracefully.
+
+* **Performance issues:**  If FingerprintJS impacts performance, review your code for inefficient usage.  Avoid multiple calls to the API if not necessary. Consider caching `visitorId`s on your server to reduce API calls. Use the latest version of the FingerprintJS library for potential performance improvements.
+
+* **Errors in the browser console:**  Pay close attention to any JavaScript errors reported in your browser's developer console. These errors often provide valuable clues to resolving the issue.
+
+* **Server-side errors:**  Ensure that your server-side code correctly handles and stores the `visitorId` data. Check for errors in your server logs, database interactions, and any data processing steps.
+
+
+### Debugging Tips
+
+* **Use your browser's developer tools:**  The developer tools (usually accessed by pressing F12) are indispensable for debugging JavaScript code. Use the console to inspect variables, identify errors, and step through your code.
+
+* **Console logging:** Strategically place `console.log()` statements in your code to track the values of variables and the flow of execution.  This helps identify where issues occur.
+
+* **Network monitoring:** Monitor network requests to ensure that the FingerprintJS API calls are successful and the data is being transmitted correctly.
+
+* **Simplify your code:** Isolate the FingerprintJS integration to minimize the complexity and identify the source of errors.
+
+* **Test in different browsers:**  Test your integration in multiple browsers to identify any browser-specific issues.
+
+* **Check the FingerprintJS documentation:** The official documentation often contains troubleshooting information and examples.
+
+* **Contact support:** If you can't resolve the issue, contact FingerprintJS support for assistance.
+
+
+### Support Resources
+
+* **Official FingerprintJS Documentation:**  The most comprehensive source of information, including API references, tutorials, and troubleshooting guides.
+* **FingerprintJS Community Forums (if available):** Search for existing solutions to common problems or ask questions in the community forums.
+* **FingerprintJS Support Email (if available):**  Contact FingerprintJS support directly for assistance with more complex issues.
+
+
+### FAQ
+
+* **Is FingerprintJS GDPR compliant?** FingerprintJS itself doesn't collect PII; however, your implementation must comply with GDPR and other relevant regulations.  This means obtaining proper user consent and responsibly handling the data.
+
+* **Can FingerprintJS be spoofed?** While it's designed to be resistant to spoofing, no technology is entirely foolproof.  FingerprintJS regularly updates to counteract evolving spoofing techniques.
+
+* **How accurate is FingerprintJS?** Accuracy depends on various factors, including browser configuration and the environment. It offers high accuracy in identifying returning visitors, but occasional variations are possible.
+
+* **What data does FingerprintJS collect?**  It collects information about the browser environment, but this data is hashed and anonymized to create the `visitorId`.  No personally identifiable data is directly collected.
+
+* **Can I use FingerprintJS with other tracking technologies?**  Yes, it can be used alongside other technologies, but careful consideration is needed to respect user privacy and data protection laws.  Avoid redundancy or unnecessary data collection.
+
+
+Remember to always consult the official FingerprintJS documentation for the most up-to-date information and support resources.
+
+
+## Appendix
+
+### Glossary of Terms
+
+* **Fingerprint:** A unique, anonymized identifier generated for a web browser instance, based on its configuration and characteristics.  It does not contain personally identifiable information (PII).
+
+* **`visitorId`:** The unique identifier generated by FingerprintJS, representing a specific browser instance.
+
+* **PII (Personally Identifiable Information):**  Information that can be used to identify an individual, such as name, address, email address, etc.  FingerprintJS does not collect or store PII.
+
+* **Hash:** A one-way function that transforms input data into a fixed-size string of characters.  The `visitorId` is a hash of browser characteristics.
+
+* **Spoofing:** Attempts to manipulate browser characteristics to generate a different fingerprint.
+
+* **Agent:** The underlying FingerprintJS object that manages the fingerprinting process (term may vary depending on library version).
+
+* **Component:** An individual element of browser configuration or characteristics used in fingerprint generation (e.g., plugins, fonts, etc.).
+
+
+### API Reference
+
+*(This section would contain detailed API documentation, including method descriptions, parameters, return values, and examples.  The specific content would depend on the version of the FingerprintJS library.  A well-structured API reference would include sections for each core function, such as `getFingerprint()`, `getVisitorId()`, along with any advanced options or configuration methods.  Each function would have a clear description of its purpose, the parameters it accepts (data types, descriptions, and whether they are optional or required), the return values (data type, structure, and possible errors), and illustrative examples showing how to use each function.)*
+
+
+### Release Notes
+
+*(This section would contain a changelog of releases, highlighting new features, bug fixes, performance improvements, and any breaking changes in different versions of the FingerprintJS library.  Each entry should specify the version number, the release date, and a concise description of the changes included in that release.  This allows developers to track changes, identify potential compatibility issues, and understand the evolution of the library.)*
+
+
+For example:
+
+
+**Version 1.2.0 (2024-10-27)**
+* Added support for new browser features.
+* Improved accuracy of fingerprint generation.
+* Fixed bug related to handling of specific browser extensions.
+
+
+**Version 1.1.0 (2024-09-15)**
+* Improved performance.
+* Added new option for customizing fingerprint components.
+
+
+### License Information
+
+*(This section would specify the license under which the FingerprintJS library is distributed.  This typically includes the name of the license (e.g., MIT License, Apache License 2.0), a link to the full license text, and any restrictions or requirements imposed by the license.)*  For example:
+
+This library is licensed under the MIT License.  See the [LICENSE](LICENSE) file for details.
+

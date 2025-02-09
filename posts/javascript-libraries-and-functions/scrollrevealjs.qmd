@@ -1,0 +1,620 @@
+---
+title: "scrollReveal.js - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction
+
+### What is ScrollReveal.js?
+
+ScrollReveal.js is a lightweight JavaScript library that simplifies the process of creating animations that are triggered by the user scrolling down the page.  It allows you to easily reveal elements as they enter the viewport, creating engaging and dynamic user experiences.  Instead of manually managing element visibility and animation timing based on scroll position, ScrollReveal.js handles all the complex calculations for you, providing a clean and efficient way to implement scroll-triggered animations.
+
+### Why use ScrollReveal.js?
+
+Using ScrollReveal.js offers several advantages:
+
+* **Simplicity:**  It provides a straightforward API, making it easy to implement and customize animations.  No need to deal with complex scroll event listeners and calculations.
+* **Performance:**  The library is optimized for performance, ensuring smooth animations even on less powerful devices.  It uses techniques to minimize the computational overhead of constantly checking scroll position.
+* **Flexibility:**  It offers a wide range of customization options, allowing you to tailor animations to your specific design needs. You can control animation duration, easing, distance from the viewport, and more.
+* **Ease of use:**  The minimal API and straightforward configuration makes it easy to learn and implement, even for developers new to animation techniques.
+
+
+### Setting up ScrollReveal.js
+
+To use ScrollReveal.js, you first need to include the library in your project.  You can download the minified version from the official repository or use a CDN.  Here's how to include it using a CDN:
+
+```html
+<script src="https://unpkg.com/scrollreveal"></script>
+```
+
+After including the library, you can initialize it and start creating your animations.  The library doesn't require any specific HTML structure;  you simply need to target the elements you want to animate using CSS selectors.
+
+
+### Basic Example
+
+This example reveals a heading and a paragraph when they scroll into view:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>ScrollReveal Example</title>
+<style>
+  .reveal {
+    opacity: 0;
+    transform: translateY(50px);
+    transition: all 0.5s ease;
+  }
+  .reveal.reveal-active {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<h1>This heading will reveal!</h1>
+<p>This paragraph will also reveal!</p>
+
+<script src="https://unpkg.com/scrollreveal"></script>
+<script>
+  window.sr = ScrollReveal();
+  sr.reveal('.reveal', {
+    duration: 500,
+    origin: 'bottom'
+  });
+</script>
+
+</body>
+</html>
+```
+
+In this example:
+
+* We add a class `reveal` to both the heading and paragraph.
+* We initialize ScrollReveal using `window.sr = ScrollReveal();`.
+* We use `sr.reveal('.reveal', { ... })` to configure and apply the animation to elements with the class `reveal`.  The animation will take 500 milliseconds (`duration`) and the element will appear to slide up from the bottom (`origin: 'bottom'`).  The CSS handles the initial state and transition for a smooth effect.  The `reveal-active` class is automatically added by ScrollReveal once the element is in view.
+
+Remember to replace `"https://unpkg.com/scrollreveal"` with the correct path if you downloaded the library locally.
+
+
+## Core Concepts
+
+### Reveal Options
+
+The `reveal()` method accepts a second argument, an object containing various options to customize the animation.  These options control aspects like the animation's duration, easing, distance from the viewport, and more. Here are some key options:
+
+* **`duration` (Number):** The duration of the animation in milliseconds (default: 500).
+* **`delay` (Number):**  A delay in milliseconds before the animation starts (default: 0). Useful for creating staggered animations.
+* **`easing` (String):**  The easing function to use for the animation (default: 'linear').  ScrollReveal supports various easing functions (e.g., 'ease-in-out', 'ease-in', 'ease-out', cubic-bezier values).
+* **`distance` (String or Number):** The distance the element should move before becoming visible.  Can be a number (pixels) or a string (e.g., '100px', '50%').  Use a negative value for movement from the opposite direction.
+* **`scale` (Number):**  The scaling effect to apply (default: 1). Values less than 1 will scale the element down before revealing; values greater than 1 will scale it up.
+* **`opacity` (Number):**  The opacity of the element before and during the animation (default: 0 initially, 1 after animation).
+* **`rotate` (Number):** The rotation in degrees to apply to the element (default: 0).
+* **`origin` (String):** Specifies the origin point of the animation ('top', 'bottom', 'left', 'right', 'top right', 'top left', etc.). This controls where the animation appears to start from.
+* **`interval` (Number):** When animating multiple elements, the delay between each element's animation (default: 0)
+* **`mobile` (boolean):** whether or not to reveal elements on mobile devices (default: true)
+* **`desktop` (boolean):** whether or not to reveal elements on desktop devices (default: true)
+* **`reset` (boolean):** Whether or not to reset the element's transformations after it leaves the viewport (default: false).  Use `true` for continuous animations on scroll.
+
+
+### Targets
+
+Targets define the elements that will be animated by ScrollReveal.js.  These can be specified in several ways:
+
+* **CSS Selectors:**  The most common approach.  Pass a CSS selector string (e.g., `.my-element`, '#my-id', 'div.container p') to the `reveal()` method to target all matching elements.
+* **DOM Elements:** You can also directly pass DOM elements to `reveal()` to animate specific elements.
+
+### Containers
+
+Containers define the area that ScrollReveal.js monitors for scroll events.  By default, the entire viewport is used as the container.  However, you can specify custom containers using the `container` option during initialization. This is useful for creating animations within specific sections or elements of your page, preventing animations from triggering unexpectedly based on scrolling outside a specific region.
+
+### The `reveal()` Method
+
+The core of ScrollReveal.js is the `reveal()` method.  It's used to apply animations to target elements.  The basic syntax is:
+
+```javascript
+sr.reveal(target, options);
+```
+
+* `sr` is the ScrollReveal instance.
+* `target` is a CSS selector string or a DOM element.
+* `options` (optional) is an object containing the animation options.
+
+For example:
+
+```javascript
+sr.reveal('.my-element', { duration: 800, origin: 'left' });
+```
+
+This reveals elements with the class "my-element" using an 800ms animation, appearing from the left.
+
+
+### Initialization and Cleanup
+
+ScrollReveal.js is typically initialized once at the beginning of your script.  Creating an instance is simple:
+
+```javascript
+window.sr = ScrollReveal({reset: true}); // creates a new ScrollReveal instance.  reset is an option
+```
+
+You can also pass options during initialization to set defaults for all subsequent `reveal()` calls.
+
+
+The library doesn't usually require explicit cleanup, as the animations are managed automatically. However, if you need to destroy the instance to prevent any further animations or to free up resources, you can use:
+
+
+```javascript
+sr.destroy();
+```
+
+This method removes all event listeners and stops any running animations.  It's generally only necessary if you're dynamically creating and destroying ScrollReveal instances, or need to completely stop the library from interacting with the page.
+
+
+
+## Reveal Options
+
+This section details the available options for customizing the animations created by ScrollReveal.js.  These options are passed as a single object to the `reveal()` method.
+
+
+### `distance`
+
+Specifies the distance the element should travel before becoming visible. This can be a number (representing pixels), or a string (e.g., '100px', '50%'). A negative value moves the element from the opposite direction (e.g., `-50px` moves the element up 50 pixels if `origin` is 'bottom').  Defaults to '20px'.
+
+### `duration`
+
+Specifies the duration of the animation in milliseconds. Defaults to 500ms.
+
+
+### `easing`
+
+Specifies the easing function for the animation.  ScrollReveal supports various easing functions, including: 'linear', 'ease-in', 'ease-out', 'ease-in-out', and custom cubic-bezier functions. Defaults to 'ease'.  For custom cubic-bezier easing, provide a string like `'cubic-bezier(0.42, 0, 0.58, 1)'`.
+
+
+### `origin`
+
+Specifies the origin point of the animation.  This defines where the element appears to "come from" before the animation.  Possible values include: 'top', 'bottom', 'left', 'right', 'top right', 'top left', 'bottom right', 'bottom left', 'center'.  Defaults to 'bottom'.
+
+
+### `interval`
+
+When revealing multiple elements, this option specifies the delay in milliseconds between each element's animation. This is useful for creating staggered animations. Defaults to 0.
+
+
+### `scale`
+
+Specifies the scaling effect during the animation.  A value less than 1 will scale the element down initially, while a value greater than 1 will scale it up. Defaults to 1 (no scaling).
+
+
+### `opacity`
+
+Controls the opacity of the element before and during the animation.  Defaults to 0 initially, then transitions to 1 (fully opaque) once the animation completes.  You can use this to create fade-in effects, or to combine it with other transformations.
+
+
+### `rotate`
+
+Specifies the rotation in degrees to be applied to the element during the animation. Defaults to 0 (no rotation).  Positive values rotate clockwise, negative values counter-clockwise.
+
+
+### `mobile`
+
+A boolean value (true/false) controlling whether the animation should be applied on mobile devices.  Defaults to `true`.  Set to `false` to disable animations on mobile devices.
+
+
+### `reset`
+
+A boolean value (true/false) indicating whether the element's transformations should be reset after it leaves the viewport. If `true`, the element will return to its initial state when scrolled out of view;  If `false`, the element will remain in its animated state.  Defaults to `false`.
+
+
+### `useDelay`
+
+A boolean value (true/false) which controls whether the `delay` option is used. Defaults to `true`.  Set to `false` to override a globally defined `delay` for individual elements.
+
+
+### `viewFactor`
+
+A number between 0 and 1.  This value defines what percentage of the element must be visible in the viewport before the animation begins.  For example, a value of 0.5 means the animation will start when 50% of the element is visible. Defaults to 0.2 (20%).  Useful for controlling when animations trigger.
+
+
+### `viewOffset`
+
+This option allows you to add an offset (in pixels) to the viewport before the animation triggers.  A positive value pushes the trigger point further down the page. Defaults to 0. Useful for fine-tuning animation trigger points.
+
+
+### `afterReveal`
+
+A function that is called after the animation completes.  This allows you to execute custom code once the element is fully visible.  Useful for triggering other events or actions.
+
+
+### `beforeReveal`
+
+A function that is called just before the animation starts. Useful for any actions to be performed before animation starts (e.g., setting up additional styling or state).
+
+
+### `afterReset`
+
+A function that is called after the element is reset (if `reset: true`).  This callback occurs after the element's transformations are reverted when it scrolls out of view.
+
+
+### `beforeReset`
+
+A function that is called just before the element is reset (if `reset: true`). Allows you to execute code before the element's state is reset (e.g., adding a class temporarily).
+
+
+
+## Advanced Usage
+
+This section covers more complex use cases and optimization techniques for ScrollReveal.js.
+
+### Revealing Multiple Elements
+
+ScrollReveal.js efficiently handles revealing multiple elements. You can achieve this in several ways:
+
+* **Single `reveal()` call with a CSS selector:** The simplest approach is to use a CSS selector that targets all the elements you want to animate.
+
+```javascript
+sr.reveal('.reveal-element', { duration: 500, interval: 100 });
+```
+
+This animates all elements with the class `reveal-element`, with a 100ms delay between each element's animation.  The `interval` option is key for creating staggered effects.
+
+
+* **Multiple `reveal()` calls:** You can call the `reveal()` method multiple times, targeting individual elements or groups of elements.
+
+```javascript
+sr.reveal('#element1', { duration: 600, origin: 'left' });
+sr.reveal('.element-group', { duration: 400, origin: 'top' });
+```
+
+This provides more fine-grained control over individual animations.
+
+
+
+### Custom Animations
+
+While ScrollReveal.js provides many built-in options, you can implement highly customized animations by leveraging CSS and JavaScript.  ScrollReveal adds the class `reveal-active` to an element once it is in view; use this class in your CSS to define your animations.
+
+```css
+.my-element {
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.5s ease;
+}
+
+.my-element.reveal-active {
+  opacity: 1;
+  transform: scale(1);
+}
+```
+
+This example uses CSS transitions to handle the animation.  You can use any CSS properties and animations, including keyframes, to create custom effects. For complex animations consider using a CSS animation library alongside ScrollReveal.
+
+
+### Using ScrollReveal with Frameworks
+
+ScrollReveal.js is compatible with most JavaScript frameworks (React, Vue, Angular, etc.).  The integration typically involves initializing ScrollReveal within a lifecycle method (e.g., `componentDidMount` in React) and using selectors or DOM references to target the elements within your framework's component structure.  Remember to handle the potential for race conditions between the framework's rendering and ScrollReveal's animation triggering; consider using `useEffect` or a similar lifecycle hook to ensure ScrollReveal is called after the component is fully rendered.
+
+### Handling Events
+
+While ScrollReveal doesn't offer direct event listeners for animation start/end, you can use the `afterReveal` and `beforeReveal` options to execute custom code at those points.  For other event handling related to element visibility, you would handle these outside of ScrollReveal using standard JavaScript techniques like Intersection Observer API.
+
+
+### Performance Optimization
+
+For optimal performance with many animated elements:
+
+* **Use efficient CSS selectors:** Avoid overly broad or complex selectors.
+* **Minimize animation complexity:**  Simple animations generally perform better than complex ones.
+* **Reduce the number of elements animated:**  Only animate elements that truly require animation.
+* **Use `viewFactor`:** Increasing the `viewFactor` ensures animations only trigger when a significant portion of the element is visible.
+* **Consider lazy-loading:** If you have many elements far down the page, consider lazy-loading those elements or using techniques like Intersection Observer API for targeted loading.  This prevents unnecessary calculations on initially unseen elements.
+* **Use appropriate easing functions:**  Some easing functions are computationally more expensive than others.
+* **Avoid unnecessary recalculations:**  The `reset` option, if used incorrectly, can lead to performance issues.  Only use `reset: true` when absolutely necessary for the desired animation.
+
+
+
+
+## Troubleshooting
+
+This section provides guidance on resolving common issues and optimizing your ScrollReveal.js implementation.
+
+
+### Common Issues and Solutions
+
+* **Animations not working:**
+    * **Problem:** Elements are not animating when they enter the viewport.
+    * **Solutions:**
+        * Verify that ScrollReveal.js is correctly included and initialized. Check your browser's console for errors.
+        * Double-check your CSS selectors to ensure they accurately target the intended elements.  Use your browser's developer tools to inspect the elements and confirm the selector is working.
+        * Ensure the elements are not hidden by other CSS rules (e.g., `display: none;`).
+        * Verify that the `mobile` and `desktop` options are set correctly if targeting specific devices.
+        * Inspect the `viewFactor` and `viewOffset` settings; ensure the thresholds are appropriately set for your design.
+
+* **Animations appearing jerky or laggy:**
+    * **Problem:** Animations are not smooth or appear to stutter.
+    * **Solutions:**
+        * Reduce animation complexity. Simpler animations perform better.
+        * Optimize CSS transitions and animations. Ensure efficient use of CSS properties.
+        * Reduce the number of elements being animated.
+        * Check for conflicts with other JavaScript libraries or plugins.
+        * Increase `viewFactor` to reduce the frequency of animation calculations.
+
+* **Animations not resetting:**
+    * **Problem:** Elements remain in their animated state after scrolling past them.
+    * **Solutions:** Set the `reset` option to `true` in your ScrollReveal configuration or in individual `reveal()` calls.
+
+* **Unexpected behavior with frameworks:**
+    * **Problem:** Animations don't work correctly when using a JavaScript framework.
+    * **Solutions:** Ensure ScrollReveal is initialized after the framework has fully rendered the DOM. Use appropriate lifecycle hooks (like `componentDidMount` in React or `mounted` in Vue) to delay ScrollReveal initialization.
+
+
+### Debugging Tips
+
+* **Browser Developer Tools:** Use your browser's developer tools (usually accessed by pressing F12) to inspect elements, check for CSS errors, and monitor network requests.  The console will show JavaScript errors which may point to problems in your ScrollReveal setup.
+* **Simplify your code:** If you're having trouble debugging a complex animation, try simplifying it to a basic example to isolate the issue.
+* **Check for CSS conflicts:** Ensure your CSS rules don't unintentionally interfere with the animations. Use your browser's developer tools to inspect the applied styles on the elements being animated.
+* **Console logging:** Use `console.log()` statements to track the state of your variables and the flow of your code.  Log values of relevant options and confirm the `reveal-active` class is added as expected.
+
+
+### Browser Compatibility
+
+ScrollReveal.js is designed to work across modern browsers. However, very old or unsupported browsers may have limited compatibility due to reliance on standard CSS properties and the use of `requestAnimationFrame` (for smooth animations).  For best results, support recent versions of Chrome, Firefox, Safari, and Edge.  For older browsers, you might need to implement polyfills or use a different animation library.  ScrollReveal itself doesn't require any special polyfills, it's the underlying technologies its reliant upon (CSS transforms, transitions, `requestAnimationFrame`) that may require them for older browsers.
+
+
+## Examples
+
+This section provides several examples demonstrating various features and use cases of ScrollReveal.js.  Remember to include the ScrollReveal library using a CDN or by downloading it and including it locally.  For simplicity, CDN inclusion is shown in these examples.  Replace this with your local path if needed.
+
+
+### Simple Reveal Example
+
+This example reveals a single element with a basic fade-in animation.
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Simple Reveal</title>
+<script src="https://unpkg.com/scrollreveal"></script>
+</head>
+<body>
+
+<div class="reveal">
+  <h1>Hello, world!</h1>
+</div>
+
+<script>
+  window.sr = ScrollReveal();
+  sr.reveal('.reveal', { duration: 500 });
+</script>
+
+</body>
+</html>
+```
+
+This uses default settings except for the duration.  The element with class `reveal` will fade in over 500 milliseconds as it scrolls into view.
+
+
+### Complex Reveal Example
+
+This example demonstrates revealing multiple elements with different animation settings.
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Complex Reveal</title>
+<script src="https://unpkg.com/scrollreveal"></script>
+</head>
+<body>
+
+<div class="reveal" data-sr-id="1">
+  <h2>Section 1</h2>
+  <p>Some text here.</p>
+</div>
+<div class="reveal" data-sr-id="2">
+  <h2>Section 2</h2>
+  <p>More text here.</p>
+</div>
+<div class="reveal" data-sr-id="3">
+  <h2>Section 3</h2>
+  <p>Even more text!</p>
+</div>
+
+<script>
+  window.sr = ScrollReveal({ reset: true }); //Using reset option for continuous scroll animations
+  sr.reveal('.reveal', {
+    duration: 800,
+    origin: 'bottom',
+    interval: 200, // Stagger animations
+    distance: '50px'
+  });
+</script>
+
+</body>
+</html>
+```
+
+This example uses staggered animations, different origins, and a longer animation duration.  The `reset: true` option allows continuous scrolling animations; when an element scrolls out of view it will reset, ready to animate on next scroll. The `data-sr-id` attributes are not required but can be helpful for debugging purposes.
+
+
+### Example with Custom Animations
+
+This example uses CSS transitions to create a custom animation.
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Custom Animation</title>
+<style>
+.custom-reveal {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: all 0.6s ease-in-out;
+}
+.custom-reveal.reveal-active {
+  opacity: 1;
+  transform: scale(1);
+}
+</style>
+<script src="https://unpkg.com/scrollreveal"></script>
+</head>
+<body>
+
+<div class="custom-reveal">
+  <h3>Custom Animated Element</h3>
+</div>
+
+<script>
+  window.sr = ScrollReveal();
+  sr.reveal('.custom-reveal', { duration: 600 });
+</script>
+
+</body>
+</html>
+```
+
+The animation is defined entirely in CSS, using the `reveal-active` class added by ScrollReveal.js.
+
+
+### Example with Multiple Containers
+
+This demonstrates using ScrollReveal to manage animations within separate containers.
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Multiple Containers</title>
+<script src="https://unpkg.com/scrollreveal"></script>
+</head>
+<body>
+
+<div id="container1">
+  <div class="reveal">Container 1 - Element 1</div>
+  <div class="reveal">Container 1 - Element 2</div>
+</div>
+
+<div id="container2">
+  <div class="reveal">Container 2 - Element 1</div>
+</div>
+
+<script>
+  window.sr = ScrollReveal();
+  sr.reveal('.reveal', { duration: 500, container: '#container1' });
+  sr.reveal('.reveal', { duration: 700, container: '#container2' });
+</script>
+
+</body>
+</html>
+```
+
+Two separate `reveal()` calls are used to target animations inside each container independently.  Elements within `#container1` will animate differently than elements in `#container2`.  This is useful for controlling animations on parts of a page that don't necessarily scroll together.
+
+
+## API Reference
+
+This section details the core methods available in the ScrollReveal.js API.
+
+
+### `ScrollReveal()`
+
+This function is used to create a new ScrollReveal instance. It accepts an optional configuration object as an argument.  This object allows you to set default options for all subsequent `reveal()` calls.
+
+**Syntax:**
+
+```javascript
+const sr = ScrollReveal([options]);
+```
+
+**Parameters:**
+
+* `options` (Object, optional): An object containing global options that will be applied to all reveals unless overridden by individual `reveal()` method calls.  See the [Reveal Options](link-to-reveal-options-section) section for a detailed list of available options.  For example: `{ duration: 1000, distance: '50px', easing: 'ease-in-out' }`.
+
+**Return Value:**
+
+A ScrollReveal instance object. This object has methods to manage animations, such as `reveal()`, `clean()`, and `destroy()`.  This object is usually assigned to a variable (e.g., `window.sr` or `const revealInstance = ...`) for later use.
+
+**Example:**
+
+```javascript
+const sr = ScrollReveal({ reset: true }); //Set reset to true globally
+```
+
+### `reveal()`
+
+This method is the primary function for initiating an animation. It takes at least one argument which specifies the target elements and an optional second argument that sets the animation options.
+
+**Syntax:**
+
+```javascript
+sr.reveal(target, [options]);
+```
+
+**Parameters:**
+
+* `target` (String or Element): A CSS selector string or a DOM element representing the element(s) to animate.
+* `options` (Object, optional):  An object containing options to customize the animation for this specific element(s). This object overrides any globally set options from the initial `ScrollReveal()` call. See the [Reveal Options](link-to-reveal-options-section) section for details.
+
+**Return Value:**
+
+`undefined`.
+
+**Example:**
+
+```javascript
+sr.reveal('.my-element', { duration: 800, origin: 'left' });
+sr.reveal(document.getElementById('my-element'), { delay: 200 });
+```
+
+### `clean()`
+
+This method removes all animations associated with the ScrollReveal instance.  Useful if you need to completely restart the animations (for example if you've added new elements to the page).  It removes the `reveal-active` class and resets any transformations set by ScrollReveal.
+
+**Syntax:**
+
+```javascript
+sr.clean();
+```
+
+**Parameters:**
+
+None
+
+**Return Value:**
+
+`undefined`.
+
+**Example:**
+
+```javascript
+sr.clean(); // Remove all animations
+// Add new elements to the DOM and call sr.reveal() again
+```
+
+### `destroy()`
+
+This method completely destroys the ScrollReveal instance.  This removes all event listeners and stops any currently running animations. It's typically used when you no longer need ScrollReveal to interact with the page and want to release any resources.
+
+**Syntax:**
+
+```javascript
+sr.destroy();
+```
+
+**Parameters:**
+
+None
+
+**Return Value:**
+
+`undefined`.
+
+**Example:**
+
+```javascript
+sr.destroy(); //Completely removes ScrollReveal from the page.
+```
+
+Remember to replace `"link-to-reveal-options-section"` with the actual heading link or section ID if you're using this in a larger document.
+

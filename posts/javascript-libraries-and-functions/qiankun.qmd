@@ -1,0 +1,557 @@
+---
+title: "qiankun - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction to Qiankun
+
+### What is Qiankun?
+
+Qiankun (乾坤, meaning "Heaven and Earth" in Chinese) is a powerful and versatile micro-frontend solution built on top of Single-SPA.  It simplifies the development and integration of multiple independent applications (micro-frontends) into a single, cohesive user experience.  Unlike many other micro-frontend approaches, Qiankun emphasizes ease of use and seamless integration with existing applications, allowing you to gradually adopt a micro-frontend architecture without requiring extensive refactoring.  It provides a standardized API to handle the lifecycle of your sub-applications, managing their loading, mounting, and unmounting within the main application (the "container" application).  This allows developers to work on individual applications independently and deploy them autonomously, fostering faster iteration cycles and improved team collaboration.
+
+
+### Key Concepts and Terminology
+
+* **Container Application (Main Application):** The overarching application responsible for hosting and managing the micro-frontends.  It acts as the entry point for the user and provides the infrastructure for the sub-applications to operate.
+
+* **Sub-application (Micro-frontend):** An independent application that is integrated into the container application.  It can be built using any framework (React, Vue, Angular, etc.) and deployed independently.
+
+* **Lifecycle Hooks:** Events triggered at various stages of a sub-application's lifecycle (e.g., `bootstrap`, `mount`, `unmount`).  These hooks allow you to perform actions such as initializing the application, rendering it to the DOM, and cleaning up resources after unmounting.
+
+* **Active Sub-application:** The currently displayed and interactive sub-application within the container.
+
+* **Remote Entry:** The entry point of a sub-application which is usually a JavaScript file exported from the sub application's build process.  It exposes the necessary functions for Qiankun to bootstrap, mount, and unmount the application.
+
+* **Sandbox:** Qiankun's isolation mechanism, ensuring that the sub-applications run in their own isolated environments, preventing conflicts between different JavaScript libraries or global variables.  The default sandbox uses a proxy to achieve isolation of global variables.
+
+
+### Benefits of Using Qiankun
+
+* **Independent Development and Deployment:** Teams can work on sub-applications in parallel without impacting each other.  Independent deployments enable faster release cycles and improved agility.
+
+* **Technology Agnostic:**  Sub-applications can be built using any framework or library, allowing you to leverage existing technology stacks and expertise.
+
+* **Simplified Integration:** Qiankun provides a straightforward API for integrating sub-applications, minimizing boilerplate code.
+
+* **Improved Performance:**  Lazy loading of sub-applications reduces the initial load time of the main application.
+
+* **Enhanced Maintainability and Scalability:**  A modular architecture makes the application easier to maintain and scale over time.
+
+* **Gradual Adoption:** You can gradually migrate existing applications to a micro-frontend architecture without needing a complete rewrite.
+
+
+### Comparison with Other Microfrontend Solutions
+
+Qiankun distinguishes itself from other micro-frontend solutions by its simplicity, ease of use, and strong emphasis on integration with existing projects. While other solutions might offer more advanced features or focus on specific architectural patterns, Qiankun prioritizes developer experience and a low barrier to entry.  This makes it particularly well-suited for teams looking to quickly adopt a micro-frontend strategy without significant upfront investment or architectural overhaul.  Compared to solutions requiring extensive configuration or custom infrastructure, Qiankun offers a streamlined approach with minimal overhead, facilitating faster development and easier maintenance.  The default sandbox also provides a relatively simple but effective way to isolate sub-applications from each other.
+
+
+## Setting up a Qiankun Project
+
+### Project Initialization
+
+Before starting, ensure you have Node.js and npm (or yarn) installed.  We'll assume you're using a create-react-app based main application for this example, but Qiankun supports various frameworks.  You can adapt these instructions to your preferred setup.  Begin by creating a new React application using:
+
+```bash
+npx create-react-app my-qiankun-app
+cd my-qiankun-app
+```
+
+This command creates the base structure for your main (container) application.  You can name it differently if you prefer.  We will refer to this directory as `my-qiankun-app` throughout this section.  You will also need to create separate projects for each of your sub-applications, using your framework of choice (e.g., another `create-react-app`, a Vue project, etc.).
+
+
+### Installing Necessary Packages
+
+Navigate to your `my-qiankun-app` directory and install Qiankun:
+
+```bash
+npm install @qiankun/react @qiankun/runtime
+```
+
+or if using yarn:
+
+```bash
+yarn add @qiankun/react @qiankun/runtime
+```
+
+`@qiankun/react` provides React-specific integration helpers, while `@qiankun/runtime` contains the core Qiankun functionalities.  You will install framework-specific packages in your sub-applications (e.g., `@qiankun/vue` for Vue sub-applications).
+
+
+### Configuring the Main Application
+
+1.  **Import and Register Sub-applications:**  In your main application's entry point (usually `src/index.js` or `src/App.js`), import `registerMicroApps` from `@qiankun/react` and configure it to register your sub-applications.  This involves specifying the sub-application's name, entry URL (the `remoteEntry` URL), and active rule (used to determine when to mount the sub-application).  Example:
+
+```javascript
+import { registerMicroApps, start } from 'qiankun';
+
+registerMicroApps([
+  {
+    name: 'sub-app-1',
+    entry: '//localhost:8080', // Replace with your sub-app's URL
+    container: '#sub-app-container', // Replace with a div ID in your main app
+    activeRule: '/sub-app-1',
+  },
+  {
+    name: 'sub-app-2',
+    entry: '//localhost:8081', // Replace with your sub-app's URL
+    container: '#sub-app-container',
+    activeRule: '/sub-app-2',
+  },
+]);
+
+start();
+```
+
+2.  **Create Container Element:**  Add a `<div>` element with the ID specified in the `container` property in your main application's component tree. This div will act as a placeholder for your sub-applications.
+
+
+### Creating Sub-applications
+
+Create separate projects for each sub-application using your preferred framework.  For example, if using React, you would create another `create-react-app` project.  Then, install the corresponding Qiankun package (e.g., `@qiankun/react`).  In your sub-application's entry point, export the necessary bootstrap, mount, and unmount functions as required by Qiankun's runtime.  A basic example (using React):
+
+```javascript
+// sub-app/src/index.js
+import { render } from 'react-dom';
+import App from './App';
+import { createRoot } from 'react-dom/client';
+
+export async function bootstrap() {
+  console.log('react app bootstrapped');
+}
+
+export async function mount(props) {
+  console.log('props from main framework', props);
+  const root = createRoot(props.container);
+  render(<App {...props} />, root);
+}
+
+export async function unmount(props) {
+  console.log('unmount');
+  ReactDOM.unmountComponentAtNode(props.container);
+}
+```
+
+This exposes the required functions to the container application.  Remember to configure your build process to generate a `remoteEntry.js` file (or a similar file) which acts as your sub-application's entry point.  The location of this file should be reflected in the `entry` field of your main application's configuration.
+
+
+### Running the Application
+
+Start your sub-applications independently (e.g., `npm start` within each sub-application directory).  Then, start your main application using  `npm start` in the `my-qiankun-app` directory.  Navigate to different routes (defined in the `activeRule`) to load and interact with the corresponding sub-application.  Remember to replace placeholder URLs with the actual URLs where your sub-applications are running.  These are typically development server URLs while developing.  In production, these would be your deployment URLs.
+
+
+## Developing Sub-applications
+
+### Creating a Sub-application
+
+Creating a sub-application involves setting up a new project using your preferred framework (React, Vue, Angular, etc.).  The process largely depends on the chosen framework; however, the key is to structure the project to export the necessary lifecycle functions that Qiankun expects.  These functions are `bootstrap`, `mount`, and `unmount`.  This export is usually handled through a dedicated entry point file (often named `index.html` or similar for simpler applications, or a Javascript entry point generated as part of the build process for larger applications).
+
+The sub-application should be developed independently and built as a separate entity.  The build process should generate a specific output file (usually named `remoteEntry.js` although this is configurable) that exports these lifecycle functions.  This `remoteEntry.js` file contains the necessary information for Qiankun to load and manage the sub-application within the main application.
+
+Ensure that your build configuration includes a proper output path and filename so the main application can correctly load the `remoteEntry.js` file.
+
+### Registering Sub-applications
+
+Sub-applications are registered within the main application using the `registerMicroApps` function from `@qiankun/react` (or the equivalent function for other frameworks). The registration process involves providing an object for each sub-application. This object must contain at least the following properties:
+
+*   `name`: A unique identifier for the sub-application.
+*   `entry`: The URL of the sub-application's `remoteEntry.js` file.  This should typically be a full URL, including the protocol (`http` or `https`) and port number. In development, this is usually a URL pointing to your local development server.
+*   `container`: A CSS selector targeting a container element in the main application's DOM where the sub-application will be rendered. This element should already exist in the main application's HTML.
+*   `activeRule`:  A route or URL pattern that determines when the sub-application should be active (mounted).  This can be a simple string or a more complex regular expression.
+
+Example:
+
+```javascript
+registerMicroApps([
+  {
+    name: 'sub-app-one',
+    entry: 'http://localhost:8080/remoteEntry.js', // Adjust for your specific build output
+    container: '#subapp-container',
+    activeRule: '/sub-app-one',
+  },
+  // ... more sub-applications
+]);
+```
+
+
+### Lifecycle Hooks
+
+Qiankun provides crucial lifecycle hooks for each sub-application:
+
+*   `bootstrap`: Called when the sub-application is loaded but not yet mounted. This is a good place for initializing resources but should avoid DOM manipulation.
+
+*   `mount`: Called when the sub-application should be mounted and rendered into the designated container. The `props` object passed to this function contains important information including the container element (`container`).
+
+*   `unmount`: Called when the sub-application should be unmounted and removed from the DOM. This is crucial for cleaning up resources and preventing memory leaks.
+
+Proper implementation of these hooks is vital for ensuring seamless integration and a smooth user experience.
+
+
+### Communication Between Sub-applications and Main Application
+
+Communication between sub-applications and the main application can be achieved through several mechanisms:
+
+*   **Global Event Bus:**  A simple approach is to use a global event bus (e.g., custom events, browser's `postMessage`) to broadcast events between the main application and sub-applications.
+
+*   **Props:** Qiankun passes props to the sub-application's `mount` function, allowing the main application to pass data to the sub-application during the mounting process.
+
+*   **Shared State Management:**  Employ a shared state management solution (like Redux, Vuex, or a centralized data store) accessible to both the main application and sub-applications.  However, ensure careful isolation to prevent unintended side effects.
+
+
+### Data Sharing and Communication
+
+For more complex scenarios, a more structured approach might be necessary.  Consider using a dedicated communication mechanism like a message bus, a centralized state management solution, or a dedicated API layer.  The chosen method should balance efficiency and maintainability, while keeping in mind the independence of sub-applications.  Over-reliance on global state can lead to tightly-coupled and difficult-to-maintain systems.
+
+### Handling Sub-application Errors
+
+Implement proper error handling within each sub-application and within the main application's integration logic.  The main application should gracefully handle errors that occur during sub-application loading, mounting, or unmounting. This may involve displaying informative error messages to the user or logging detailed error reports for debugging purposes. Use `try...catch` blocks appropriately within lifecycle hooks and other error-prone parts of the code.  Consider centralized error reporting mechanisms to aggregate errors from various sub-applications.
+
+
+## Advanced Configuration
+
+### Customizing the Qiankun Sandbox
+
+Qiankun's default sandbox provides basic isolation, but for more stringent requirements or specific needs, you can customize the sandbox behavior. Qiankun allows you to provide a custom sandbox implementation.  This is particularly useful when dealing with conflicting libraries or global variables between sub-applications. A custom sandbox function receives the sub-application's entry point (`entry`) and the container element (`container`) as parameters and returns an object containing the `proxy` and `patch` functions.  These functions allow you to intercept and control access to global variables and the DOM.  Refer to the Qiankun documentation for detailed examples and instructions on how to implement a custom sandbox.  Careful consideration should be given to performance implications when implementing a custom sandbox, as overzealous sandboxing can lead to performance bottlenecks.
+
+
+### Asynchronous Loading of Sub-applications
+
+By default, Qiankun loads sub-applications synchronously, meaning the main application waits for the sub-application to load before proceeding. For improved performance, especially in scenarios with many sub-applications or large sub-applications, you can implement asynchronous loading. This involves optimizing the network requests for the `remoteEntry.js` files and potentially using techniques like code-splitting or pre-fetching to pre-load resources.  However, be mindful of the added complexity asynchronous loading introduces to the overall architecture.
+
+
+### Using Different Frameworks for Sub-applications
+
+One of Qiankun's significant strengths is its framework-agnostic nature. You can easily integrate sub-applications built with different frameworks (React, Vue, Angular, etc.) within a single main application.  The key is to ensure that each sub-application exports the correct lifecycle methods (`bootstrap`, `mount`, `unmount`) as expected by Qiankun's runtime. You might need to install framework-specific Qiankun packages (e.g., `@qiankun/vue` for Vue sub-applications) to ensure smooth integration.
+
+
+### Pre-loading Sub-applications
+
+Pre-loading sub-applications can significantly improve perceived performance by loading resources before they're actually needed.  This can be implemented by fetching the necessary assets (e.g., JavaScript bundles) in the background while the user is interacting with other parts of the application.  Qiankun doesn't directly handle pre-loading, but you can implement this using browser APIs like `fetch` or other techniques such as resource hints (`<link rel="preload">`).  Strategic implementation of pre-loading requires careful consideration to avoid excessive resource consumption and negatively impacting the user experience.
+
+
+### Implementing Custom Error Handling
+
+While Qiankun provides basic error handling, you can enhance it by implementing custom error-handling mechanisms.  This may involve creating custom error boundaries within the main application or individual sub-applications to catch and handle exceptions gracefully.  For instance, you could display informative error messages to the user, log errors to a centralized logging service, or implement fallback mechanisms.  Comprehensive error handling is crucial for building robust and reliable micro-frontend applications.
+
+
+### Performance Optimization Strategies
+
+Performance optimization is crucial for large micro-frontend applications.  Strategies include:
+
+*   **Lazy Loading:** Load sub-applications only when they're needed, avoiding unnecessary resource loading.
+*   **Code Splitting:** Divide sub-application code into smaller chunks to optimize loading times.
+*   **Caching:** Utilize browser caching mechanisms to reduce repeated downloads.
+*   **Resource Hints:** Use `preload` and `prefetch` resource hints to proactively load assets.
+*   **Compression:** Optimize your application's assets using compression techniques (e.g., gzip).
+*   **Efficient Sandbox:** Consider the performance implications of custom sandboxing implementations.  Overly restrictive sandboxes can have a detrimental effect on performance.
+*   **Monitoring and Profiling:** Use browser developer tools and performance monitoring services to identify performance bottlenecks and optimize accordingly.
+
+
+
+
+## Deployment and Scaling
+
+### Deploying the Main Application
+
+Deploying the main application involves standard deployment procedures for your chosen framework and hosting platform.  This typically involves building the application (often creating a production-optimized build) and deploying the resulting artifacts (HTML, CSS, JavaScript, and assets) to a web server.  Ensure the server is configured correctly to serve the necessary files and handle routing to the various sub-applications based on the `activeRule` configuration within your main application.  The deployment process might involve using CI/CD pipelines to automate the build and deployment steps.  Consider using a reverse proxy or load balancer to manage incoming requests and distribute traffic effectively, especially as your application grows.
+
+
+### Deploying Sub-applications
+
+Sub-applications are deployed independently, similar to the main application.  Each sub-application has its own build process and deployment pipeline.  The key difference is that the deployment target for each sub-application only needs to expose the `remoteEntry.js` file (or equivalent). This file serves as the entry point for Qiankun to load and mount the sub-application. The URL of this `remoteEntry.js` file needs to be accurately specified in the main application's configuration (`registerMicroApps`).  Deploying sub-applications independently allows for faster iteration cycles and parallel deployments.
+
+
+### Scaling Strategies
+
+Scaling a micro-frontend application built with Qiankun involves scaling both the main application and the individual sub-applications.  Strategies include:
+
+*   **Horizontal Scaling:**  Deploy multiple instances of both the main application and sub-applications across multiple servers.  This distributes the load and enhances availability.  Consider using load balancers to distribute incoming traffic across the various instances.
+
+*   **Vertical Scaling:**  Increase the resources (CPU, memory, etc.) allocated to the servers hosting the main application and sub-applications.  This is suitable for handling increased load without deploying additional instances.
+
+*   **Database Scaling:**  If your application relies on a database, you might need to scale the database independently, potentially using techniques such as database sharding or replication.
+
+*   **Content Delivery Network (CDN):**  Using a CDN to cache static assets (e.g., JavaScript, CSS, images) can significantly reduce latency and improve performance, particularly for users located geographically distant from your servers.
+
+The optimal scaling strategy depends on the specific requirements of your application, the anticipated load, and your budget.  Careful monitoring and performance analysis are crucial for making informed scaling decisions.
+
+
+### Monitoring and Logging
+
+Implementing robust monitoring and logging is essential for maintaining and scaling a micro-frontend application.  Consider using dedicated monitoring tools to track key metrics such as:
+
+*   **Application Performance:**  Track response times, error rates, and resource utilization.
+*   **Sub-application Performance:**  Monitor the performance of individual sub-applications to pinpoint bottlenecks or issues.
+*   **Network Requests:**  Analyze network requests to identify slowdowns or errors.
+*   **Error Logs:**  Aggregate error logs from the main application and all sub-applications for easier debugging.
+*   **Resource Usage:**  Monitor CPU, memory, and disk usage to ensure resources are used efficiently.
+
+Centralized logging and monitoring systems allow you to gain a holistic view of your application's health and performance.  This enables proactive identification and resolution of issues, ensuring a high level of availability and a positive user experience.
+
+
+## Best Practices and Troubleshooting
+
+### Code Organization and Maintainability
+
+Maintaining a clean and well-organized codebase is crucial for the long-term success of any project, especially a micro-frontend application.  For Qiankun projects, consider these best practices:
+
+*   **Modular Design:**  Structure your sub-applications and the main application using a modular design.  Break down large components into smaller, more manageable modules with well-defined interfaces.
+
+*   **Consistent Coding Style:**  Enforce a consistent coding style across all sub-applications and the main application using linters and formatters.
+
+*   **Version Control:**  Utilize a version control system (e.g., Git) to track changes, manage code branches, and facilitate collaboration.
+
+*   **Documentation:**  Write clear and concise documentation for each sub-application and the main application.  This will make it easier for developers to understand and maintain the code.
+
+*   **Clear Communication:**  Establish clear communication channels between teams working on different sub-applications.  This will prevent conflicts and ensure consistency.
+
+*   **Dependency Management:**  Manage dependencies effectively using package managers (e.g., npm, yarn) and consider using a monorepo if appropriate.  This simplifies dependency management and reduces conflicts.
+
+
+### Testing Strategies
+
+A robust testing strategy is essential for ensuring the quality and reliability of your Qiankun application.  Consider incorporating these testing approaches:
+
+*   **Unit Testing:**  Test individual components and modules in isolation.  This helps to identify bugs early in the development process.
+
+*   **Integration Testing:**  Test the interaction between different sub-applications and the main application.  This ensures that the different parts of the system work together correctly.
+
+*   **End-to-End (E2E) Testing:**  Test the entire application from the user's perspective.  This simulates real-world usage scenarios and helps to identify issues that might not be apparent during unit or integration testing.
+
+*   **Automated Testing:**  Automate your tests as much as possible. This will save time and ensure that your tests are run consistently.  CI/CD pipelines are excellent for integrating automated testing.
+
+*   **Test-Driven Development (TDD):**  Consider using TDD, where tests are written before the code, to guide the development process and improve code quality.
+
+
+### Common Issues and Solutions
+
+Some common issues encountered while working with Qiankun include:
+
+*   **Conflicts between JavaScript libraries:**  Use Qiankun's sandbox feature to isolate sub-applications and prevent conflicts between libraries.  Consider using custom sandboxes for more complex scenarios.
+
+*   **Communication problems between sub-applications and the main application:** Ensure you use appropriate communication mechanisms (e.g., `postMessage`, event bus, shared state management) and follow a consistent approach across the application.
+
+*   **Performance issues:**  Optimize the application's performance by implementing strategies like lazy loading, code splitting, and caching.
+
+*   **Deployment problems:**  Ensure you follow the correct deployment procedures for both the main application and the sub-applications.  Use CI/CD pipelines to automate the process and reduce errors.
+
+*   **Error handling issues:**  Implement comprehensive error handling mechanisms to gracefully handle exceptions and provide informative error messages to the user.
+
+Consult the Qiankun documentation and online resources for detailed solutions to specific issues.
+
+
+### Security Considerations
+
+Security is paramount in any software project. When using Qiankun, keep these considerations in mind:
+
+*   **Input Validation:**  Validate all user inputs to prevent cross-site scripting (XSS) attacks and other vulnerabilities.
+
+*   **Authentication and Authorization:**  Implement secure authentication and authorization mechanisms to protect sensitive data and resources.
+
+*   **Data Protection:**  Protect sensitive data using appropriate encryption and access control measures.
+
+*   **Regular Security Audits:** Conduct regular security audits to identify and address potential vulnerabilities.
+
+*   **Secure Deployment Practices:** Follow secure deployment practices to protect your application from attacks.
+
+*   **Sub-application Security:**  Ensure that each sub-application follows secure coding practices and implements appropriate security measures.
+
+*   **Dependency Security:**  Regularly scan your dependencies for known vulnerabilities and upgrade to the latest versions promptly.  Use tools like `npm audit` or similar for dependency scanning.  Consider using a dependency management tool with built-in security scanning.
+
+
+## API Reference
+
+This section provides a concise overview of the core Qiankun APIs.  For detailed information and examples, refer to the official Qiankun documentation.  Note that the exact API might change slightly depending on the Qiankun version.
+
+### `registerMicroApps`
+
+This function registers the micro-applications (sub-applications) with Qiankun.  It takes an array of application configurations as input and returns nothing.  Each configuration object must include at least the following properties:
+
+*   `name`: (string) A unique identifier for the micro-application.
+*   `entry`: (string) The URL of the micro-application's entry point (usually `remoteEntry.js`).
+*   `container`: (string | HTMLElement) A CSS selector or an HTMLElement that specifies where the micro-application will be rendered.
+*   `activeRule`: (string | RegExp) A rule (string or regular expression) that determines when the micro-application should be active.  This usually relates to URL routing in the main application.
+*   `props?`: (object) Optional props that will be passed to the micro-application's `mount` lifecycle function.  This is how you typically pass data from the main application to the sub-application.
+
+
+Example:
+
+```javascript
+registerMicroApps([
+  {
+    name: 'app1',
+    entry: '//localhost:8000',
+    container: '#container',
+    activeRule: '/app1',
+  },
+]);
+```
+
+### `start`
+
+This function starts Qiankun's lifecycle management.  It begins monitoring the URL and updates the active micro-applications accordingly.  It takes an optional configuration object as a parameter.  This allows for options such as setting the `prefetch` (whether to prefetch micro-applications), and `sandbox` settings. Calling `start()` is crucial after registering micro-apps via `registerMicroApps()`.
+
+Example:
+
+```javascript
+start(); // Starts Qiankun
+```
+
+### `loadMicroApp`
+
+This function loads a specific micro-application asynchronously.  It takes a configuration object similar to `registerMicroApps`, but only needs to specify a single sub-application. It returns a promise that resolves when the micro-application has successfully loaded and is ready to mount. Useful when you want to load a sub-application dynamically based on some other event outside of the initial routing.
+
+Example:
+
+```javascript
+loadMicroApp({
+    name: 'app1',
+    entry: '//localhost:8000',
+    container: '#container',
+}).then(() => console.log('app1 loaded'))
+```
+
+### `unmountRootParcel`
+
+This function unmounts the specified micro-application.  This removes the sub-application from the DOM and performs the sub-application's `unmount` lifecycle method.  Takes the name of the application as an argument.  It's important for cleaning up resources.
+
+Example:
+
+```javascript
+unmountRootParcel('app1');
+```
+
+### `sandbox` (Custom Sandbox)
+
+While not a standalone function, the `sandbox` option within the `start()` function or within individual micro-application registrations lets you customize Qiankun's isolation mechanism.  By default, Qiankun uses a proxy-based sandbox.  You can provide a custom sandbox implementation to fine-tune the isolation level and control how the micro-application interacts with the global environment of the main application.  This requires a detailed understanding of Qiankun's internal mechanisms and is generally needed only in advanced scenarios.
+
+
+### `qiankun.initGlobalState`
+
+This function initializes a global state instance.  This state can then be used for communication and data sharing between the main application and sub-applications.  It takes an initial state object as an argument and returns a global state instance.  The instance provides methods to access and update the shared state.  The global state is typically used to transmit data and update application settings.
+
+Example:
+
+```javascript
+const globalState = qiankun.initGlobalState({ count: 0 });
+```
+
+
+### `qiankun.getGlobalState`
+
+This function retrieves the global state instance initialized by `qiankun.initGlobalState`. This provides a way for any part of the micro-frontend application (both main application and sub-applications) to access the global state and retrieve information.
+
+Example:
+
+```javascript
+const globalState = qiankun.getGlobalState();
+```
+
+Remember that while these functions provide a simplified overview, referring to the official Qiankun documentation is crucial for more detailed information, including advanced options and error handling.
+
+
+## Examples and Use Cases
+
+### Simple Example: Two Sub-applications
+
+This example demonstrates a simple setup with two sub-applications.  Assume you have two React applications: `app1` and `app2`.  Each is a standard Create React App project, but they have been modified to export the Qiankun lifecycle methods (`bootstrap`, `mount`, `unmount`).  They also have been built to output a `remoteEntry.js` file containing this export.
+
+**Main Application (`index.js`):**
+
+```javascript
+import { registerMicroApps, start } from 'qiankun';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import App from './App';
+import reportWebVitals from './reportWebVitals';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+
+registerMicroApps([
+  {
+    name: 'app1',
+    entry: '//localhost:8080/remoteEntry.js',  // Replace with your app1 URL
+    container: '#subapp',
+    activeRule: '/app1',
+  },
+  {
+    name: 'app2',
+    entry: '//localhost:8081/remoteEntry.js',  // Replace with your app2 URL
+    container: '#subapp',
+    activeRule: '/app2',
+  },
+]);
+
+start();
+
+reportWebVitals();
+```
+
+**Main Application (`App.js`):**
+
+```javascript
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+
+
+function App() {
+  return (
+    <Router>
+      <div>
+        <nav>
+          <Link to="/app1">App 1</Link>{' '}
+          <Link to="/app2">App 2</Link>
+        </nav>
+        <div id="subapp"></div>
+      </div>
+    </Router>
+  );
+}
+
+export default App;
+```
+
+Remember that you need a `<div id="subapp"></div>` in your main application's HTML.  This is where the sub-applications will be rendered.  App1 and App2 need to have their own routing configurations within the `remoteEntry.js` build output.
+
+
+### Complex Example: Multiple Sub-applications and Data Sharing
+
+For more complex scenarios with numerous sub-applications and data sharing, consider using a centralized state management solution like Redux or Zustand.  The global state provided by Qiankun (`qiankun.initGlobalState` and `qiankun.getGlobalState`) can also be a solution, but for larger applications, a more robust solution may be needed to avoid unexpected behavior.  Sub-applications can access and update this shared state, enabling communication and data exchange.  The main application might also act as a central hub, coordinating data flow between sub-applications.
+
+
+### Real-world Use Cases
+
+Qiankun is suitable for various real-world scenarios:
+
+*   **Large-scale enterprise applications:**  Breaking down monolithic applications into smaller, independently deployable units.
+
+*   **Legacy system modernization:**  Gradually migrating legacy systems to a modern micro-frontend architecture.
+
+*   **Team collaboration:**  Enabling teams to work independently on different parts of an application.
+
+*   **A/B testing:**  Deploying different versions of sub-applications for A/B testing purposes.
+
+*   **Third-party integrations:**  Integrating third-party applications as sub-applications.
+
+
+### Integrating with Other Libraries
+
+Qiankun can be integrated with various libraries to enhance functionality:
+
+*   **Routing libraries:**  Libraries like React Router or Vue Router can be used to manage navigation within the main application and sub-applications.
+
+*   **State management libraries:**  Libraries like Redux, Vuex, or MobX can be used for state management within sub-applications and to facilitate data sharing.
+
+*   **UI libraries:**  Any UI library (e.g., Material-UI, Ant Design, Element UI) can be used within the sub-applications.
+
+*   **Testing libraries:**  Integration with testing libraries like Jest and Cypress helps in building a robust testing strategy.
+
+The choice of libraries depends on the specific requirements and preferences of your project.  Ensure compatibility between the libraries and Qiankun.
+
+
+

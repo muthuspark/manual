@@ -1,0 +1,605 @@
+---
+title: "Modernizr - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+
+
+## Introduction to Modernizr
+
+### What is Modernizr?
+
+Modernizr is a lightweight JavaScript library that detects the availability of native HTML5 and CSS3 features in the user's browser.  It doesn't *polyfill* (add missing functionality), but instead provides a simple, consistent way to check for the presence of features. This allows developers to:
+
+* **Gracefully degrade:** Provide alternative functionality for browsers lacking specific features, ensuring a consistent user experience across different browsers and devices.
+* **Conditionally enhance:** Apply advanced features only when the browser supports them, optimizing performance and avoiding unnecessary overhead.
+* **Use feature detection, not browser sniffing:**  Modernizr focuses on detecting capabilities rather than identifying specific browsers, leading to more robust and future-proof code.  This is crucial as browser versions and capabilities constantly evolve.
+
+
+### Why Use Modernizr?
+
+Modernizr offers several key advantages:
+
+* **Improved cross-browser compatibility:** Ensures your website or application functions correctly across a wide range of browsers, from older versions to the latest releases.
+* **Enhanced performance:** By only enabling advanced features when supported, Modernizr prevents unnecessary processing and improves page load times.
+* **Clean, maintainable code:** Using feature detection simplifies your codebase, making it easier to understand, maintain, and extend.
+* **Future-proofing:**  As new features are added to browsers, you can leverage Modernizr to take advantage of them without worrying about compatibility issues.
+* **Simplified conditional CSS and JavaScript:** Modernizr provides a clear and concise API for checking feature support, which can be easily integrated into your CSS and JavaScript.
+
+
+### Browser Support
+
+Modernizr itself is exceptionally lightweight and runs on virtually any browser capable of running JavaScript.  However, the *features* it detects vary depending on the browser's capabilities. Modernizr aims to provide detection for a very broad range of features, including (but not limited to):
+
+* HTML5 elements (e.g., `<video>`, `<audio>`, `<canvas>`)
+* CSS3 properties (e.g., `border-radius`, `box-shadow`, `transitions`)
+* JavaScript APIs (e.g., `localStorage`, `sessionStorage`, `Web Workers`)
+* Touch events
+* Geolocation
+
+
+The specific features detected by Modernizr can be customized during its build process (see below).  Consult the Modernizr website and documentation for a comprehensive list of supported features and their browser compatibility.  For very old or uncommon browsers, you may need to consider fallback strategies beyond what Modernizr directly offers.
+
+
+### Setting up Modernizr
+
+Modernizr offers a few ways to integrate it into your project:
+
+**1. Using a CDN:**  The easiest way is to include Modernizr from a CDN like the one hosted on cdnjs:
+
+```html
+<script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/3.6.0/modernizr.min.js"></script>
+```
+
+This will load the default build of Modernizr.
+
+**2. Custom Build (Recommended for Production):** For optimal performance and to only include the features your project actually uses, create a custom build at the [Modernizr Customizer](https://modernizr.com/download/). This allows you to select specific tests and minimize the file size.  Download the generated JavaScript file and include it in your project as shown above.
+
+**3. Downloading from GitHub:**  You can download the latest release from the Modernizr GitHub repository.  This will often include more options than the CDN version.
+
+
+**After inclusion:**
+
+Once Modernizr is included in your HTML file `<head>`, you can access the results of its tests via JavaScript. For example, to check for `canvas` support:
+
+```javascript
+if (Modernizr.canvas) {
+  // Canvas is supported, use canvas-based functionality here
+  const canvas = document.createElement('canvas');
+  // ... your canvas code here ...
+} else {
+  // Canvas is not supported, use a fallback method
+  // ... fallback code here ...
+}
+```
+
+Similarly, you can leverage Modernizr's detected features in your CSS using CSS classes that Modernizr automatically adds to the `<html>` element. For example, `no-canvas` will be added if the `canvas` feature is not supported.
+
+
+Remember to consult the official Modernizr documentation for a complete reference of its features and API.
+
+
+
+
+## Core Functionality
+
+### Feature Detection
+
+Modernizr's core strength lies in its robust feature detection capabilities.  Instead of relying on browser sniffing (identifying the browser's name and version), Modernizr directly tests for the presence and functionality of specific HTML5, CSS3, and JavaScript features. This approach is far more reliable and future-proof, as it avoids the pitfalls of relying on browser-specific quirks and behaviors which can change rapidly.  Feature detection ensures your code works correctly regardless of the browser or its version, as long as the underlying feature is available.
+
+### Feature Tests
+
+Modernizr provides a vast library of pre-built feature tests. These tests cover a wide range of capabilities, including:
+
+* **HTML5 elements:**  `<video>`, `<audio>`, `<canvas>`, `<svg>`, etc.  Modernizr checks if these elements are natively supported and don't require polyfills for basic functionality.
+* **CSS3 properties:** `border-radius`, `box-shadow`, `transitions`, `transforms`, `gradients`, etc.  Modernizr determines if the browser supports these properties without vendor prefixes.
+* **CSS3 media queries:**  Checks for support for advanced media queries like `min-resolution` or `orientation`.
+* **JavaScript APIs:** `localStorage`, `sessionStorage`, `Web Workers`, `Geolocation`, etc. It verifies if these APIs are available and functional within the browser environment.
+* **Touch events:** Detects touch screen support.
+* **Other features:**  Many other features are detected, including various aspects of the DOM, fonts, and more.
+
+A complete list of available tests is available on the Modernizr website and its documentation.
+
+
+### Conditional Loading
+
+Modernizr enables conditional loading of scripts and stylesheets based on feature support. This optimization improves page load time by only including resources necessary for the user's browser. For instance, you can load a JavaScript library that uses canvas only if Modernizr detects `canvas` support:
+
+```html
+<script>
+  if (Modernizr.canvas) {
+    document.write('<script src="canvas-library.js"><\/script>');
+  }
+</script>
+```
+
+While this method is functional, using a more modern approach with async/defer is recommended for better performance and avoiding blocking rendering. A better pattern would be:
+
+```javascript
+if (Modernizr.canvas) {
+  const script = document.createElement('script');
+  script.src = 'canvas-library.js';
+  script.async = true; // or defer
+  document.head.appendChild(script);
+}
+```
+
+Similarly, you can conditionally load CSS using feature detection combined with CSS classes applied by Modernizr (see below).
+
+
+### Using the Modernizr Object
+
+After including Modernizr, the `Modernizr` object becomes available in your JavaScript code. It acts as a namespace containing boolean properties indicating the support status of each feature. To check for support:
+
+```javascript
+if (Modernizr.touch) {
+  // Add touch-specific event handlers
+  console.log("Touch events supported!");
+} else {
+  // Use alternative input methods
+  console.log("Touch events NOT supported!");
+}
+
+if (Modernizr.flexbox) {
+  // Use flexbox layout
+} else {
+  // Use alternative layout techniques
+}
+```
+
+The `Modernizr` object also provides other helpful information beyond simple boolean values in some cases. Refer to the documentation for specifics of individual tests.
+
+### Custom Tests
+
+Modernizr allows creating custom feature detection tests if a specific need arises that isn't covered by the pre-built tests.  This typically involves writing a JavaScript function that attempts to use the feature and returns `true` if successful, otherwise `false`.  The process usually involves extending Modernizr's `addTest` method.  The exact implementation details may vary slightly between Modernizr versions;  refer to the official documentation for the most up-to-date instructions on adding custom tests.  A simplified example (though specifics may change):
+
+```javascript
+Modernizr.addTest('myCustomFeature', function() {
+  // Attempt to use the feature here. For example:
+  try {
+    return !!document.createElement('my-custom-element').someProperty;
+  } catch (e) {
+    return false;
+  }
+});
+
+if (Modernizr.myCustomFeature) {
+  // Feature supported
+}
+```
+
+Remember that custom tests should be thoroughly tested across various browsers to ensure accurate and reliable results.  Avoid overly complex or browser-specific tests in your custom methods.
+
+
+
+
+## Working with Specific Features
+
+This section details how to work with Modernizr to detect and leverage various specific features.  Remember that Modernizr *detects* features; it doesn't *polyfill* them (provide missing functionality). You'll need separate libraries for polyfilling if required.
+
+
+### HTML5 Features
+
+Modernizr provides tests for a wide range of HTML5 elements and APIs.  These tests verify if the browser natively supports the element or API without requiring external libraries or workarounds.
+
+* **Semantic Elements:**  Modernizr tests for the presence of semantic elements like `<article>`, `<aside>`, `<nav>`, `<section>`, `<header>`, `<footer>`, etc. These are usually supported in modern browsers, but testing ensures consistent behavior.  Modernizr won't usually need to test these specifically; if a browser lacks them, you have much bigger compatibility problems.
+
+* **Form Elements:**  Features like `<input type="email">`, `<input type="url">`, `<input type="tel">`, and other advanced input types are tested.
+
+* **Other Elements:** `<video>`, `<audio>`, `<canvas>`, and others are individually tested (and discussed in more detail below).
+
+Example: Checking for `<video>` support:
+
+```javascript
+if (Modernizr.video) {
+  // Use HTML5 video player
+} else {
+  // Use a Flash fallback or another alternative
+}
+```
+
+
+### CSS3 Features
+
+Modernizr detects the availability of various CSS3 properties and features.  These tests typically check for support without needing vendor prefixes (like `-webkit-`, `-moz-`, etc.).
+
+* **Transitions and Animations:** Modernizr checks for support for `transition` and `animation` properties, crucial for creating smooth visual effects.
+
+* **Transforms:**  Support for `transform` properties (like `rotate`, `scale`, `translate`) is tested.
+
+* **Box-shadow, Border-radius, Gradients:**  These popular styling properties are also checked for.
+
+* **Flexbox:**  Modernizr tests for flexbox layout support (`display: flex`).
+
+* **Grid Layout:** Modernizr tests for grid layout support (`display: grid`).
+
+
+Example: Checking for CSS3 transitions:
+
+```javascript
+if (Modernizr.csstransitions) {
+  // Apply CSS transitions
+} else {
+  // Use JavaScript-based animation library
+}
+```
+
+**Important Note:** Even if a CSS3 property is detected, you might still need to include vendor prefixes as a fallback for broader compatibility with older browsers in your CSS, as Modernizr primarily tests for support without prefixes.  Use autoprefixer or a similar tool to help with vendor prefixing.
+
+
+### SVG Support
+
+Modernizr checks for SVG (Scalable Vector Graphics) support.  This test verifies if the browser can render SVG images natively.
+
+```javascript
+if (Modernizr.svg) {
+  // Use SVG images
+} else {
+  // Use alternative image formats (PNG, JPG)
+}
+```
+
+
+### Canvas Support
+
+Modernizr tests for `<canvas>` element support, a crucial element for creating dynamic graphics and visualizations within the browser.
+
+```javascript
+if (Modernizr.canvas) {
+  // Utilize the canvas element
+  const canvas = document.getElementById('myCanvas');
+  const ctx = canvas.getContext('2d');
+  // ... your canvas drawing code here ...
+} else {
+  // Provide a fallback image or alternative
+}
+```
+
+
+### Audio/Video Support
+
+Modernizr detects support for various audio and video formats using `<audio>` and `<video>` elements.  It can check for the support of specific codecs.  You'll need to consider providing multiple source elements for different codecs to ensure widest compatibility.
+
+```html
+<video controls>
+  <source src="video.mp4" type="video/mp4">
+  <source src="video.webm" type="video/webm">
+  <p>Your browser does not support HTML5 video.</p>
+</video>
+```
+
+Modernizr's `video` and `audio` tests primarily focus on basic support for the elements themselves.  For codec support, you need to handle that via the `<source>` elements and appropriate fallback strategies.
+
+
+### Other Feature Detection
+
+Beyond the features discussed above, Modernizr provides tests for many other aspects:
+
+* **Local Storage and Session Storage:** Checks for support of client-side storage mechanisms.
+* **Web Workers:** Tests for support of Web Workers, allowing for parallel JavaScript execution.
+* **Geolocation:** Verifies if the browser supports the Geolocation API.
+* **Touch Events:** Checks if touch events are supported.
+* **Hashchange:** Checks for support for the `hashchange` event.
+
+
+Remember to always consult the official Modernizr documentation for the most complete and up-to-date list of supported features and their corresponding tests.  The features and the API may slightly evolve across versions.
+
+
+
+
+## Advanced Techniques
+
+This section covers more advanced usage of Modernizr, including integration with build systems, customization, and performance optimization.
+
+
+### Integrating with Build Systems
+
+Modernizr seamlessly integrates with various build systems and task runners, allowing for automated customization and inclusion in your project workflow.  Popular examples include:
+
+* **Webpack:**  You can use the `modernizr-loader` to integrate Modernizr into your Webpack configuration. This allows you to specify a custom Modernizr build during the build process.
+
+* **Gulp:**  Gulp plugins are available to automate the process of creating a custom Modernizr build and incorporating it into your project.
+
+* **Grunt:** Similar to Gulp, Grunt plugins exist to manage Modernizr integration within your build process.
+
+* **Browserify/Parcel:** While not explicitly supported with dedicated loaders like Webpack, you can include Modernizr directly in your bundle using standard methods for including external libraries.
+
+
+The specific steps for integrating Modernizr with your chosen build system vary depending on the system and the chosen Modernizr loading method (CDN or custom build).  Always refer to the documentation for your build system and the relevant Modernizr plugins or loaders for detailed instructions. The general approach involves configuring your build system to download, customize (if needed), and include the Modernizr JavaScript file in your final output.
+
+
+### Customizing Modernizr
+
+For optimal performance and to minimize the file size, creating a custom build of Modernizr is highly recommended.  You can do this using the official Modernizr Customizer online tool ([https://modernizr.com/download/](https://modernizr.com/download/)).  This tool allows you to select only the specific features your project needs, eliminating unnecessary tests and resulting in a smaller, faster-loading JavaScript file.  The customization options include:
+
+* **Selecting Features:** Choose the specific HTML5, CSS3, and JavaScript features you need to test.
+* **Adding Custom Tests:** Include your own custom feature detection tests if required (as described in a previous section).
+* **Output Options:** Specify the desired output format (e.g., minified JavaScript).
+* **Adding/Removing prefixes**:  You can choose whether to include prefixes like `-webkit-` or `-moz-` in your Modernizr build, although this is generally handled better by post-processing tools like Autoprefixer.
+
+After generating your custom build, include it in your project using a `<script>` tag or via your build system as described above.
+
+
+### Using Modernizr with Frameworks
+
+Modernizr works well alongside various JavaScript frameworks.  There's no specific integration required, but you need to consider the context in which you use it.
+
+* **React, Vue, Angular:**  Modernizr can be integrated into these frameworks by simply including it in your application's entry point or using a module loader to import it. Feature detection happens early in the page load, before the framework starts, so there's generally no special integration needed.
+
+* **Other Frameworks:** The integration with other frameworks is similar.  Include it appropriately according to the framework's instructions for adding external libraries or JavaScript modules.
+
+Always ensure Modernizr is loaded before the parts of your code that depend on the features it detects.
+
+
+### Performance Optimization
+
+To maximize performance:
+
+* **Use a Custom Build:**  Creating a custom build, as described above, significantly reduces the file size and improves load times.
+* **Load Modernizr Asynchronously:** Use the `async` attribute in the `<script>` tag to prevent blocking of page rendering.
+* **Combine with other optimization techniques:** Combine Modernizr usage with other website optimization techniques, such as minification and code splitting, for better overall performance.
+* **Use a CDN:** While creating a custom build is optimal, using a CDN can be faster if the CDN is correctly configured and the default build happens to include most features your project needs.
+
+
+### Troubleshooting
+
+* **Modernizr not defined:** Check that the Modernizr script is correctly included in your HTML file and that there are no JavaScript errors preventing it from loading.  Look at the browser's developer console for any errors.
+
+* **Feature tests returning incorrect results:** Verify the accuracy of your feature tests. Consult the Modernizr documentation to confirm the correct usage of the tests and ensure your testing environment (browser, OS) isn't interfering.
+
+* **Conflicting Libraries:**  Conflicts with other JavaScript libraries can sometimes occur. If you're having issues, try loading Modernizr before other libraries that may interact with similar features or APIs.
+
+* **Build System Issues:** If you integrate Modernizr with a build system, ensure your configuration is correct, and review build logs for any errors.
+
+If you continue to experience difficulties, consult the official Modernizr documentation and support channels for further assistance.  The community is helpful and you might find solutions to common problems in forums or issue trackers.
+
+
+
+
+## Examples and Use Cases
+
+This section showcases how Modernizr can be used to implement various web development techniques.
+
+
+### Responsive Design
+
+Modernizr can assist in building responsive designs by detecting features relevant to different screen sizes and devices.  While Modernizr doesn't directly handle responsive layouts (that's the job of CSS media queries), it can help determine features that might impact your layout strategy:
+
+```javascript
+if (Modernizr.touch) {
+  // Apply touch-friendly styles and interactions
+  document.body.classList.add('touch');
+} else {
+  // Apply different styles for mouse-based interactions
+  document.body.classList.add('no-touch');
+}
+```
+
+This code adds CSS classes to the `<body>` based on touch support.  Your CSS can then use these classes to apply different styles optimized for touch devices versus mouse-based interactions. Similarly you might use Modernizr to detect features like `flexbox` and conditionally load different CSS based on support.
+
+
+### Progressive Enhancement
+
+Progressive enhancement is a development strategy that focuses on building a basic, functional website that works across all browsers.  Then, enhanced functionality is added for browsers supporting advanced features. Modernizr plays a key role in enabling progressive enhancement:
+
+```javascript
+// Basic functionality that works in all browsers
+console.log("Core functionality loaded");
+
+if (Modernizr.canvas) {
+  // Add canvas-based visualizations
+  console.log("Canvas supported. Drawing visualisations!");
+  // ... canvas drawing code ...
+}
+
+if (Modernizr.webworkers) {
+  // Utilize Web Workers for background tasks
+  console.log("Web Workers supported, Starting background process...");
+  // ... web worker code ...
+}
+```
+
+This example demonstrates how to add more advanced capabilities (canvas drawing, web workers) only if those features are available.  The core functionality works regardless of browser capabilities, offering a minimum viable product (MVP) experience.
+
+### Graceful Degradation
+
+Graceful degradation works in a reverse approach to progressive enhancement.  It starts by implementing the advanced features, assuming the browser supports them. Then, it falls back to alternative implementations if needed.  Modernizr simplifies this:
+
+```javascript
+// Assume the browser supports CSS transitions by default.
+document.body.classList.add('smooth-transitions');  // Apply styles for transitions
+
+if (!Modernizr.csstransitions) {
+  // Fallback to a JavaScript-based animation library
+  document.body.classList.remove('smooth-transitions'); // Remove CSS class
+  document.body.classList.add('js-transitions');     // Add a class for JS fallback
+  // ... include and initialize the animation library here...
+}
+```
+
+In this case, it starts by using CSS transitions. If `csstransitions` is not supported, Modernizr triggers the loading of a JS library that provides similar functionality. The CSS styles adapt based on support.
+
+
+### Feature-Specific Examples
+
+
+* **Geolocation:**
+
+```javascript
+if (Modernizr.geolocation) {
+  navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
+} else {
+  alert('Geolocation is not supported by this browser.');
+}
+```
+
+* **Local Storage:**
+
+```javascript
+if (Modernizr.localstorage) {
+  localStorage.setItem('myData', 'some value');
+  console.log(localStorage.getItem('myData'));
+} else {
+  // Use cookies or other fallback mechanism
+  console.log("Local Storage unavailable.");
+}
+```
+
+* **Web Workers:**
+
+```javascript
+if (Modernizr.webworkers) {
+  // create and use a web worker
+} else {
+  // perform the work synchronously in the main thread
+}
+```
+
+These examples illustrate how to utilize Modernizr to detect and conditionally utilize specific features, providing robust and adaptable web applications.  Remember that the code within the `if` blocks should always include appropriate error handling for edge cases and unexpected behavior.
+
+
+
+
+## API Reference
+
+This section provides a detailed overview of the Modernizr API, including its object properties, methods, and the extensive list of available feature tests.  Note that the precise details of the API might change slightly across Modernizr versions; always refer to the official documentation for the most up-to-date information.
+
+
+### Modernizr Object Properties
+
+The core of Modernizr is the `Modernizr` object, which is populated with boolean properties indicating the support status of various features.  These properties are directly accessible after including the Modernizr library.
+
+* **Feature Test Properties:**  These properties are dynamically generated based on the features included in your Modernizr build.  Each property corresponds to a specific feature test (e.g., `Modernizr.canvas`, `Modernizr.touch`, `Modernizr.webworkers`, `Modernizr.flexbox`, `Modernizr.svg`, etc.).  The value is `true` if the feature is supported and `false` otherwise.
+
+* **`Modernizr.mq`:**  (If included in your build) This property allows testing of CSS media queries.  It takes a media query string as an argument and returns a boolean value.  Example: `Modernizr.mq('(min-width: 768px)')`.
+
+* **`Modernizr._version`:**  This property contains the version number of the Modernizr library being used.
+
+* **`Modernizr._prefixes`:** (Generally only available in the full/unminified builds) An array containing the vendor prefixes tested by Modernizr.
+
+The available feature test properties are dynamically generated during the Modernizr build process based on the features you choose.  Refer to the "Available Feature Tests" section below for a partial listing, but the full list depends on your custom build.
+
+
+### Modernizr Methods
+
+Modernizr provides several methods for interacting with its functionality, although the public API has relatively few methods available in recent versions.  Custom test creation is a more common interaction.
+
+* **`Modernizr.addTest(testName, testFunction)`:** This is the primary method for adding custom feature tests (see below for more details).
+
+
+### Available Feature Tests
+
+Modernizr supports a vast number of feature tests.  Providing a complete list here is impractical; the Modernizr website and its documentation contain the most up-to-date and comprehensive listing, and even then the features present depends on the build.   The online customizer provides a searchable list of what tests are available.
+
+Here are a few examples:
+
+* **`canvas`:** Checks for support of the `<canvas>` element.
+* **`touch`:** Detects touch screen capabilities.
+* **`webworkers`:** Checks for support of Web Workers.
+* **`geolocation`:** Detects Geolocation API support.
+* **`localstorage`:** Checks for support of local storage.
+* **`csstransitions`:** Tests for CSS transitions support.
+* **`flexbox`:** Detects flexbox layout support.
+* **`svg`:** Checks for SVG support.
+* **`video` and `audio`:** Check for basic support for the `<video>` and `<audio>` elements.  Note this does *not* test for specific codecs.
+
+
+Remember that many CSS3 property tests exist (e.g., `borderradius`, `boxshadow`, `gradients`, `transforms`, etc.)
+
+
+### Custom Test API
+
+The `Modernizr.addTest()` method allows extending Modernizr's feature detection capabilities by adding custom tests.  The method takes two arguments:
+
+1. **`testName` (String):** A unique string identifier for your custom test.
+
+2. **`testFunction` (Function):** A function that performs the actual feature detection.  This function should return `true` if the feature is supported and `false` otherwise.  The function will have access to the global `window` and `document` objects.
+
+**Example:**
+
+```javascript
+Modernizr.addTest('myCustomFeature', function() {
+  try {
+    // Attempt to use the feature here.  This example checks for a hypothetical custom element.
+    return !!document.createElement('my-custom-element').someMethod; 
+  } catch (e) {
+    return false;
+  }
+});
+
+// Check the result:
+if (Modernizr.myCustomFeature) {
+  console.log("My custom feature is supported!");
+} else {
+  console.log("My custom feature is NOT supported!");
+}
+```
+
+When designing custom tests, strive for simplicity and browser compatibility.  Avoid overly complex logic that might introduce inconsistencies across browsers.  Always thoroughly test your custom tests to ensure they provide accurate results.  Poorly written custom tests are far less reliable than Modernizr's built-in tests.  The function should be as small as possible, and aim for direct detection rather than trying to infer support via a complex sequence of operations.
+
+
+
+
+## Contributing to Modernizr
+
+Modernizr is an open-source project, and contributions from the community are welcome!  This section outlines the process for reporting issues, submitting pull requests, and adhering to the coding style guide.
+
+
+### Reporting Issues
+
+If you encounter a bug, have a feature request, or find an area for improvement, please report it through the project's issue tracker on GitHub.  When reporting an issue, provide as much detail as possible, including:
+
+* **Clear and concise title:** Summarize the issue in a few words.
+* **Detailed description:** Explain the problem you're experiencing, including steps to reproduce it.
+* **Browser and operating system:** Specify the browser(s) and operating system(s) where the issue occurs.
+* **Modernizr version:** State the version of Modernizr you're using.
+* **Relevant code snippets:** Include any relevant code snippets that help illustrate the problem.
+* **Expected behavior:** Explain what you expected to happen.
+* **Actual behavior:** Describe what actually happened.
+
+Well-written issues significantly increase the chances of a prompt response and resolution.
+
+
+### Submitting Pull Requests
+
+If you'd like to contribute code changes, follow these steps:
+
+1. **Fork the repository:** Fork the Modernizr repository on GitHub to your personal account.
+
+2. **Create a new branch:** Create a new branch for your changes.  Use a descriptive name that clearly indicates the purpose of your changes (e.g., "fix-bug-123", "add-feature-xyz").
+
+3. **Make your changes:** Implement your changes, ensuring they adhere to the coding style guide (see below).  Thoroughly test your changes to confirm they work correctly and don't introduce new issues.
+
+4. **Commit your changes:** Commit your changes with clear and concise commit messages.  Follow the conventional commit style (e.g., `feat`, `fix`, `docs`, `chore`, etc.) to improve readability.
+
+5. **Push your branch:** Push your updated branch to your forked repository on GitHub.
+
+6. **Create a pull request:** Create a pull request from your branch to the main Modernizr repository.  Provide a clear description of your changes and their purpose.
+
+7. **Address feedback:** Respond to any feedback or requested changes from the maintainers.
+
+Pull requests that follow these guidelines are more likely to be reviewed and merged quickly.
+
+
+### Coding Style Guide
+
+Modernizr follows specific coding conventions to ensure consistency and readability.  Adherence to these guidelines is crucial for any contributions. Key aspects include:
+
+* **Indentation:** Use 2 spaces for indentation.  Do not use tabs.
+
+* **Line length:** Aim for a maximum line length of 80 characters.
+
+* **Variable naming:** Use camelCase for variable names (e.g., `myVariableName`).
+
+* **Function naming:** Use camelCase for function names (e.g., `myFunctionName`).
+
+* **Comments:**  Write clear and concise comments to explain complex logic or non-obvious code sections.
+
+* **Whitespace:** Use consistent whitespace around operators and punctuation.
+
+* **Semicolons:** Use semicolons to terminate statements.
+
+* **Test suite:** Ensure all new features or bug fixes are accompanied by comprehensive unit tests.
+
+
+Before submitting a pull request, ensure your code adheres to these style guidelines.  Use a linter (like ESLint) to automatically check for style violations. The project likely uses a specific ESLint configuration; refer to the repository's documentation for details on configuring the linter to match the Modernizr project's standards.  If you are unsure, referring to the existing codebase is a great way to see the consistent style in use.  Inconsistent style is a common reason for pull requests to be rejected.
+

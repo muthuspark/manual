@@ -1,0 +1,378 @@
+---
+title: "Plupload - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction to Plupload
+
+### What is Plupload?
+
+Plupload is a JavaScript library that provides a powerful and flexible way to handle file uploads in web applications.  It's designed to be browser-agnostic, supporting multiple runtimes (including HTML5, Flash, Silverlight, and Gears) to ensure broad compatibility and optimal performance across a wide range of user environments.  Instead of relying on a single upload method, Plupload intelligently selects the best available runtime based on the user's browser capabilities, providing a fallback mechanism if the preferred runtime is unavailable.  This results in a robust and reliable upload experience for all users.  Plupload offers features such as progress monitoring, chunk uploads for large files, and various event handling capabilities, making it a versatile solution for a variety of upload scenarios.
+
+
+### Key Features and Benefits
+
+* **Cross-browser compatibility:** Plupload supports a multitude of browsers and uses multiple runtimes as fallback ensuring wide compatibility.
+* **Multiple runtime support:** Leverages HTML5, Flash, Silverlight, and Gears (where available), providing the best possible upload experience regardless of the user's browser.
+* **Chunking of large files:** Enables efficient upload of large files by splitting them into smaller chunks, improving upload reliability and resuming interrupted transfers.
+* **Progress monitoring:** Provides real-time feedback to the user on the upload progress, including percentage complete and upload speed.
+* **Event handling:** Offers a comprehensive set of events allowing developers to react to various stages of the upload process (e.g., upload start, progress, success, error).
+* **Customizability:** Highly configurable options allow developers to tailor the upload behavior to their specific needs.
+* **Easy integration:**  Simple API and clear documentation makes integration into existing web applications straightforward.
+* **Open Source:**  Plupload is an open-source project, providing access to the source code and a supportive community.
+
+
+### Setting up the Development Environment
+
+To start developing with Plupload, you'll need to include the Plupload JavaScript library in your project.  This can be done by downloading the library from the official Plupload website or using a package manager like npm or yarn.  After downloading, include the `plupload.full.min.js` file (or the appropriate version) in your HTML file using a `<script>` tag within the `<head>` section:
+
+```html
+<script src="plupload.full.min.js"></script>
+```
+
+You'll also likely need to include any necessary runtime files (e.g., Flash or Silverlight) depending on your target browsers and chosen configuration.  Refer to the Plupload documentation for specifics on runtime inclusion.  Finally, ensure you have a basic understanding of JavaScript and HTML for effective integration.
+
+
+### Basic Plupload Implementation
+
+A simple Plupload implementation involves creating a `Plupload` object and configuring its settings.  This example demonstrates a basic file upload using HTML5 if available and fallback mechanisms in place:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Plupload Example</title>
+<script src="plupload.full.min.js"></script>
+</head>
+<body>
+<div id="uploader"></div>
+<script>
+  var uploader = new plupload.Uploader({
+    browse_button: 'pickfiles', // Replace with your button ID
+    url: 'upload.php', // Your upload handler URL
+    runtimes : 'html5,flash,silverlight,html4',
+    multipart: true,
+    chunk_size: '1mb' //Optional Chunking
+  });
+
+  uploader.init();
+  uploader.bind('FilesAdded', function(up, files) {
+    up.start();
+  });
+</script>
+<input type="button" id="pickfiles" value="Select Files">
+</body>
+</html>
+```
+
+Remember to replace `'upload.php'` with the actual URL of your server-side upload script. This script will handle receiving and saving the uploaded files.  This example shows a basic setup; you'll need to expand upon it to handle events, progress, and error conditions for a complete solution.  Consult the Plupload documentation for more advanced configurations and features.
+
+
+## Core Concepts and API
+
+### Understanding the Plupload Object
+
+The core of Plupload is the `Plupload` object. This object represents the entire upload process and provides methods and properties to control and monitor file uploads.  It's created by passing a configuration object to the `plupload.Uploader()` constructor.  This configuration object defines various aspects of the upload process, including the upload URL, runtime selection, file filters, and more.  Once initialized, the `Plupload` object manages the interaction with the selected runtime, handles file selection, uploads files, and provides feedback on the upload progress and status through events.  All interactions with the upload process—from initiating the upload to handling errors—are facilitated through this object.
+
+
+### Initializers and Configuration Options
+
+The `Plupload` object is initialized using a configuration object. This object contains various key-value pairs specifying parameters that govern the upload behavior.  Crucial configuration options include:
+
+*   `url`: The URL of the server-side script that handles file uploads.
+*   `browse_button`: The ID of the HTML element that acts as the "browse" button for file selection.
+*   `runtimes`: A comma-separated list of runtimes to prioritize (e.g., `'html5,flash,silverlight,html4'`).
+*   `multipart`:  A boolean value (true/false) indicating whether to use multipart uploads.
+*   `chunk_size`: The size of file chunks for large file uploads (e.g., '1mb').
+*   `filters`: An array of filters to restrict the types of files that can be selected.
+*   `max_file_size`: The maximum allowed file size.
+
+
+A comprehensive list of configuration options and their descriptions can be found in the Plupload documentation.
+
+
+### Runtime Selection and Initialization
+
+Plupload automatically selects the best available runtime based on the user's browser capabilities and the `runtimes` configuration option. It prioritizes HTML5 if available, falling back to Flash, Silverlight, or HTML4 if necessary.  The `init()` method initializes the upload process after configuring the `Plupload` object. Before calling `init()`, ensure all necessary configuration options are set correctly. After successful initialization, Plupload is ready to handle file selection and uploads.  Failure to initialize correctly might result in errors, and appropriate error handling should be implemented.
+
+
+### File Filtering and Validation
+
+Plupload allows developers to filter files based on various criteria, such as file type, size, and name.  This is achieved using the `filters` configuration option, which accepts an array of filter objects.  Each filter object can specify properties like `title`, `extensions`, and `mime_types`.  File validation happens before upload initiation; files that don't meet the specified criteria are rejected.  Custom validation logic can be added using event handlers to implement more complex validation rules.
+
+
+### Event Handling and Callbacks
+
+Plupload uses events to communicate the status of the upload process.  Developers can bind functions (callbacks) to these events to handle various stages of the upload, such as:
+
+*   `FilesAdded`: Triggered when files are added to the queue.
+*   `UploadProgress`: Triggered during the upload of each file, providing progress information.
+*   `UploadComplete`: Triggered after all files have been uploaded.
+*   `Error`: Triggered when an error occurs during the upload process.
+
+These events allow for dynamic updates to the user interface, handling of errors, and custom logic at different points in the upload workflow.
+
+
+### Progress Monitoring and Feedback
+
+Plupload provides real-time progress monitoring through the `UploadProgress` event.  This event provides information about the upload progress of individual files, including bytes uploaded, total bytes, and the percentage complete.  Developers can use this information to update progress bars, display upload speed, and provide visual feedback to the user.
+
+
+### Upload Management and Control
+
+The `Plupload` object offers methods to manage and control the upload process.  The `start()` method initiates the upload, while `stop()` stops the upload.  `cancel()` cancels the upload of a specific file or the entire queue.  Methods like `refresh()` can be used to update the queue after file modifications.  These methods allow for dynamic control over the upload process, giving developers fine-grained management of uploads.
+
+
+### Error Handling and Troubleshooting
+
+Error handling is crucial in any upload process.  Plupload provides the `Error` event to handle errors that occur during the upload.  The event object contains information about the error, such as code and message.  Proper error handling involves catching these events and providing informative feedback to the user.  Common causes of errors include network issues, server-side errors, and file validation failures.  Effective error handling should include user-friendly error messages and strategies to handle and recover from errors, such as retries.
+
+
+## Advanced Usage and Customization
+
+### Implementing Runtimes
+
+While Plupload automatically selects the best runtime, you might need to explicitly manage runtimes for specific scenarios or to ensure a particular runtime is used. This involves including the necessary runtime libraries (e.g., Flash SWF file) and configuring the `runtimes` option accordingly.  For instance, if you want to prioritize HTML5 and then Flash, you would set `runtimes: 'html5,flash'`.  Ensure the paths to the runtime files are correctly specified in your configuration.  Failure to include or correctly configure required runtimes will lead to upload failures on browsers that don't support the prioritized runtimes.
+
+
+### Customizing UI Elements
+
+Plupload's default UI is simple.  However, for a more integrated and customized look and feel, you'll often want to build your own UI elements.  Plupload doesn't impose a specific UI; instead, it interacts with your existing UI through events and methods. You'll need to manage the visual representation of file uploads (progress bars, file lists, etc.) yourself.  Use Plupload events (e.g., `FilesAdded`, `UploadProgress`, `UploadComplete`) to dynamically update your custom UI elements to reflect the upload status.
+
+
+### Extending Plupload with Custom Features
+
+Plupload's extensibility allows adding custom features.  This is typically done by creating custom modules that interact with the core Plupload object.  These modules can add functionalities beyond what's provided out-of-the-box, such as custom file validation rules, specialized progress indicators, or integration with third-party services.  Creating custom modules often involves extending existing Plupload classes or creating new ones to add desired functionalities.  Careful planning and adherence to Plupload's API are essential for seamless integration.
+
+
+### Integration with other libraries
+
+Integrating Plupload with other JavaScript libraries (like UI frameworks, progress bar libraries, or form handlers) is often necessary to create a comprehensive upload solution.   This integration typically involves handling Plupload's events to update other libraries, and potentially using other libraries' functionalities (like theming or form submission) to augment Plupload's capabilities.  Compatibility will depend on the chosen libraries and requires attention to potential conflicts or dependencies between them.
+
+
+### Implementing Resumable Uploads
+
+Resumable uploads enable the continuation of interrupted uploads. While Plupload doesn't inherently support resumable uploads out-of-the-box, it provides the necessary building blocks.  Resumable uploads require server-side support (to track upload progress and resume from where it left off) and careful management of chunks. You will need to implement logic to handle interrupted uploads and resume them correctly based on the server's responses and progress tracking.  This involves handling events like errors and managing the upload status efficiently.
+
+
+### Chunking and Parallel Uploads
+
+Plupload supports chunking large files to improve upload reliability.  Chunking is configured using the `chunk_size` option.  The library handles the splitting of files and the sequential uploading of chunks.  Parallel uploads, where multiple files are uploaded concurrently, can significantly improve overall upload speed.  However, ensure your server can handle multiple concurrent uploads efficiently. Parallel uploads are enabled by simply adding multiple files and starting the upload—Plupload will handle the parallel uploads automatically, though the exact level of parallelism might depend on browser and network conditions.
+
+
+### Secure Uploads and Authentication
+
+Securing uploads involves implementing appropriate authentication and authorization mechanisms.  This typically involves using HTTPS for secure communication and incorporating authentication tokens or cookies into your requests.  Server-side validation and authorization are essential to prevent unauthorized access.  Plupload itself doesn't handle authentication; you'll need to incorporate this functionality in your server-side upload handling script and potentially modify how your client sends authentication data alongside the upload requests (e.g., using custom headers).
+
+
+### Upload to Different Servers/Services (e.g., AWS S3, Azure Blob Storage)
+
+Plupload's flexibility extends to uploading to various cloud storage services.  This requires careful configuration of the `url` option and potentially utilizing pre-signed URLs or other service-specific authentication mechanisms.  You'll need to adapt your server-side handling accordingly to interface with the chosen service's API for uploading.  For example, uploading to AWS S3 usually involves generating pre-signed URLs on your server and using them in the `url` option within your Plupload configuration.  Similar approaches are used for other cloud storage platforms.
+
+
+## Examples and Use Cases
+
+### Simple File Upload Example
+
+This example demonstrates a basic single file upload using Plupload:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Plupload Simple Upload</title>
+<script src="plupload.full.min.js"></script>
+</head>
+<body>
+<div id="uploader"></div>
+<input type="button" id="pickfiles" value="Select File">
+<script>
+  var uploader = new plupload.Uploader({
+    browse_button: 'pickfiles',
+    url: 'upload.php',
+    max_file_size: '10mb'
+  });
+
+  uploader.init();
+
+  uploader.bind('FilesAdded', function(up, files) {
+    up.start();
+  });
+
+  uploader.bind('UploadProgress', function(up, file) {
+    console.log(file.percent + "% uploaded"); //Simple progress logging to console
+  });
+
+  uploader.bind('Error', function(up, err) {
+    console.error("Error: " + err.message);
+  });
+</script>
+</body>
+</html>
+```
+
+Remember to create a `upload.php` (or equivalent server-side script) to handle the uploaded file.
+
+
+### Multiple File Upload Example
+
+Extending the simple example to allow multiple file uploads requires minimal changes:
+
+```javascript
+// ... (Previous code) ...
+  uploader.bind('FilesAdded', function(up, files) {
+    for (var i = 0, file; file = files[i]; i++) {
+      console.log('Added file: ' + file.name);
+    }
+    up.start();
+  });
+// ... (rest of the code remains the same) ...
+```
+
+Plupload inherently handles multiple file selections; no additional configuration is needed.
+
+
+### Drag-and-Drop File Upload
+
+Enabling drag-and-drop functionality requires specifying a drop zone element:
+
+```javascript
+// ... other configuration ...
+  drop_element: 'dropzone', // ID of the drop zone element
+// ...
+  <div id="dropzone">Drop files here</div>
+```
+
+Remember to style the `dropzone` element to indicate the drop area visually.  Plupload will handle detecting the dropped files and adding them to the queue.
+
+
+### Progress Bar Integration
+
+Integrate a progress bar by updating its value within the `UploadProgress` event handler:
+
+```javascript
+uploader.bind('UploadProgress', function(up, file) {
+  document.getElementById('progressbar').value = file.percent;
+});
+
+<progress id="progressbar" max="100"></progress>
+```
+
+This assumes a progress bar element with the ID `progressbar`.  You'll likely need to adjust this to match your specific progress bar implementation.
+
+
+### Advanced Configuration Examples
+
+This example demonstrates chunking and filters:
+
+```javascript
+var uploader = new plupload.Uploader({
+  // ... other options ...
+  chunk_size: '2mb',
+  filters: {
+    mime_types: [
+      {title: "Image files", extensions: "jpg,jpeg,gif,png"},
+      {title: "Zip files", extensions: "zip"}
+    ]
+  }
+});
+```
+
+This configures the uploader to use 2MB chunks and only accept JPG, JPEG, GIF, PNG, and ZIP files.
+
+
+### Real-world application examples
+
+* **Cloud Storage Integration:** Integrate Plupload with cloud storage services like AWS S3 or Azure Blob Storage to allow users to upload files directly to the cloud.  This would involve modifying the server-side script to handle the interaction with the cloud storage API.
+* **Image Uploader for Social Media:**  Create a social media image uploader that allows users to select images, preview them, and upload them to a server for processing and display.
+* **Document Management System:** Build a document management system allowing users to upload and manage documents.  This would require more advanced features such as file organization, version control, and user permissions.
+* **Form Submissions:** Integrate Plupload into web forms to enable file attachments.  This can enhance the functionality of existing forms by allowing users to easily include files.
+
+These are just a few examples; the versatility of Plupload makes it suitable for a broad range of applications involving file uploads. Remember to handle server-side processing correctly and manage security and error handling appropriately.
+
+
+## Troubleshooting and Support
+
+### Common Errors and Solutions
+
+Many common Plupload errors stem from misconfigurations or server-side issues. Here are some frequent problems and solutions:
+
+* **"Error: File size exceeds maximum allowed size"**:  Check the `max_file_size` configuration option. Ensure it's large enough to accommodate your intended files and that the server-side script also enforces the same size limit.
+
+* **"Error: Invalid file type"**: Verify the `filters` configuration option to ensure it allows the file types you are trying to upload.  Also, check if your server-side script performs additional file type validation.
+
+* **"Error: Upload failed"**: This is a general error. Check your network connection, ensure the upload URL (`url` option) is correct, and examine your server-side logs for more specific error messages.  Common server-side causes include incorrect file permissions, missing libraries, or insufficient server resources.
+
+* **No files uploaded despite file selection**: Check the browser's console for JavaScript errors. Make sure the `browse_button` ID matches the actual ID of your button element. Verify that your server-side script is properly configured to receive and handle the uploaded files.
+
+* **Runtime Errors (Flash, Silverlight, etc.)**:  Ensure the necessary runtime libraries are correctly included and accessible.  Check browser settings to confirm that Flash or Silverlight are enabled and up-to-date.
+
+* **Chunking Errors**: If using chunking, verify that the server-side script correctly handles the chunked uploads and that the `chunk_size` is appropriately set.
+
+
+### Debugging Tips and Techniques
+
+* **Browser Developer Tools**: Use your browser's developer tools (usually accessed by pressing F12) to inspect the console for JavaScript errors and network requests.  Examine the network tab to observe the upload requests and responses.
+
+* **Server-Side Logging**: Implement robust logging on your server-side script to track upload attempts, errors, and successful uploads.  These logs will help pinpoint server-side issues.
+
+* **Simplify the Setup**:  If encountering errors with a complex configuration, temporarily simplify your setup to isolate the problem.  Try uploading a single small file with minimal configuration options to rule out complex interactions as the source of the problem.
+
+* **Check Network Traffic**: Use network monitoring tools to analyze the network traffic during uploads to identify potential network-related issues like latency or dropped packets.
+
+* **Test with Different Browsers**: Test your upload functionality across different browsers to see if the error is browser-specific, providing clues to potential compatibility issues or runtime problems.
+
+
+### Community Resources and Forums
+
+While Plupload might not have an official dedicated forum, searching online for "Plupload" combined with your specific error message will likely lead you to relevant discussions, Stack Overflow questions, or blog posts from other developers who have encountered similar problems.
+
+
+### Contacting Plupload Support
+
+Since Plupload is an open-source project, formal support channels might be limited.  However, you can attempt to reach out to the project maintainers or contributors through the project's issue tracker or repository on platforms like GitHub.  Clearly describe your problem, provide relevant code snippets, and include details of your browser, operating system, and server environment.  Remember that direct support might not be guaranteed due to the nature of the project.  Providing detailed information increases the chances of getting assistance from the community.
+
+
+## Appendix
+
+### Glossary of Terms
+
+* **Runtime:**  The underlying technology used by Plupload to handle file uploads.  Plupload supports multiple runtimes (HTML5, Flash, Silverlight, and HTML4) to ensure broad browser compatibility.
+
+* **Chunk:** A segment of a large file, used to split large uploads into smaller, more manageable parts.  Chunking improves upload reliability and allows for resuming interrupted transfers.
+
+* **Browse Button:** The HTML element that triggers the file selection dialog in the user's browser.
+
+* **Queue:** The list of files selected for upload.
+
+* **Upload URL:** The URL of the server-side script that receives and processes the uploaded files.
+
+* **Filters:**  Rules defined to restrict the types of files that can be selected for upload (based on file extension or MIME type).
+
+* **Event Handler:** A function that is triggered when a specific event occurs during the upload process (e.g., `FilesAdded`, `UploadProgress`, `Error`).
+
+* **Callback:** A function passed to an event handler to execute a specific action in response to an event.
+
+* **Multipart Upload:** A method of uploading files that uses the multipart/form-data HTTP content type, typically used for larger files or files requiring additional metadata.
+
+* **Pre-signed URL:** A URL provided by a cloud storage service (e.g., AWS S3) that grants temporary access to upload files to a specific location without requiring ongoing authentication.
+
+
+### List of Runtimes and Browser Support
+
+Plupload's runtime support might vary depending on the Plupload version.  Consult the Plupload release notes for the most up-to-date information.  Generally, Plupload prioritizes HTML5 for upload if available; if not, it falls back to other runtimes such as Flash, Silverlight, or HTML4.  The availability of Flash and Silverlight is decreasing due to browser deprecation.  HTML5 is widely supported in modern browsers, and ensuring it's the primary runtime is crucial for optimal compatibility.   Refer to the official Plupload documentation for a detailed breakdown of browser support for each runtime.  The absence of a specific runtime might affect functionality in older browsers.
+
+
+### API Reference
+
+*(This section would ideally contain a comprehensive list of all Plupload classes, methods, events, and configuration options.  Due to the extensive nature of a full API reference, a placeholder is provided here.  A real developer manual would include detailed descriptions, parameters, return values, and examples for each element.)*
+
+**Placeholder:**  A complete API reference, including details on `Plupload.Uploader`, its methods (`init()`, `start()`, `stop()`, etc.), events (`FilesAdded`, `UploadProgress`, `Error`, etc.), and configuration options, would be included here.  Refer to the official Plupload documentation for the most current and accurate API reference.
+
+
+### Changelog
+
+*(This section would list all changes, bug fixes, and new features introduced in each version of Plupload.  A placeholder is provided here.  A real developer manual would include version numbers and a detailed description of each change.)*
+
+**Placeholder:** A comprehensive changelog detailing changes across all versions of Plupload would be included here. This would typically be organized by version number and would list bug fixes, new features, and any breaking changes introduced in each release. Refer to the official Plupload repository or documentation for the most recent changelog.
+
+

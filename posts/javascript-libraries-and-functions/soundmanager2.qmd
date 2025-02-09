@@ -1,0 +1,553 @@
+---
+title: "soundmanager2 - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction to SoundManager 2
+
+### What is SoundManager 2?
+
+SoundManager 2 (SM2) is a JavaScript library designed to provide a consistent and reliable audio playback experience across different web browsers and devices. It handles the complexities of HTML5 audio and older technologies like Flash, abstracting away the browser-specific quirks and providing a simplified API for developers.  This allows you to focus on integrating audio into your application without worrying about the underlying implementation details.  SM2 manages audio loading, playback, and volume control, ensuring consistent behavior regardless of the user's browser or operating system.
+
+### Why use SoundManager 2?
+
+Using SoundManager 2 offers several key advantages:
+
+* **Cross-browser compatibility:** SM2 provides a consistent API, hiding the differences between various browsers' audio capabilities.  This saves you significant development time and effort spent on debugging browser-specific issues.
+
+* **Reliable playback:**  SM2 handles fallback mechanisms, seamlessly switching between HTML5 audio and Flash (if necessary) to ensure audio plays reliably on virtually any browser.
+
+* **Simplified API:**  The API is straightforward and easy to learn, allowing rapid integration of audio functionality into your projects.
+
+* **Feature-rich:** SM2 offers a wide range of features beyond basic playback, including volume control, position seeking, metadata retrieval, and event handling.
+
+* **Lightweight:** Despite its powerful features, SM2 maintains a relatively small footprint.
+
+* **Mature and well-documented:** SM2 is a well-established library with extensive documentation and a large community supporting it.
+
+
+### Browser Compatibility
+
+SoundManager 2 strives for broad browser compatibility.  While HTML5 audio is the preferred method,  SM2 uses Flash as a fallback for older browsers or those with limited HTML5 audio support.  Therefore,  SM2 generally works on a wide range of browsers including modern versions of Chrome, Firefox, Safari, Edge, and Internet Explorer (though IE support is limited and may require specific configuration).  For the most up-to-date compatibility information, refer to the official SoundManager 2 website and documentation. Note that Flash support is being phased out, so relying solely on HTML5 is recommended where possible.
+
+### Setting up SoundManager 2
+
+Setting up SoundManager 2 involves including the necessary JavaScript file in your HTML document and then initializing the library.  The basic steps are:
+
+
+1. **Download:** Download the SoundManager 2 JavaScript file (usually `soundmanager2.js` or a minimized version).
+
+2. **Include in HTML:** Add a `<script>` tag to your HTML file to include the downloaded `soundmanager2.js` file.  Place this script tag ideally before the closing `</body>` tag or in a separate file included using a `<script src = "...">` tag. For example:
+
+   ```html
+   <script src="soundmanager2.js"></script>
+   ```
+
+3. **(Optional) Configuration:** You can optionally configure SM2 with additional settings. This is done by creating a `soundManager` object and setting its properties before calling `soundManager.setup()`.  Common configuration options include specifying a Flash path (if required for fallback) and debug mode.  See the official documentation for a complete list of options.  For example:
+
+   ```javascript
+   soundManager.url = 'path/to/swf/'; // Path to the SoundManager 2 SWF file (if needed)
+   soundManager.debugMode = true; // Enable debugging messages (optional)
+   soundManager.setup({
+       // other configurations
+   });
+   ```
+
+4. **Initialization:** Call `soundManager.setup()` to initialize the library. This function usually needs to be called after the DOM is fully loaded to ensure that all elements are available. This can be done by placing this code within a DOMContentLoaded event listener.   You can then use the SoundManager 2 API to control the playback of audio.
+
+Once `soundManager.setup()` completes successfully (or after a timeout), you are ready to use the SoundManager 2 API to load and play sounds.  Refer to the API documentation for details on using the various methods and properties.
+
+
+## Core Functionality
+
+### Creating Sound Objects
+
+SoundManager 2 uses `soundManager.createSound()` to create a `sound` object.  This function takes an object as a parameter containing information about the sound file.  The `id` property is crucial for identifying and managing the sound object.
+
+```javascript
+var mySound = soundManager.createSound({
+    id: 'mysound1', // Unique ID for this sound
+    url: 'audio/mySound.mp3', // Path to the sound file
+    // other options... see below
+});
+```
+
+Optional parameters include: `autoLoad`, `autoPlay`, `volume`, `pan`, `whileplaying`, `onload`, `whileloading`, `onfinish`, `onerror` etc. Refer to the SoundManager 2 documentation for a complete list of parameters and their uses.  If you omit `id`, SoundManager 2 will generate one automatically.  However, explicitly providing an `id` is strongly recommended for better management of multiple sounds.
+
+
+### Loading Sounds
+
+Sounds are loaded using the `soundManager.createSound()` method. The `autoLoad` parameter controls whether the sound is loaded immediately or on demand. Setting `autoLoad: true` loads the sound as soon as the `createSound()` method is called.  If omitted or set to `false`, the sound will only be loaded when you explicitly call the `sound.load()` method.
+
+```javascript
+// Automatic loading:
+var mySound = soundManager.createSound({
+    id: 'mysound2',
+    url: 'audio/mySound.mp3',
+    autoLoad: true
+});
+
+// On-demand loading:
+var mySound = soundManager.createSound({
+    id: 'mysound3',
+    url: 'audio/mySound.mp3'
+});
+mySound.load();
+```
+
+Loading large audio files can improve user experience by preventing interruptions. It is recommended to preload sounds, particularly if they are expected to be played promptly.
+
+
+### Playing Sounds
+
+Once a sound is loaded (either automatically or manually), it can be played using the `sound.play()` method.
+
+```javascript
+mySound.play();
+```
+
+You can optionally pass parameters to `play()`. For example: `mySound.play({volume: 80, pan: 50});` sets the volume to 80 and panning to 50.  Consult the SoundManager 2 API documentation for more on parameters.
+
+
+
+### Stopping Sounds
+
+To stop a sound, use the `sound.stop()` method.
+
+```javascript
+mySound.stop();
+```
+
+This abruptly halts playback.
+
+
+### Pausing and Resuming Sounds
+
+You can pause and resume playback using `sound.pause()` and `sound.resume()`, respectively.
+
+```javascript
+mySound.pause();
+// ... later ...
+mySound.resume();
+```
+
+
+### Setting Volume and Panning
+
+Adjust the sound's volume and panning using the `sound.setVolume()` and `sound.setPan()` methods.  Volume is a value between 0 and 100. Panning is typically between -100 and 100, where 0 is center, -100 is full left, and 100 is full right.
+
+```javascript
+mySound.setVolume(50); // Set volume to 50%
+mySound.setPan(30);   // Pan slightly to the right
+```
+
+
+### Sound Events
+
+SoundManager 2 provides various events that you can listen for using the `sound.onplay`, `sound.onpause`, `sound.onresume`, `sound.onfinish`, `sound.onload`, `sound.onerror`, `sound.whileloading`, `sound.whileplaying` etc. methods.  These allow you to execute specific actions at different stages of the sound's lifecycle.
+
+```javascript
+mySound.onload = function() {
+  console.log('Sound loaded!');
+};
+
+mySound.onfinish = function() {
+  console.log('Sound finished playing!');
+};
+
+mySound.onerror = function() {
+  console.error('Error playing sound!');
+};
+```
+
+
+### Managing Multiple Sounds
+
+SoundManager 2 can handle multiple sounds simultaneously.  Use unique IDs for each sound to manage them effectively. You can access sounds using their IDs via `soundManager.getSoundById('soundID')`.  This allows you to control individual sounds even within a larger set of audio.
+
+
+```javascript
+var sound1 = soundManager.createSound({id: 'sound1', url: 'audio1.mp3'});
+var sound2 = soundManager.createSound({id: 'sound2', url: 'audio2.mp3'});
+
+sound1.play();
+sound2.play();
+
+// Later, stop sound1:
+soundManager.getSoundById('sound1').stop();
+```
+Remember that managing resources is important, especially with many sounds.  Ensure that sounds are stopped or unloaded when no longer needed to free up resources.  The `sound.unload()` method releases the sound's resources from memory.
+
+
+## Advanced Features
+
+### Using URLs and HTML5 Audio
+
+SoundManager 2 primarily uses URLs to specify audio files.  These URLs can point to any accessible audio file. The library attempts to use HTML5 `<audio>` first, falling back to Flash if necessary or if the browser doesn't support the specified audio format.   You can influence this behavior by using optional parameters like `useHTML5Audio` (but this may not always be effective given browser and format limitations).  Ensure that your web server is configured correctly to serve the appropriate MIME types for your audio files.
+
+
+### Working with Different Audio Formats
+
+SoundManager 2 supports a range of audio formats, though browser compatibility may vary.  Commonly supported formats include MP3, Ogg Vorbis, and WAV.  It's recommended to provide multiple versions of your audio (e.g., MP3 and Ogg) to maximize compatibility across different browsers and devices.  The browser will automatically select the most appropriate format.  If you want to prioritize specific formats, you can provide them in a preferred order in your URL, or within the `url` option provided to `soundManager.createSound()`.
+
+
+### Controlling Playback Speed
+
+SoundManager 2 allows for adjusting the playback speed of a sound using the `sound.speed` property. The value is a multiplier; 1.0 is normal speed, 2.0 is double speed, 0.5 is half speed.  Note that this feature may not be supported by all browsers or formats.
+
+```javascript
+mySound.speed = 1.5; // Set playback speed to 150%
+mySound.play();
+```
+
+You can change the speed dynamically during playback. However,  changes might not be immediate depending on the browser and codec being used.
+
+
+### Looping Sounds
+
+To loop a sound, set the `onfinish` property to automatically restart playback or use the `sound.play({loops:number})` option to specify the number of loops.  The `loops` parameter can accept a number (for a fixed number of loops) or -1 for infinite looping.
+
+
+```javascript
+mySound.play({loops: -1}); // Infinite looping
+
+//Or using onfinish:
+mySound.onfinish = function() {
+    mySound.play(); //restart when the song finishes.
+}
+```
+
+
+### Using the Playlist Feature
+
+While SoundManager 2 doesn't have a built-in playlist class,  you can easily manage playlists manually using arrays of sound objects or URLs. You can then iterate through this array to play sounds sequentially or randomly.  Implement custom logic to control the order, transitions, and playback actions.
+
+
+### Creating Custom Events
+
+SoundManager 2 allows the creation of custom events which can be triggered and handled using the standard `addEventListener` and `dispatchEvent` methods, enabling more sophisticated control and functionality.
+
+
+```javascript
+// Triggering a custom event:
+mySound.dispatchEvent('myCustomEvent', {data: 'some data'});
+
+// Listening for the custom event:
+mySound.addEventListener('myCustomEvent', function(e) {
+    console.log('Custom event triggered:', e.data);
+});
+```
+
+These custom events offer a flexible mechanism for extending SoundManager 2's capabilities.
+
+
+### Implementing Crossfading
+
+SoundManager 2 doesn't directly support crossfading.  However, you can implement crossfading manually by adjusting the volume of two sounds simultaneously.  You'll need to use timers or `setInterval` to gradually increase the volume of one sound while decreasing the volume of the other over a specified duration.
+
+
+### Managing Multiple Playlists
+
+Managing multiple playlists can be done via an array of arrays or more sophisticated data structures containing lists of sound objects or URLs for each playlist.  You would then create functions to manage playback within and between these playlists, incorporating functionality like switching between playlists, selecting tracks, and implementing transitions.  This requires custom code, but the core functionality of SoundManager 2 provides the foundation for creating this behavior.
+
+
+## Configuration Options
+
+### Understanding the `soundManager` Object
+
+The core of SoundManager 2's configuration is the `soundManager` object.  This is a singleton object that provides methods to configure the library's behavior and manage sounds.  Most configuration happens before calling `soundManager.setup()`.  After calling `soundManager.setup()`,  many configuration options become read-only.
+
+### Global Configuration Options
+
+Global configuration options control aspects of SoundManager 2's overall behavior. These are set as properties of the `soundManager` object *before* calling `soundManager.setup()`.  Key options include:
+
+* `url`: Specifies the path to the SoundManager 2 SWF file (required for Flash fallback).
+* `debugMode`: Enables detailed debugging messages in the browser's console (helpful for troubleshooting).  Setting this to `true` or a number will enable different levels of logging.
+* `useHTML5Audio`: Attempts to prioritize HTML5 audio over Flash.  While often preferred for performance reasons, browser and format compatibility should be considered.
+* `preferFlash`: Prioritizes Flash over HTML5. Generally less preferred due to security and end-of-life concerns with Flash.
+* `flashVersion`: Specifies the minimum required Flash version.
+* `html5Test`: Controls HTML5 audio testing and fallback behavior.  Consult the documentation for specific options.
+* `waitForWindowLoad`:  Determines whether SoundManager 2 waits for the entire page to load before initializing.  Setting this to `false` allows faster initialization but may encounter issues if you try to use SM2 before the DOM is ready.
+* `useHighPerformance`:  (If supported by the browser) may improve performance in some cases but could also introduce potential issues.  Test thoroughly.
+
+
+### URL and Path Configuration
+
+The `url` property is crucial for Flash fallback.  This should be the path to the SoundManager 2 SWF file (`soundmanager2.swf` or similar).  Ensure that the path is correct relative to your HTML file.  Incorrect paths will prevent the Flash fallback from working.  It is best practice to place the SWF file in the same directory as the JavaScript file for simplicity.  Other path-related configuration may involve specifying paths for various audio files and resources that may be needed by SoundManager2.
+
+
+### Volume and Panning Configuration
+
+While individual sound volumes and panning can be set per sound, global defaults can be set.  These defaults affect newly created sounds unless overridden explicitly.  These are often set on the `soundManager` object before calling `soundManager.setup()`.  The properties are typically `volume` and `pan`.
+
+```javascript
+soundManager.volume = 80; // Set default volume to 80%
+soundManager.pan = 0;     // Set default panning to center
+```
+
+These default values provide starting points and can be modified per sound object.
+
+
+### Default Sound Properties
+
+You can set default properties for all sounds created using SoundManager 2.  This simplifies the creation of many sounds with similar settings. These defaults are set as properties of the `soundManager` object (e.g., `soundManager.defaultOptions`). Consult the SoundManager 2 documentation for a complete list of properties and their allowed values.  For example:
+
+```javascript
+soundManager.defaultOptions = {
+    autoLoad: true,
+    onload: function() { console.log("Sound loaded"); }
+};
+```
+
+
+### Debugging and Logging
+
+The `debugMode` property controls the level of debugging output.  Setting `debugMode` to `true` or a number provides varying levels of detail in the browser's console.  This is invaluable for troubleshooting issues.  Higher numbers often yield more verbose output.
+
+
+### Customizing the Player Interface
+
+SoundManager 2 itself doesn't include a built-in player interface.  It's a library focused on audio playback and management.  Any user interface elements (play/pause buttons, volume sliders, etc.) need to be created separately using HTML, CSS, and JavaScript.  SoundManager 2's API provides the means to control the audio playback from your custom interface.
+
+
+## Troubleshooting and Common Issues
+
+### Browser-Specific Problems
+
+SoundManager 2 strives for cross-browser compatibility, but differences in browser implementations can occasionally lead to issues.  Some common browser-specific problems include:
+
+* **HTML5 Audio Limitations:**  Certain browsers may have limitations in their HTML5 audio support, affecting playback or features.  Ensure you test your application thoroughly across different browsers and consider providing alternative audio formats (MP3 and Ogg Vorbis, for example) to improve compatibility.  Observe browser console messages for clues.
+
+* **Flash Player Issues:**  If SoundManager 2 falls back to Flash, problems with Flash Player installation or configuration can cause playback failures.  Ensure Flash Player is correctly installed and enabled in the user's browser.  This is increasingly less relevant as Flash support is deprecated.
+
+* **Caching Issues:**  Browser caching might sometimes interfere with audio loading.  Try clearing the browser's cache or using a different browser to rule out caching problems.  In development, disable browser caching (in developer tools or browser settings).
+
+* **MIME Type Issues:**  Incorrect MIME type settings on the web server can prevent browsers from correctly interpreting audio files. Check that your web server is properly configured to serve audio files with the correct MIME types (e.g., `audio/mpeg` for MP3, `audio/ogg` for Ogg Vorbis).
+
+
+### Troubleshooting Playback Issues
+
+Playback issues can stem from several sources:
+
+* **Incorrect File Paths:** Double-check that the file paths specified in `soundManager.createSound()` are correct relative to your HTML file.
+
+* **File Format Compatibility:** Verify that the browser supports the audio format.   Use multiple formats to maximize compatibility.
+
+* **Loading Issues:**  Ensure the sound has loaded successfully.  Use the `onload` event to confirm loading or check for errors in your browser's console.
+
+* **Sound Object Management:**  If you are managing many sounds, ensure they are properly created, loaded, played, stopped, and unloaded when no longer needed to avoid resource conflicts.
+
+* **Permissions and Security:**  Ensure the audio files are accessible to the web browser (due to security settings in the browser or server).
+
+
+### Debugging Tips
+
+* **Enable `debugMode`:** Setting `soundManager.debugMode = true` (or a higher number) will provide detailed logging output to the browser's console, helping identify errors.
+
+* **Use Browser Developer Tools:** Browser developer tools (usually accessed by pressing F12) offer debugging capabilities, including network monitoring to check for loading errors, console logging to see messages from SoundManager 2, and JavaScript debugging to step through your code.
+
+* **Simplify:**  Isolate the problem by creating a minimal example that reproduces the issue.  This simplifies debugging and helps identify the root cause.
+
+* **Check the Console:**  The browser's console is the first place to look for error messages or warnings from SoundManager 2.
+
+
+### Common Errors and Solutions
+
+* **`SOUNDMANAGER_ERROR_NOFLASH`:**  This error indicates Flash is not installed or enabled.  If relying on Flash fallback, ensure Flash Player is installed and enabled in the browser.  This is less relevant with the deprecation of Flash.
+
+* **`SOUNDMANAGER_ERROR_NOHTML5`:** This indicates insufficient HTML5 audio support in the browser.  Consider using different browsers or alternative audio formats.
+
+* **`SOUNDMANAGER_ERROR_LOAD`: ** This means the audio file failed to load. Check the file path, file existence, server configuration (MIME types), and network connectivity.
+
+* **`SOUNDMANAGER_ERROR_UNSUPPORTED`: **  This suggests the browser or Flash Player does not support the specific audio format. Provide alternatives.
+
+
+### Seeking Help and Support
+
+If you encounter problems not covered here, consult the official SoundManager 2 documentation, search online forums and communities for similar issues, or consider posting a question on a relevant forum or question-and-answer site, providing a concise description of the problem, browser details, relevant code snippets, and any error messages received.  Remember to include the version of SoundManager 2 you are using.
+
+
+## Examples and Use Cases
+
+### Simple Sound Playback
+
+The simplest use case involves playing a single sound file. This requires including the SoundManager 2 library, creating a sound object, and calling the `play()` method.
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Simple Sound Playback</title>
+<script src="soundmanager2.js"></script>
+<script>
+  soundManager.setup({
+    url: 'path/to/swf/', //Path to SWF if needed for fallback
+    debugMode: true
+  });
+
+  soundManager.onready(function() {
+    var mySound = soundManager.createSound({
+      id: 'simpleSound',
+      url: 'audio/mysound.mp3'
+    });
+    mySound.play();
+  });
+</script>
+</head>
+<body>
+  <h1>Simple Sound Playback</h1>
+</body>
+</html>
+```
+Remember to replace `"path/to/swf/"` and `"audio/mysound.mp3"` with the correct paths.
+
+
+### Creating a Music Player
+
+Building a music player involves using SoundManager 2 to manage multiple sounds, provide controls for play/pause, stop, next/previous tracks, volume control, and potentially a playlist.  You'll need to handle user interaction and manage the sequence of sounds.  This requires more JavaScript to build the user interface (UI) and handle events from the SoundManager 2 API.  Consider using a framework like jQuery or React to assist with UI development.  A basic structure might involve:
+
+1.  An array to store track URLs.
+2.  UI elements (buttons, progress bar).
+3.  SoundManager 2 to load and play tracks from the array, updating the UI to reflect the current track and playback status.
+4.  Event handling to respond to button clicks and playback events.
+
+
+### Implementing a Sound Effects Engine
+
+A sound effects engine uses SoundManager 2 to play various short sounds triggered by user actions or game events.  This often requires managing a pool of sound effects, potentially with different volume levels or panning for spatial audio effects.  You may need to implement sophisticated sound management to efficiently handle multiple simultaneous sounds and prevent resource conflicts.  This can also be improved with sound preloading for immediate playback.
+
+```javascript
+//Example of playing a sound effect based on an event:
+function playSoundEffect(effectName) {
+    var effect = soundManager.getSoundById(effectName);
+    if (effect) {
+      effect.play();
+    } else {
+      //Load if not already loaded
+      var newEffect = soundManager.createSound({
+          id: effectName,
+          url: 'audio/effects/' + effectName + '.mp3',
+          autoLoad: true
+      });
+      newEffect.play();
+    }
+}
+//Trigger on user event:
+document.getElementById("myButton").addEventListener("click", function() {
+  playSoundEffect("click");
+});
+
+```
+
+### Using SoundManager 2 in Games
+
+Integrating SoundManager 2 into games involves coordinating sound effects and music with game events. This typically requires close interaction with the game engine's logic to trigger sounds at appropriate times.  Consider the need for spatial audio and sound occlusion (sounds being muffled or blocked by objects).  Careful sound design and implementation are critical to avoiding performance problems and improving user immersion.
+
+### Integrating with Other JavaScript Libraries
+
+SoundManager 2 can work seamlessly with other JavaScript libraries.  Common scenarios include integrating it with UI frameworks (React, Angular, Vue), game engines (Phaser, PixiJS), or other audio-related libraries.  This is done by leveraging the respective APIs of both libraries and handling events from SoundManager 2 within the context of the other library. For example, you could use a UI framework to manage the interface and SoundManager 2 to handle the playback of audio.
+
+
+## API Reference
+
+This section provides a concise overview of the core SoundManager 2 API.  Refer to the full documentation for detailed explanations and a complete list of options and parameters.
+
+### soundManager Object
+
+The `soundManager` object is the central point of interaction with SoundManager 2.  It's a singleton object, meaning there's only one instance of it.  It is used to configure SoundManager 2 (before calling `soundManager.setup()`) and provides methods for creating and managing sounds.  Key properties and methods have been described in previous sections.  It is important to note that most configuration options on the `soundManager` object are best set *before* calling `soundManager.setup()`.
+
+### soundManager.createSound() Method
+
+This is the primary method for creating a new sound object.
+
+**Syntax:**
+
+```javascript
+soundManager.createSound(options);
+```
+
+**Parameters:**
+
+* `options`: An object containing properties defining the sound (e.g., `id`, `url`, `autoLoad`, `volume`, etc.).  See full documentation for details.
+
+**Return Value:**
+
+A `sound` object representing the created sound.  This object has its own methods (detailed below).
+
+**Example:**
+
+```javascript
+var mySound = soundManager.createSound({
+  id: 'mySound',
+  url: 'audio/myfile.mp3',
+  autoLoad: true,
+  volume: 80
+});
+```
+
+### soundManager.play() Method
+
+While sounds are typically played using the `sound.play()` method on a created `sound` object,  `soundManager.play()` can also play sounds, but less commonly.   It usually requires a sound ID to identify the sound that needs playing.
+
+### soundManager.stop() Method
+
+This method stops all currently playing sounds.  Note that this is a less common method.  Stopping individual sounds is usually better done via the `sound.stop()` method of the individual sound object.
+
+### soundManager.pause() Method
+
+This method pauses all currently playing sounds.  Similar to `soundManager.stop()`,  pausing individual sounds is generally recommended through the `sound.pause()` method of the individual sound object.
+
+### soundManager.resume() Method
+
+This method resumes all currently paused sounds.  Again, using the `sound.resume()` method on individual sounds is generally preferred for better control.
+
+### Sound Object Methods and Properties
+
+Once a sound is created using `soundManager.createSound()`, you have a `sound` object that provides many methods to interact with that specific sound.  Key methods include:
+
+* `play([options])`: Starts playback.  `options` can override properties set during creation.
+* `stop()`: Stops playback.
+* `pause()`: Pauses playback.
+* `resume()`: Resumes playback.
+* `setPosition(position)`: Sets the playback position in milliseconds.
+* `setVolume(volume)`: Sets the volume (0-100).
+* `setPan(pan)`: Sets the panning (-100 to 100).
+* `unload()`: Releases the sound's resources.
+* `load()`: Loads the sound file (if not already loaded).
+
+Key properties include:
+
+* `id`: The unique ID of the sound.
+* `url`: The URL of the sound file.
+* `duration`: The duration of the sound in milliseconds (available after loading).
+* `position`: The current playback position in milliseconds.
+* `readyState`: Indicates the loading state of the sound.
+* `isHTML5`: Indicates if HTML5 audio is being used for playback.
+
+
+### Event Handling
+
+SoundManager 2 uses the standard JavaScript event model.  Events are attached using `sound.on(eventName, handlerFunction)` and removed using `sound.off(eventName, handlerFunction)`.  Several events are available:
+
+* `load`: The sound has finished loading.
+* `play`: Playback has started.
+* `stop`: Playback has stopped.
+* `pause`: Playback has paused.
+* `resume`: Playback has resumed.
+* `finish`: Playback has completed.
+* `whileloading`:  Fires periodically during loading.
+* `whileplaying`: Fires periodically during playback.
+* `error`: An error has occurred.
+* `metadata`: Metadata for the sound is available.
+
+You can also define custom events using `sound.dispatchEvent()`.
+
+**Example:**
+
+```javascript
+mySound.on('finish', function() {
+  console.log('Sound finished playing!');
+});
+```
+
+This is a simplified API reference.  Always refer to the complete documentation for the most up-to-date and detailed information.
+

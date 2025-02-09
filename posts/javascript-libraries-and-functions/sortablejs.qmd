@@ -1,0 +1,367 @@
+---
+title: "SortableJS - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction
+
+### What is SortableJS?
+
+SortableJS is a minimalist JavaScript library for reorderable drag-and-drop lists on modern browsers and touch devices.  It provides a simple yet powerful API for creating highly customizable sortable interfaces without the need for complex configuration or extensive boilerplate code.  It focuses on performance and ease of use, making it ideal for a wide range of applications, from simple task lists to complex drag-and-drop interfaces within larger applications.  Unlike many other drag-and-drop libraries, SortableJS avoids unnecessary dependencies, keeping its footprint small and efficient.
+
+
+### Key Features and Benefits
+
+* **Lightweight and performant:** SortableJS has a small file size and is optimized for speed, ensuring a smooth user experience even with large lists.
+* **Cross-browser compatibility:** It works seamlessly across major modern browsers and touch devices.
+* **Simple API:**  The API is intuitive and easy to learn, allowing developers to quickly integrate sortable functionality into their projects.
+* **Extensible:**  SortableJS offers various options and events for extensive customization.
+* **No dependencies:** It doesn't rely on any other JavaScript libraries, simplifying integration and reducing potential conflicts.
+* **Touch support:** Built-in support for touch devices ensures a consistent experience across platforms.
+* **Multiple groups:**  Easily support dragging items between multiple sortable lists.
+
+
+### Getting Started: Installation and Setup
+
+SortableJS can be installed in several ways:
+
+* **CDN:** Include the SortableJS script directly from a CDN like jsDelivr:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+```
+
+* **npm:** If you're using npm, install it via:
+
+```bash
+npm install sortablejs
+```
+
+Then, import it into your JavaScript code:
+
+```javascript
+import Sortable from 'sortablejs';
+```
+
+* **Yarn:**  If you are using Yarn, install with:
+
+```bash
+yarn add sortablejs
+```
+
+Then, import it into your JavaScript code:
+
+```javascript
+import Sortable from 'sortablejs';
+```
+
+
+After installation, you're ready to start using SortableJS.
+
+
+### Basic Usage Example
+
+This example demonstrates a simple sortable list:
+
+```html
+<ul id="my-list">
+  <li>Item 1</li>
+  <li>Item 2</li>
+  <li>Item 3</li>
+</ul>
+
+<script>
+  new Sortable(document.getElementById('my-list'));
+</script>
+```
+
+This code snippet initializes SortableJS on the `<ul>` element with the ID `my-list`.  This makes the list items draggable and re-orderable.  No further configuration is needed for basic functionality.  More advanced options and event handling are detailed in subsequent sections of this manual.
+
+
+## Core Concepts
+
+### Understanding SortableJS Elements
+
+SortableJS operates on a fundamental level by targeting HTML elements to enable drag-and-drop functionality. The core element is typically an unordered list (`<ul>`) or an ordered list (`<ol>`), though any element can technically be used.  The child elements of this container (e.g., `<li>` elements within a `<ul>`) are the items that are sortable.  SortableJS manipulates the DOM structure directly to reflect the changes in item order.  No hidden data structures are used; the visual order always reflects the actual order of the elements.  You can use attributes and data attributes on these elements to further customize the behavior and associate data with each sortable item.
+
+
+### Groups and Sorting
+
+SortableJS supports sorting items within a single list and also allows you to drag items between multiple lists.  This is achieved through the concept of "groups".  Items belonging to the same group can be freely dragged and dropped between each other.  Different groups can be defined using the `group` option.  If items belong to different groups, restrictions on dragging between them might be enforced, or you may choose to allow transfers between any groups by specifying a wildcard group (e.g., `group: { name: 'shared', pull: 'clone', put: false }`).  This gives you great flexibility in managing the interaction between multiple sortable lists.  The `pull` and `put` options within a group control whether items can be dragged *from* and *into* a specific list respectively.
+
+
+### Events and Callbacks
+
+SortableJS provides a rich set of events that allow you to respond to various actions during the drag-and-drop process.  These events are triggered at different stages:  `start`, `sort`, `update`, `remove`, `add`, `choose`, `unchoose`, `stop`, `clone`.  Each event provides relevant data, such as the item being dragged, its source and destination lists, and the old and new indices. You can attach custom callback functions to these events to perform actions like updating a database, saving state, or providing visual feedback to the user.   For example, the `update` event is fired whenever the order of items changes, allowing you to immediately update associated data structures.  Consult the documentation for a complete list of events and their parameters.
+
+
+### Data Transfer and Manipulation
+
+While SortableJS primarily focuses on DOM manipulation, it doesn't directly handle data transfer.  The library handles the visual rearrangement of items.  You are responsible for managing the associated data. You can achieve this using various techniques:
+
+* **Data Attributes:** Store data directly on the sortable items using HTML5 data attributes (`data-*`).  You can then access this data within the event callbacks to update your application's state.
+* **External Data Structures:** Maintain a separate data structure (e.g., an array or object) that mirrors the order of the sortable items.  Update this data structure within the `update`, `add`, and `remove` events.
+* **Data Binding:** Utilize a framework (like React, Vue, or Angular) that provides data binding capabilities.  This simplifies keeping your data structure synchronized with the visual order of the items.
+
+Essentially, SortableJS provides the drag-and-drop interface, but you're in control of how you handle and manage the data associated with the moved items.  The library empowers you to build dynamic interfaces synchronized with your application's data.
+
+
+## API Reference
+
+### Constructor Options
+
+The SortableJS constructor accepts an options object as its second argument.  These options control various aspects of the sortable behavior.  Key options include:
+
+* **`group`:**  (String or Object) Defines the group to which the sortable belongs.  Items can only be dragged between lists belonging to the same group.  A group object can define `name`, `put`, and `pull` properties for finer control over dragging between lists.
+* **`animation`:** (Integer) Duration of the animation (in milliseconds) when items are moved.  Set to `0` to disable animation.
+* **`handle`:** (String or Function)  Specifies the element within each item that should be used as the drag handle.  This can be a CSS selector string or a function that returns a boolean indicating whether an element is a valid handle.
+* **`draggable`:** (String or Function) Specifies which items are draggable.  Similar to `handle`, this can be a CSS selector string or a function.
+* **`ghostClass`:** (String)  CSS class applied to the placeholder that visually indicates the position where the dragged item will be inserted.
+* **`chosenClass`:** (String) CSS class applied to the currently dragged item.
+* **`dataIdAttr`:** (String)  Attribute used to retrieve item ID for data transfer.
+* **`sort`:** (Boolean) Whether sorting is enabled.  Setting to `false` disables drag-and-drop.
+* **`delay`:** (Integer) Delay in milliseconds before the drag starts.  Useful to avoid accidental drags.
+* **`forceFallback`:** (Boolean) Forces the use of the fallback method (using a cloned element for dragging). Useful for improved compatibility with older browsers.
+* **`fallbackOnBody`:** (Boolean) Append the placeholder to the document body instead of the parent of the dragged element.  Can improve the dragging experience in complex layouts.
+* **`store`:** (Object) Enables persisting the sorting order across sessions.
+* **`filter`:** (String or Function)  Allows filtering the draggable items based on a CSS selector string or a custom function.
+* **`preventOnFilter`:** (Boolean) Whether to prevent dragging if an item matches the `filter` criteria.
+* **`onMove`:** (Function) Function triggered when an item is being moved.
+* **`onAdd`:** (Function) Function triggered when an item is added to the list.
+* **`onUpdate`:** (Function) Function triggered when the order of items changes.
+
+Consult the official documentation for the full list of options and their descriptions.
+
+
+### Methods: `sort`, `destroy`, `option`, etc.
+
+SortableJS provides several methods to interact with the instance:
+
+* **`sort(element, target, newIndex)`:**  Manually sorts an item.
+* **`destroy()`:**  Removes SortableJS from the element, restoring the original behavior.
+* **`option(optionName, value)`:**  Gets or sets the value of a constructor option.
+* **`serialize(options)`:**  Serializes the items into an array of their data IDs.
+* **`toArray()`:** Returns an array of the elements' IDs.
+* **`save()`:** Saves the current sort to the store.
+
+
+### Events: `sort`, `remove`, `add`, `update`, etc.
+
+SortableJS exposes a range of events that allow you to react to various stages of the drag-and-drop process:
+
+* **`sort`:**  Triggered when the item's position changes.
+* **`remove`:**  Triggered when an item is removed from the list.
+* **`add`:**  Triggered when an item is added to the list.
+* **`update`:** Triggered when the order of items changes.
+* **`start`:**  Triggered when a drag operation begins.
+* **`stop`:**  Triggered when a drag operation ends.
+* **`choose`:** Triggered when an item is chosen for dragging.
+* **`unchoose`:** Triggered when the chosen item is released (without being dropped).
+* **`clone`:**  Triggered when an item is cloned (if cloning is enabled).
+* **`filter`:** Triggered when a drag-and-drop operation is filtered.
+* **`move`:**  Triggered when a potential move is in progress.
+
+Each event provides an event object containing details of the event, such as the old and new indices of the item, the item itself, and related elements.
+
+
+### Event Handling and Customizations
+
+Event handling is done by attaching listeners to the SortableJS instance using the `on` method:
+
+```javascript
+let sortable = new Sortable(list, { /* options */ });
+
+sortable.on('update', function (evt) {
+  // Handle the update event
+  console.log('Order updated:', evt.oldIndex, evt.newIndex);
+});
+```
+
+This approach allows you to respond to specific events and perform custom actions.  You can combine the events and options to build complex and highly customized drag-and-drop interfaces. Remember to consult the full API documentation for a complete list of available options and events and their specific parameters.
+
+
+## Advanced Techniques
+
+### Handling Nested Sortables
+
+SortableJS supports nested sortable lists.  This means you can have sortable lists within other sortable lists, creating hierarchical structures.  To achieve this, you need to create multiple Sortable instances, one for each level of nesting.  Be mindful of the `group` option when working with nested sortables.  If you want items to be freely moved between different levels of nesting, ensure that the relevant lists share the same group name.  However, if you want to restrict movement between levels, use different group names.  Properly managing group names is crucial for controlling the allowed drag-and-drop interactions within your nested structures.  Within event handlers, you can examine the `oldDraggableIndex` and `newDraggableIndex` properties to understand where an item has been moved to relative to its original position.
+
+### Implementing Drag Handles and Placeholders
+
+By default, SortableJS allows dragging items by clicking and dragging anywhere on the item itself. However, you can customize this behavior to allow dragging only from specific elements (drag handles) using the `handle` option. This option accepts either a CSS selector string or a function that returns `true` if an element is a valid handle.   The `ghostClass` option controls the visual appearance of the placeholder that indicates where the dragged item will be inserted.  You can style this placeholder using CSS to create a visually appealing drag-and-drop experience.  Customizing the appearance of the drag handle and placeholder improves user experience by providing visual cues and clarity during the drag-and-drop interaction.
+
+### Customizing Animations and Transitions
+
+SortableJS allows you to control the animation of items during dragging and dropping using the `animation` option. This option specifies the duration of the animation in milliseconds. Setting it to `0` disables animations entirely.  For more advanced animation control,  you can leverage CSS transitions and animations in conjunction with the `chosenClass` and `ghostClass` options.  This gives you fine-grained control over the visual aspects of the drag-and-drop process, allowing you to create smooth and visually appealing transitions.  Remember that excessive or complex animations can impact performance, particularly with large lists, so choose appropriate animation styles to optimize the user experience.
+
+### Integrating with Other Libraries
+
+SortableJS is designed to be lightweight and non-intrusive, making it easy to integrate with other JavaScript libraries.  However, care must be taken to avoid conflicts.  Potential conflicts could arise if other libraries manipulate the DOM in ways that interfere with SortableJS's internal mechanisms.  If you're using a framework such as React, Vue, or Angular, you'll typically need to manage data synchronization manually, ensuring that changes in the DOM reflected by SortableJS are mirrored in your framework's data model.  When integrating with other drag-and-drop libraries, ensure they don't operate on the same elements to avoid conflicts and unexpected behavior.  Testing thoroughly is crucial to ensure seamless integration and identify any potential conflicts between libraries.
+
+
+## Troubleshooting
+
+### Common Issues and Solutions
+
+* **Items not draggable:**  Double-check that you've included the SortableJS script correctly and that you've initialized SortableJS on the correct element.  Ensure that the element you're targeting is actually in the DOM when the script runs.  Verify that CSS styles aren't accidentally preventing dragging (e.g., `pointer-events: none;`). If using a `handle` or `draggable` option, make sure your selectors or functions are correctly identifying the draggable elements.
+
+* **Unexpected behavior with nested lists:**  Ensure that the `group` option is correctly configured for nested lists.  Incorrect group settings can lead to unexpected drag-and-drop restrictions.  Carefully examine the nested structure to ensure that you've initialized SortableJS on each nested list correctly.
+
+* **Animations not working:** Verify that the `animation` option is set to a value greater than 0. Ensure that there are no CSS rules overriding the default animation styles applied by SortableJS.
+
+* **Data not updating correctly:** This usually indicates a problem in your event handling logic.  Double-check that you are correctly accessing and updating your data within the relevant event handlers (e.g., `update`, `add`, `remove`). Ensure your data update logic correctly reflects the changes made by SortableJS.
+
+* **Conflicts with other libraries:**  If you encounter conflicts with other JavaScript libraries, try disabling other libraries temporarily to isolate the problem.   Ensure that no other script is manipulating the same DOM elements concurrently with SortableJS.
+
+
+### Debugging Strategies
+
+* **Console logging:**  Use `console.log()` statements within your event handlers to track the values of relevant variables and the sequence of events.  This helps identify inconsistencies in data or unexpected event flows.
+
+* **Browser developer tools:** Utilize your browser's developer tools (usually accessed by pressing F12) to inspect the DOM structure, network requests, and console messages.  This is crucial for identifying DOM manipulation conflicts or unexpected behavior within SortableJS.  The debugger can be used to step through the code and identify the point of failure.
+
+* **Simplifying the code:**  Try temporarily removing or simplifying parts of your code to isolate the source of the problem.  Creating a minimal reproducible example can assist in identifying the root cause.
+
+
+### Performance Optimization
+
+* **Minimize animations:**  Excessive or complex animations can significantly impact performance, especially with large lists.  Consider simplifying or disabling animations if performance becomes an issue.
+
+* **Optimize DOM manipulation:** Avoid unnecessary DOM manipulation within event handlers, as this can lead to performance degradation.  Batch updates whenever possible.
+
+* **Use virtualization techniques:** For very large lists, consider using virtualization techniques to render only the visible items.  This can significantly improve rendering performance.
+
+* **Avoid heavy CSS:** Overly complex CSS styles can affect performance.  Ensure that your CSS selectors are efficient and that you're not unnecessarily applying styles to a large number of elements.  Consider using CSS preprocessors (like Sass or Less) to optimize your CSS.
+
+* **Profile your code:**  Use your browser's performance profiling tools to identify performance bottlenecks within your code.  This helps pinpoint areas where optimization efforts will have the greatest impact.
+
+
+## Examples and Use Cases
+
+### Simple List Sorting
+
+This is the most basic use case.  You can create a simple sortable list with minimal code:
+
+```html
+<ul id="my-list">
+  <li>Item 1</li>
+  <li>Item 2</li>
+  <li>Item 3</li>
+</ul>
+
+<script>
+  new Sortable(document.getElementById('my-list'));
+</script>
+```
+
+This code makes the list items draggable and reorderable.  The `update` event can be used to capture the new order of items and update your application's data accordingly.
+
+
+### Drag-and-Drop File Uploads
+
+SortableJS can enhance file upload functionality by allowing users to reorder files before uploading.  This involves combining SortableJS with an HTML file input element:
+
+```html
+<input type="file" id="file-upload" multiple>
+<ul id="file-list"></ul>
+
+<script>
+  const fileList = document.getElementById('file-list');
+  const fileUpload = document.getElementById('file-upload');
+
+  fileUpload.addEventListener('change', (e) => {
+    for (let file of e.target.files) {
+      let li = document.createElement('li');
+      li.textContent = file.name;
+      fileList.appendChild(li);
+    }
+    new Sortable(fileList); // Initialize SortableJS after adding files
+  });
+
+  // Handle the 'update' event to get the reordered file list
+</script>
+```
+
+This example adds file names to a list as they are selected, and SortableJS enables reordering. You would then need to handle the updated order in the upload process.
+
+
+### Kanban Board Implementation
+
+A Kanban board is a common use case for sortable lists.  You can represent columns as separate sortable lists and allow users to drag tasks between columns:
+
+```html
+<div class="kanban-column">
+  <h3>To Do</h3>
+  <ul id="to-do-list">
+    <li>Task 1</li>
+    <li>Task 2</li>
+  </ul>
+</div>
+<div class="kanban-column">
+  <h3>In Progress</h3>
+  <ul id="in-progress-list"> </ul>
+</div>
+
+<script>
+  const todoList = new Sortable(document.getElementById('to-do-list'), { group: 'kanban' });
+  const inProgressList = new Sortable(document.getElementById('in-progress-list'), { group: 'kanban' });
+</script>
+```
+
+Here, both lists share the `kanban` group, allowing items to be dragged between them.  You would need to add more columns and handle the data updates reflecting the task movements.
+
+
+### Advanced Drag-and-Drop Interactions
+
+SortableJS allows for highly customized drag-and-drop behaviors.  This includes:
+
+* **Custom drag handles:** Use the `handle` option to specify elements that act as drag handles.
+* **Filtering draggable items:** Use the `filter` option to restrict which items are draggable.
+* **Cloning items:** Use the `group` option with `pull: 'clone'` to create copies of items when dragging them to a different list.
+* **Custom animations and transitions:**  Use CSS and the `animation` option to customize the visual appearance of the drag-and-drop operation.
+* **Multiple groups and complex group configurations:**  Create more complex interactions by using multiple groups with custom `put` and `pull` settings.  You can define complex rules about which groups allow dragging from and into them.
+
+These advanced features allow you to create highly customized and sophisticated drag-and-drop interfaces tailored to specific application needs.  Combining these techniques with appropriate event handling creates a powerful and flexible drag-and-drop system.
+
+
+## Contributing
+
+### Reporting Bugs
+
+When reporting bugs, please provide as much detail as possible to help us reproduce and fix the issue.  A minimal reproducible example is highly valuable.  Include the following information:
+
+* **SortableJS version:** Specify the exact version number you're using.
+* **Browser and operating system:**  State the browser and operating system you encountered the bug on.
+* **Steps to reproduce:**  Provide clear and concise steps to reproduce the bug.
+* **Expected behavior:**  Describe what you expected to happen.
+* **Actual behavior:**  Describe what actually happened.
+* **Code snippet:**  Provide a minimal code snippet that demonstrates the bug.  If possible, create a standalone example that can be easily run and tested.
+* **Error messages (if any):**  Include any error messages you received in your console.
+* **Screenshots or screen recordings (if applicable):** Visual aids can be helpful in explaining the problem.
+
+
+### Submitting Feature Requests
+
+Feature requests are welcome!  When submitting a feature request, clearly describe the proposed feature and its intended functionality.  Explain the use case and how this feature would improve SortableJS.  Consider the following:
+
+* **Clear description:** Provide a concise and clear description of the feature.
+* **Use cases:**  Explain the use cases where this feature would be beneficial.
+* **Potential implementation:**  If you have any ideas on how to implement the feature, please share them.  This will help us assess the feasibility and complexity of the implementation.
+* **Alternatives considered:**  Mention any alternative approaches you considered and why this proposed feature is preferred.
+
+
+### Coding Style Guide
+
+To ensure consistency and readability, please follow these guidelines when contributing code:
+
+* **Indentation:** Use 2 spaces for indentation.
+* **Line length:** Keep lines under 80 characters.
+* **Naming conventions:** Use camelCase for variables and functions.
+* **Comments:**  Write clear and concise comments to explain complex logic.
+* **Semicolons:** Use semicolons at the end of statements.
+* **ES6 features:**  Use modern JavaScript features where appropriate.
+
+
+### Testing and Development
+
+Before submitting a pull request, ensure that your changes are thoroughly tested.  The project uses a testing framework (you should specify the testing framework used, if available, e.g., Jest, Mocha).   Make sure your changes pass all existing tests and add new tests for any new features or bug fixes.  The testing process helps to ensure the quality and stability of SortableJS.  Run the tests using the project's instructions.  If you are adding new features, creating comprehensive test cases is essential to demonstrate the functionality and handle edge cases.  Testing increases confidence in the reliability and robustness of the codebase.
+

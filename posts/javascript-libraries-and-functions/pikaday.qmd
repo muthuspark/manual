@@ -1,0 +1,604 @@
+---
+title: "Pikaday - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Getting Started
+
+### Installation
+
+Pikaday can be installed via several methods:
+
+* **Using a CDN:** Include the Pikaday CSS and JS files directly from a CDN like jsDelivr:
+
+```html
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pikaday/1.11.0/css/pikaday.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pikaday/1.11.0/pikaday.min.js"></script>
+```
+
+* **Using npm:** If you're using npm, install Pikaday:
+
+```bash
+npm install pikaday
+```
+
+Then, import it into your project (you'll need a module bundler like Webpack or Parcel):
+
+```javascript
+import Pikaday from 'pikaday';
+import 'pikaday/css/pikaday.css'; 
+```
+
+* **Using Bower (deprecated):**  While Bower is largely deprecated, if you're using it:
+
+```bash
+bower install pikaday
+```
+
+Remember to include the CSS file in your HTML `<head>` for styling.
+
+
+### Basic Usage
+
+Once Pikaday is installed, creating a datepicker is straightforward.  You'll need an input element in your HTML to which the datepicker will be attached.  Then, you instantiate a new Pikaday object, passing the input element as a configuration option.
+
+```javascript
+const picker = new Pikaday({
+  field: document.getElementById('my-datepicker')
+});
+```
+
+This creates a datepicker linked to the input element with the ID "my-datepicker".  Further configuration options allow for customization (see the full documentation for details).
+
+
+### First Example
+
+Here's a complete example demonstrating a basic Pikaday integration:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pikaday Example</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pikaday/1.11.0/css/pikaday.min.css">
+</head>
+<body>
+
+  <input type="text" id="my-datepicker">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pikaday/1.11.0/pikaday.min.js"></script>
+  <script>
+    const picker = new Pikaday({
+      field: document.getElementById('my-datepicker')
+    });
+  </script>
+</body>
+</html>
+```
+
+This code includes the necessary CSS and JavaScript files from a CDN, creates an input field, and then instantiates a Pikaday picker linked to that field.  This will produce a simple datepicker allowing users to select a date.  Remember to replace the CDN links with your local paths if you've installed Pikaday using npm or Bower.
+
+
+## Configuration Options
+
+Pikaday offers a wide array of configuration options to customize its behavior and appearance.  These options are passed as a JavaScript object when creating a new Pikaday instance.
+
+### field
+
+**(Type: `HTMLElement` | `string`)**  The input element or its ID to which the datepicker will be attached.  This is a *required* option.  If you provide a string, Pikaday will attempt to find an element with that ID.
+
+```javascript
+const picker = new Pikaday({
+  field: document.getElementById('myDate') // Or  field: '#myDate'
+});
+```
+
+### format
+
+**(Type: `string`, Default: `YYYY-MM-DD`)**  The date format to use for display and parsing.  Uses Moment.js format tokens (e.g., `YYYY`, `MM`, `DD`, `dddd`, etc.).
+
+```javascript
+const picker = new Pikaday({
+  field: document.getElementById('myDate'),
+  format: 'DD.MM.YYYY'
+});
+```
+
+### formatStrict
+
+**(Type: `boolean`, Default: `false`)**  If `true`, the entered date must strictly match the specified `format`. Otherwise, lenient parsing is used.
+
+```javascript
+const picker = new Pikaday({
+  field: document.getElementById('myDate'),
+  format: 'YYYY-MM-DD',
+  formatStrict: true
+});
+```
+
+### i18n
+
+**(Type: `Object`, Default: English locale)**  An object containing localization strings for the datepicker.  See the documentation for the structure of this object and available locales.
+
+```javascript
+const picker = new Pikaday({
+  field: document.getElementById('myDate'),
+  i18n: {
+    previousMonth : 'Vorheriger Monat',
+    nextMonth     : 'Nächster Monat',
+    months        : ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],
+    weekdays      : ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'],
+    weekdaysShort : ['So','Mo','Di','Mi','Do','Fr','Sa']
+  }
+});
+```
+
+### firstDay
+
+**(Type: `number`, Default: `0` (Sunday))**  The day of the week to start the week (0 for Sunday, 1 for Monday, etc.).
+
+```javascript
+const picker = new Pikaday({
+  field: document.getElementById('myDate'),
+  firstDay: 1 // Start week on Monday
+});
+```
+
+### minDate
+
+**(Type: `Date`)** The earliest selectable date.
+
+```javascript
+const picker = new Pikaday({
+  field: document.getElementById('myDate'),
+  minDate: new Date() // Today is the minimum selectable date
+});
+```
+
+### maxDate
+
+**(Type: `Date`)** The latest selectable date.
+
+```javascript
+const picker = new Pikaday({
+  field: document.getElementById('myDate'),
+  maxDate: new Date(2024, 11, 31) // December 31, 2024 is the maximum
+});
+```
+
+### yearRange
+
+**(Type: `number` | `string`, Default: `10`)** The number of years to display above and below the current year.  Can also be a string in the format `start:end` (e.g., `1900:2020`).
+
+```javascript
+const picker = new Pikaday({
+  field: document.getElementById('myDate'),
+  yearRange: 20 // 20 years above and below the current year.  Or yearRange: '1990:2030'
+});
+```
+
+### bound
+
+**(Type: `boolean`, Default: `true`)** If `false`, prevents the datepicker from being automatically positioned relative to the input field. Useful for manual positioning.
+
+
+### disableWeekends
+
+**(Type: `boolean`, Default: `false`)** Disables weekend days (Saturday and Sunday).
+
+```javascript
+const picker = new Pikaday({
+    field: document.getElementById('myDate'),
+    disableWeekends: true
+});
+```
+
+### disableDayFn
+
+**(Type: `function(Date)`, Default: `null`)** A function that determines whether a specific date should be disabled.  The function receives a `Date` object as an argument and should return `true` to disable the date, `false` otherwise.
+
+```javascript
+const picker = new Pikaday({
+    field: document.getElementById('myDate'),
+    disableDayFn: function(date) {
+        return date.getDay() === 0 || date.getDay() === 6; // Disable weekends
+    }
+});
+```
+
+### setDefaultDate
+
+**(Type: `Date`)** Sets a default date for the picker.
+
+```javascript
+const picker = new Pikaday({
+  field: document.getElementById('myDate'),
+  setDefaultDate: new Date(2024, 0, 1) // Set default to January 1st, 2024
+});
+```
+
+### setDefaultTime
+
+**(Type: `Date`)** Sets a default time (hours, minutes, seconds) for the picker.  Note that the default date will also affect the picker's time.
+
+
+```javascript
+const picker = new Pikaday({
+  field: document.getElementById('myDate'),
+  setDefaultTime: new Date(0,0,0,14,30,0) //Set default to 2:30 PM
+});
+```
+
+
+### onSelect
+
+**(Type: `function(Date)` )** A callback function executed when a date is selected.  The selected `Date` object is passed as an argument.
+
+```javascript
+const picker = new Pikaday({
+  field: document.getElementById('myDate'),
+  onSelect: function(date) {
+    console.log('Selected date:', date);
+  }
+});
+```
+
+### onDraw
+
+**(Type: `function()`)** A callback function executed after the datepicker is drawn.
+
+```javascript
+const picker = new Pikaday({
+  field: document.getElementById('myDate'),
+  onDraw: function() {
+    console.log('Datepicker drawn');
+  }
+});
+```
+
+### onOpen
+
+**(Type: `function()`)** A callback function executed when the datepicker is opened.
+
+
+### onClose
+
+**(Type: `function()`)** A callback function executed when the datepicker is closed.
+
+
+### onHide
+
+**(Type: `function()`)** A callback function executed when the datepicker is hidden (after closing or being programmatically hidden).
+
+
+### onSetDate
+
+**(Type: `function(Date)`)** A callback function executed when the date is set, either by selection or programmatically.  The selected `Date` object is passed as an argument.
+
+
+
+## Customization
+
+Pikaday allows for extensive customization beyond its configuration options.  This section details how to modify its appearance and behavior through styling and event handling.
+
+### Themes and Styling
+
+Pikaday's appearance is primarily controlled by its CSS. The default stylesheet (`pikaday.css`) provides a basic theme. To create a custom theme, create a new CSS file and override the existing styles.  Remember that Pikaday uses a relatively straightforward class structure, making targeting specific elements easy. For example, to change the background color of the calendar container, you might add this to your custom CSS file:
+
+```css
+.pika-single {
+  background-color: #f0f0f0; /* Change to your desired color */
+}
+```
+
+You can inspect the default CSS to identify the classes of the elements you want to style.  Consider using a CSS preprocessor like Sass or Less for easier management of complex styles. Remember to include your custom CSS file in your HTML after the default Pikaday CSS to ensure your custom styles override the defaults.
+
+
+### Customizing the Calendar Display
+
+While many aspects of the calendar's display are controlled by configuration options (like `firstDay`, `format`, etc.), some deeper customization might require more involved techniques.  For instance, if you need to significantly alter the layout or add completely new elements, you might need to modify the Pikaday JavaScript code itself (though this is generally not recommended unless absolutely necessary, as it will break compatibility with future updates).  Consider using the `onDraw` callback to perform modifications to the calendar's DOM elements after they are rendered. This allows you to add or manipulate existing elements dynamically.  Remember to keep the changes within the confines of the Pikaday structure to prevent unexpected behavior.
+
+For example, you could use `onDraw` to add a custom class to specific days:
+
+```javascript
+const picker = new Pikaday({
+  field: document.getElementById('myDate'),
+  onDraw: function() {
+    const days = this.el.querySelectorAll('.pika-day');
+    days.forEach(day => {
+      const date = new Date(day.getAttribute('data-pika-date'));
+      if (date.getDate() === 15) { // Example: Add a class to the 15th of every month
+        day.classList.add('custom-day');
+      }
+    });
+  }
+});
+```
+
+
+### Adding and Removing Events
+
+You can attach custom event listeners to the Pikaday instance or its associated elements.  Pikaday provides several built-in events (like `onSelect`, `onOpen`, `onClose`), but you can also add your own.  For instance, you could add an event listener to the entire calendar container:
+
+```javascript
+const picker = new Pikaday({
+  field: document.getElementById('myDate')
+});
+
+picker.el.addEventListener('click', function(event) {
+  console.log('Calendar clicked:', event);
+});
+```
+
+To remove an event listener, use the appropriate `removeEventListener` method, providing the same function reference used to add it.  Remember that directly manipulating Pikaday's internal structure is discouraged; use the provided APIs and callbacks whenever possible to maintain compatibility and avoid unintended consequences.
+
+
+## Working with Dates
+
+Pikaday simplifies working with dates, but understanding its date handling is crucial for effective use.
+
+### Date Formatting
+
+Pikaday uses Moment.js formatting tokens for date representation. This allows for flexible control over how dates are displayed.  The `format` configuration option determines the output format.  Common tokens include:
+
+* `YYYY`: Four-digit year
+* `YY`: Two-digit year
+* `MM`: Two-digit month (01-12)
+* `M`: Month (1-12)
+* `DD`: Two-digit day (01-31)
+* `D`: Day (1-31)
+* `dddd`: Full weekday name
+* `ddd`: Abbreviated weekday name
+* `MMMM`: Full month name
+* `MMM`: Abbreviated month name
+
+
+For example, `YYYY-MM-DD` produces "2024-10-26", while `DD MMM YYYY` produces "26 Oct 2024".  Refer to the Moment.js documentation for a complete list of formatting tokens.  The `formatStrict` option controls how strictly the input date needs to match the specified format.
+
+
+### Date Selection and Manipulation
+
+Pikaday provides several ways to interact with selected dates:
+
+* **`onSelect` callback:** This function, specified in the configuration options, is executed when a date is selected.  The selected `Date` object is passed as an argument.
+
+* **Direct access to the selected date:** After selecting a date, you can access the currently selected date using `picker.getDate()`.  This returns a JavaScript `Date` object.
+
+* **Programmatic date setting:** You can set the selected date programmatically using `picker.setDate(new Date(...))`, where `new Date(...)` creates a `Date` object representing the desired date.
+
+* **`setDefaultDate` option:** Sets an initial date when the picker is created.
+
+
+
+### Handling Time Zones
+
+Pikaday primarily deals with dates, not times.  While you can set a default time using `setDefaultTime`, the underlying handling of time zones depends on the browser's and system's settings. If time zone considerations are crucial, you should handle the time zone adjustments externally before passing a `Date` object to Pikaday.  The `Date` object itself inherently contains timezone information.
+
+### Working with Different Date Formats
+
+Pikaday's flexibility stems from its use of Moment.js for date parsing and formatting.  To handle different date formats during input, ensure that the `format` option accurately reflects the expected input format.  Pikaday will attempt to parse the input according to the specified format, applying either strict or lenient parsing based on the `formatStrict` setting.  If necessary, you may pre-process the input string to conform to the specified `format` before it's presented to Pikaday.  For example, if your input is in `MM/DD/YYYY` format and your `format` is `YYYY-MM-DD`, you might need to reformat the input string using JavaScript string manipulation before setting it in the input field.
+
+
+## Accessibility
+
+Pikaday aims to be accessible to users with disabilities.  While not perfectly compliant with all accessibility standards out-of-the-box, the following features are included to enhance usability:
+
+### Keyboard Navigation
+
+Pikaday supports keyboard navigation for selecting dates. Users can navigate the calendar using the following keys:
+
+* **Arrow keys:** Move the selection between days.
+* **Page Up/Page Down:** Move to the previous/next month.
+* **Home/End:** Move to the first/last day of the current month.
+* **Enter/Space:** Select the currently highlighted date.
+* **Escape:** Close the datepicker.
+
+This allows users who cannot or prefer not to use a mouse to easily interact with the calendar.
+
+
+### Screen Reader Compatibility
+
+Pikaday utilizes ARIA attributes (see below) to provide information to screen readers.  However, complete screen reader compatibility depends on the screen reader's capabilities and its interpretation of the ARIA attributes. While Pikaday strives for good compatibility, thorough testing with various screen readers is recommended to identify and address any potential issues.  Consider adding additional descriptive elements or using techniques for enhanced screen reader accessibility to further improve the experience for users relying on assistive technologies.
+
+
+### ARIA Attributes
+
+Pikaday uses several ARIA attributes to enhance its accessibility:
+
+* **`aria-expanded`:** Indicates whether the datepicker is currently open or closed.
+* **`aria-owns`:** Links the input field to the datepicker element.
+* **`aria-labelledby`:**  (Potentially) Links the datepicker to a descriptive label.  While Pikaday doesn't automatically add this, consider using it to associate a visually descriptive label with the datepicker for screen reader users.  This might involve adding a label element near the input field with an ID, and then configuring the datepicker to reference this label using `aria-labelledby`.
+* **`role="listbox"`:**  Given to the calendar grid, indicating it's a selectable list of items.
+* **`role="button"`:** Applied to individual days within the calendar.  Each day also carries the appropriate `aria-selected` attribute (true or false) indicating whether it's currently selected.
+
+
+Proper implementation of these ARIA attributes ensures that screen readers can accurately convey the datepicker's state and functionality to users.  However,  remember that relying solely on ARIA attributes might not be sufficient for optimal accessibility; providing clear and concise visual cues is also crucial for users who can see the calendar.  Regular testing with assistive technologies is key to ensuring a truly accessible experience.
+
+
+## Troubleshooting
+
+This section covers common problems encountered when using Pikaday, along with debugging techniques and answers to frequently asked questions.
+
+### Common Issues and Solutions
+
+* **Datepicker not appearing:**
+    * **Problem:** The datepicker doesn't show up after instantiation.
+    * **Solution:** Double-check that:
+        * Pikaday's CSS and JavaScript files are correctly included in your HTML.
+        * The `field` option correctly points to your input element (use `document.getElementById()` to avoid typos).
+        * There are no JavaScript errors preventing Pikaday from initializing.  Inspect your browser's developer console for error messages.
+
+
+* **Incorrect date format:**
+    * **Problem:** Dates are displayed or parsed incorrectly.
+    * **Solution:** Verify that the `format` option matches your expected date format using Moment.js format tokens.  Ensure that `formatStrict` is set appropriately (true for strict matching, false for lenient parsing).
+
+* **Dates not selectable:**
+    * **Problem:** Certain dates are greyed out and unavailable for selection.
+    * **Solution:** Check the `minDate`, `maxDate`, `disableWeekends`, and `disableDayFn` options to ensure they are not unintentionally disabling the dates you want to be selectable.
+
+
+* **Datepicker position issues:**
+    * **Problem:** The datepicker is positioned incorrectly on the page.
+    * **Solution:** If you're experiencing rendering issues related to the datepicker's positioning, it may be caused by CSS conflicts.  Try disabling other CSS to see if that resolves the problem.  If manual positioning is needed, you may set `bound` to `false`.  This will require custom CSS positioning.
+
+* **JavaScript errors:**
+    * **Problem:**  You encounter JavaScript errors in your browser's console.
+    * **Solution:** Carefully examine the error messages; they usually provide clues about the cause (typos, incorrect options, conflicts with other libraries, etc.).
+
+
+### Debugging Tips
+
+* **Browser's Developer Console:** Use your browser's developer tools (usually accessed by pressing F12) to inspect the console for JavaScript errors and warnings.  These are invaluable for identifying issues.
+
+* **Simplify your code:** If you're facing complex issues, create a minimal, reproducible example to isolate the problem.  Remove unnecessary code to pinpoint the source of the error.
+
+* **Check your HTML:** Make sure your input element is correctly structured and that the ID used in the `field` option accurately matches the ID of the input element.
+
+* **Inspect the Pikaday object:** Use your browser's debugger to inspect the Pikaday object (`picker` in most examples) to check its properties and see if the configuration options are being applied correctly.
+
+
+### Frequently Asked Questions (FAQ)
+
+* **Q: Can I use Pikaday with a framework like React, Angular, or Vue?**
+    * A: Yes, Pikaday can be integrated into these frameworks.  You'll need to incorporate it into your component structure and manage its lifecycle accordingly.  NPM packages are usually the preferred method of including Pikaday.
+
+* **Q: How can I customize the appearance beyond the default theme?**
+    * A: Create a custom CSS file, overriding the styles of the existing CSS selectors.  Inspect the default `pikaday.css` file to identify the selectors you want to target.
+
+* **Q: How do I handle localization for different languages?**
+    * A: Use the `i18n` configuration option, providing the appropriate translation object (refer to the documentation for the required structure).
+
+
+* **Q:  Why is my selected date not updating the input field?**
+    * A:  Ensure that the input field is correctly bound to the Pikaday instance using the `field` option.  Check for JavaScript errors that might prevent the update from happening.
+
+
+
+Remember to consult the complete Pikaday documentation and examples for more detailed information and solutions.  If you encounter an issue that isn't covered here, consider searching online forums or reporting the issue directly to the Pikaday project.
+
+
+## Advanced Usage
+
+This section explores more complex scenarios and techniques for utilizing Pikaday effectively.
+
+### Integrating with Other Libraries
+
+Pikaday can be integrated with various JavaScript libraries.  The key to successful integration lies in understanding how to interact with Pikaday's API and the APIs of the other libraries.  Consider these points:
+
+* **Moment.js:** Pikaday uses Moment.js internally for date parsing and formatting. If you already use Moment.js in your project, ensure version compatibility and avoid conflicts.
+
+* **jQuery:**  While Pikaday doesn't inherently require jQuery, you can use jQuery to simplify DOM manipulation or event handling related to Pikaday if your project already uses it.  However, direct DOM manipulation through Pikaday's API is generally preferred for better maintainability.
+
+* **Other date/time libraries:**  If your project uses another date/time library, you'll likely need to convert dates between formats to ensure compatibility with Pikaday. This usually involves converting to/from JavaScript `Date` objects.
+
+
+* **Framework Integration (React, Angular, Vue, etc.):** Integrating into frameworks typically involves creating a component that wraps the Pikaday instance and manages its lifecycle within the framework's component model.
+
+
+Successful integration often involves using callbacks like `onSelect` or `onDraw` to synchronize data between Pikaday and other libraries.
+
+### Creating Custom Plugins
+
+Pikaday doesn't directly support a plugin architecture.  However, you can achieve similar functionality by creating custom functions or extensions that add functionality to your Pikaday instances.  This approach typically involves creating functions that interact with the Pikaday API to modify the calendar's behavior or add custom features. For instance, a custom function could add functionality to highlight specific dates based on external data sources.
+
+Example of a simple custom function to add a class to a specific date:
+
+```javascript
+function highlightDate(picker, date) {
+  const day = picker.el.querySelector(`.pika-day[data-pika-date="${date.toDateString()}"]`);
+  if(day) day.classList.add('highlighted');
+}
+
+const picker = new Pikaday({
+  field: document.getElementById('myDate'),
+  onSelect: function(date) {
+    highlightDate(this, date);
+  }
+});
+```
+
+This custom function `highlightDate` adds a class `highlighted` to the selected date after selection.
+
+
+### Extending Pikaday Functionality
+
+Extending Pikaday's core functionality beyond simple customizations often requires directly modifying the source code (which is generally discouraged for maintaining compatibility with future updates).  However, for very specific needs, you can fork the Pikaday repository and make modifications. Remember that directly modifying the Pikaday source code removes the benefits of automatic updates and may lead to incompatibility problems if you later wish to upgrade the library.  If the necessary modification is simple and contained, it might be possible to implement it through well-designed custom functions or callbacks, as described in the "Creating Custom Plugins" section.  Choose this option whenever feasible to minimize the risk of conflicts and improve maintainability.
+
+
+## API Reference
+
+This section provides a detailed overview of Pikaday's API, including its constructor, methods, events, and properties.
+
+### Pikaday Constructor
+
+The Pikaday constructor is the primary method for creating a new datepicker instance.
+
+```javascript
+new Pikaday(options)
+```
+
+**Parameter:**
+
+* `options`: (Object) An object containing configuration options (see the "Configuration Options" section for details).  The `field` option is required.
+
+
+**Return Value:**
+
+* A `Pikaday` object representing the newly created datepicker instance.  This object provides access to various methods and properties.
+
+
+### Methods
+
+The `Pikaday` object exposes several methods for interacting with the datepicker:
+
+* **`setDate(date)`:** Sets the currently selected date.  `date` should be a JavaScript `Date` object.
+
+* **`getDate()`:** Returns the currently selected date as a JavaScript `Date` object.  Returns `null` if no date is selected.
+
+* **`gotoDate(date)`:** Navigates the calendar to the specified `date` (a JavaScript `Date` object).  Does not change the selected date.
+
+* **`selectDate(date)`:** Selects the specified `date` (a JavaScript `Date` object).
+
+* **`adjustPosition()`:** Repositions the datepicker relative to its associated input field.  Useful after significant DOM changes.
+
+* **`hide()`:** Hides the datepicker.
+
+* **`show()`:** Shows the datepicker.
+
+* **`destroy()`:** Removes the datepicker from the DOM and cleans up event listeners.  Use this when you no longer need the datepicker.
+
+* **`toString()`:** Returns a string representation of the currently selected date (formatted according to the `format` option).
+
+
+### Events
+
+Pikaday triggers several events during its lifecycle.  These events can be listened for using the `addEventListener` method (and removed with `removeEventListener`). The events are usually triggered on the Pikaday instance's `el` element (the calendar container).  Refer to the "Customization" section for details on how to listen for and handle Pikaday's events.  Note that some events (like `onSelect`, `onDraw`, etc.) are specified as configuration options, where you provide a callback function directly.
+
+* **`onSelect`:** Fired when a date is selected.
+
+* **`onOpen`:** Fired when the datepicker is opened.
+
+* **`onClose`:** Fired when the datepicker is closed.
+
+* **`onHide`:** Fired when the datepicker is hidden (either through closing or programmatic hiding).
+
+* **`onDraw`:** Fired after the calendar is redrawn. This is useful for manipulating the DOM after rendering.
+
+* **`onSetDate`:** Fired whenever the date is set (either through selection or programmatically).
+
+
+### Properties
+
+The `Pikaday` object has several properties:
+
+* **`el`:**  (HTMLElement)  A reference to the main calendar container element.
+
+* **`o`:** (Object)  The configuration options used to create the instance.
+
+* **`minDate`:** (Date) The minimum selectable date.
+
+* **`maxDate`:** (Date) The maximum selectable date.
+
+This is not an exhaustive list; consult the source code for the most up-to-date list of properties.  Directly accessing and manipulating internal properties is discouraged unless absolutely necessary.  Utilize the provided methods whenever possible to interact with the datepicker.
+
+

@@ -1,0 +1,381 @@
+---
+title: "Mailcheck - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction to Mailcheck
+
+### What is Mailcheck?
+
+Mailcheck is a JavaScript library designed to detect and suggest corrections for potentially misspelled or incorrectly formatted email addresses as users type. It operates client-side, providing immediate feedback without requiring server-side interaction.  Mailcheck analyzes the entered email address against a variety of patterns and a (configurable) list of known domain names, identifying likely typos and offering accurate suggestions.  It's lightweight and easily integrated into existing web forms.
+
+### Why use Mailcheck?
+
+Using Mailcheck significantly improves the user experience by preventing email entry errors.  Incorrectly entered email addresses lead to failed deliveries, frustrated users, and lost opportunities. Mailcheck proactively addresses this issue by:
+
+* **Reducing bounce rates:** By catching typos before submission, Mailcheck minimizes the number of undeliverable emails.
+* **Improving data quality:**  Ensuring accurate email addresses leads to cleaner and more reliable data in your system.
+* **Enhancing user experience:** Providing real-time feedback improves form usability and reduces user frustration.
+* **Saving development time:**  Mailcheck handles the complex logic of email validation, allowing developers to focus on other aspects of their application.
+
+### Key Features and Benefits
+
+* **Real-time suggestions:**  Mailcheck provides suggestions as the user types, offering immediate feedback.
+* **Typo detection:**  It identifies common typos and suggests corrections.
+* **Domain validation:**  It checks if the domain part of the email address is valid.
+* **Customizable domain list:** Allows you to specify a list of allowed domains, improving accuracy and security.
+* **Lightweight and efficient:**  Minimal impact on page load times.
+* **Easy integration:**  Simple API and minimal code required for implementation.
+* **Open-source and extensible:**  The code is freely available and can be extended to suit specific needs.
+
+### Installation and Setup
+
+Mailcheck can be easily installed via npm or a CDN.
+
+**1. Using npm:**
+
+```bash
+npm install mailcheck
+```
+
+Then, import it into your JavaScript code:
+
+```javascript
+import Mailcheck from 'mailcheck';
+```
+
+**2. Using a CDN (e.g., jsDelivr):**
+
+Add the following script tag to your HTML file:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/mailcheck@latest/dist/mailcheck.min.js"></script>
+```
+
+After including Mailcheck, you can initialize it using the following code:
+
+```javascript
+const emailInput = document.getElementById('email'); // Replace 'email' with your input's ID
+
+Mailcheck.run({
+  email: emailInput,
+  suggested: function(element, suggestion) {
+    // Handle the suggestion, for example, display it to the user.
+    console.log("Suggested email:", suggestion); // Or display it in a tooltip/popup etc
+  },
+  empty: function(element) {
+    // Handle the case where the email field is empty.
+  }
+});
+```
+
+Remember to replace `'email'` with the actual ID of your email input field.  The `suggested` function receives the input element and the suggested email address, allowing you to customize how the suggestion is presented to the user. The `empty` function handles cases where the email input is empty.  Consult the Mailcheck documentation for further customization options and advanced usage.
+
+
+## Core Functionality
+
+### Using the `mailcheck` Function
+
+The core of Mailcheck lies in its `run()` function. This function takes a configuration object as its argument, defining how Mailcheck should operate and handle suggestions.  The minimum required configuration includes an `email` property, specifying the input element where the email address is entered.
+
+```javascript
+Mailcheck.run({
+  email: document.getElementById('emailInput'),
+  suggested: function(element, suggestion) {
+    // Handle the suggestion here
+  }
+});
+```
+
+This code snippet initiates Mailcheck on the element with the ID "emailInput".  The `suggested` function (detailed below) is crucial for processing any suggested corrections.  Failure to provide a `suggested` callback will result in no visible output from Mailcheck.
+
+
+### Understanding the `suggested` Property
+
+The `suggested` property within the configuration object is a callback function. It's triggered whenever Mailcheck identifies a potential misspelling or incorrect formatting and generates a suggestion.  This function receives two arguments:
+
+* `element`: The input element where the email address was entered.
+* `suggestion`: An object containing the suggested correction.  This object has at least one of the properties: `full` (a fully corrected email address) or `domain` (a suggestion for only the domain part of the email address).
+
+
+### Handling `full` and `domain` Suggestions
+
+The `suggestion` object passed to the `suggested` callback function may contain either or both of the properties:  `full` and `domain`.
+
+* **`full`:** This property contains the complete suggested email address, including both the local-part and the domain.  This is typically used when a complete correction is suggested.
+
+* **`domain`:**  This property only contains the suggested domain part of the email address. This is useful when Mailcheck detects a possible typo only in the domain.  In such cases, you might want to combine this suggestion with the existing local-part from the user's input.
+
+
+Example handling both types:
+
+```javascript
+suggested: function(element, suggestion) {
+  if (suggestion.full) {
+    // Display the full suggested email address:  suggestion.full
+    console.log("Full suggestion:", suggestion.full);
+    //Example: element.value = suggestion.full; // Replace user input with full suggestion
+  } else if (suggestion.domain) {
+    // Use the suggested domain and keep the user's local-part
+    const localPart = element.value.split('@')[0];
+    const suggestedEmail = `${localPart}@${suggestion.domain}`;
+    console.log("Domain suggestion:", suggestedEmail);
+    //Example: element.value = suggestedEmail;
+  }
+}
+```
+
+### Customizing Suggestion Matching
+
+By default, Mailcheck uses a built-in list of domains. For more control, you can customize this.  You can provide a custom list of domains using the `domains` property in the configuration object.
+
+```javascript
+Mailcheck.run({
+  email: document.getElementById('emailInput'),
+  domains: ['example.com', 'mydomain.net', 'anotherdomain.org'],
+  suggested: function(element, suggestion) {
+    //Handle suggestion
+  }
+});
+```
+
+This will restrict suggestions to only those domains included in the `domains` array.  This is particularly useful for enforcing company-specific email addresses.
+
+
+### Asynchronous Operation
+
+Mailcheck's operations are predominantly synchronous. The `suggested` callback is executed immediately after a suggestion is found. There's no inherent asynchronous behavior in the core `run()` function. Any asynchronous operations (like fetching additional data or making API calls to validate domains) would need to be implemented separately within your `suggested` callback function.  However, keep in mind that introducing asynchronous tasks within the callback might affect the immediate feedback nature of Mailcheck.
+
+
+## Advanced Usage
+
+### Integrating with Form Validation
+
+Mailcheck can be seamlessly integrated with existing form validation mechanisms.  Instead of simply displaying suggestions, you can use the information from Mailcheck to enhance your validation process. For example, you can prevent form submission if Mailcheck suggests a correction and the user hasn't accepted it.
+
+```javascript
+const form = document.getElementById('myForm');
+const emailInput = document.getElementById('email');
+
+Mailcheck.run({
+  email: emailInput,
+  suggested: function(element, suggestion) {
+    // If suggestion exists and user hasn't corrected, show error
+    if (suggestion.full && element.value !== suggestion.full) {
+      // Add error styling or message
+      element.classList.add('error');
+      // Prevent form submission - depends on your validation library
+      form.addEventListener('submit', (event) => {
+          event.preventDefault();
+          alert("Please correct your email address.");
+      });
+    } else {
+      element.classList.remove('error');
+    }
+  }
+});
+```
+
+This example adds an error class to the email input if a suggestion exists but the user hasn't corrected the email address.  Remember to adapt the form submission prevention to your specific form validation setup.
+
+### Creating Custom Suggestion Handlers
+
+The `suggested` callback provides a flexible mechanism to customize how suggestions are presented. You can go beyond simple console logs or alerts by creating visually appealing and user-friendly interfaces. This might involve:
+
+* **Tooltip display:** Show a tooltip next to the email input displaying the suggestion.
+* **Modal popup:**  Present a more prominent modal dialog with the suggestion.
+* **Inline correction:**  Directly correct the email address in the input field after a small delay (with appropriate user confirmation).
+
+Remember to consider the user experience when designing your custom handler.  Avoid intrusive or disruptive behaviors.
+
+
+### Handling Multiple Email Fields
+
+Mailcheck can be easily extended to handle multiple email fields on a single page.  Simply instantiate `Mailcheck.run()` for each email input element individually:
+
+```javascript
+const emailInput1 = document.getElementById('email1');
+const emailInput2 = document.getElementById('email2');
+
+Mailcheck.run({ email: emailInput1, suggested: handleSuggestion });
+Mailcheck.run({ email: emailInput2, suggested: handleSuggestion });
+
+function handleSuggestion(element, suggestion) {
+  //Handle suggestion for both inputs - use element to identify the specific input
+  if (suggestion.full) {
+    console.log(`Suggestion for ${element.id}:`, suggestion.full);
+  }
+}
+```
+
+This code initializes Mailcheck for both `email1` and `email2`, using a single `handleSuggestion` function for consistency.  The `element` parameter within the callback helps identify the specific input field that triggered the suggestion.
+
+### Internationalization and Localization
+
+Mailcheck primarily handles the email address structure, not the text displayed to the user.  Internationalization and localization of messages (error messages, suggestions, etc.) needs to be handled separately within your custom suggestion handlers.  You can use libraries such as i18next to manage translations and dynamically load appropriate messages based on the user's locale.
+
+### Performance Optimization
+
+For performance-critical applications, consider these optimizations:
+
+* **Minimize calls to `Mailcheck.run()`:** If possible, run Mailcheck only when necessary (e.g., when the user interacts with the email input, rather than on every keystroke).
+* **Use a smaller domain list:**  A more restrictive custom `domains` list reduces processing time.
+* **Debounce input events:** Implement a debounce function to limit how frequently Mailcheck runs, reducing unnecessary computations.  This prevents frequent recalculations as the user types quickly.
+* **Caching:** If feasible, cache results to avoid redundant computations for frequently used email addresses or domains.  However, cache invalidation strategies are critical to ensure data accuracy.
+
+Remember to profile your application to identify specific performance bottlenecks before applying optimizations.
+
+
+## API Reference
+
+### `mailcheck(email, options, callback)`
+
+The primary function for using Mailcheck is `mailcheck()`. Although `Mailcheck.run()` is often used for easier integration, understanding the underlying `mailcheck()` function provides deeper control.  It takes three arguments:
+
+* **`email` (String):** The email address string to be checked.  This is the email address that will be evaluated by Mailcheck.
+
+* **`options` (Object, optional):** An object containing various configuration options to customize Mailcheck's behavior.  Details on the options are provided below.
+
+* **`callback` (Function, optional):** A callback function that receives the results of the Mailcheck analysis.  Details on the callback function are provided below.
+
+
+### `options` Parameter Details
+
+The `options` object allows for fine-grained control over Mailcheck's operation.  The most commonly used options are:
+
+* **`domains` (Array of Strings, optional):** An array of allowed domains.  Suggestions will be limited to these domains.  If omitted, Mailcheck uses its default list.
+
+* **`empty` (Function, optional):** A callback function triggered when the input email is empty.  Receives the input element as an argument.
+
+
+### `callback` Function Details
+
+The `callback` function is executed after Mailcheck has completed its analysis. It receives a single argument:
+
+* **`result` (Object):** An object containing the results of the Mailcheck analysis.  This object has the following properties:
+
+    * **`suggestion` (Object, optional):**  If a suggestion is found, this contains the suggested correction as an object with `full` (full email suggestion) and/or `domain` (domain-only suggestion) properties (as described in the Core Functionality section).  If no suggestion is found, this property will be `null` or undefined.
+
+    * **`autocorrect` (boolean, optional):** This boolean value informs whether `mailcheck` is configured to automatically correct the email address or only to provide a suggestion.
+
+    * **`similarDomains` (Array of Strings, optional):** An array of similar domains found, that could be used to provide the user with alternative domain suggestions.  The presence of this property depends on internal algorithm and configurations and its availability is not guaranteed.
+
+
+
+### Return Values
+
+The `mailcheck()` function itself does not return a value.  All results are passed to the provided `callback` function.
+
+### Error Handling
+
+Mailcheck itself doesn't throw errors in the traditional sense.  However, invalid input (e.g., an empty `email` string or an incorrectly formatted `options` object) may result in the `callback` function being called with a `result` object containing no suggestion (`suggestion: null`).  Thorough input validation *before* calling `mailcheck()` is recommended to avoid unexpected behavior.  Furthermore, ensuring error handling within your custom `empty` and `suggested` callbacks is crucial for a robust implementation.  These callbacks can handle cases where the email input is empty or where an unexpected result is returned from Mailcheck's internal algorithms.
+
+
+## Troubleshooting
+
+### Common Issues and Solutions
+
+* **No suggestions are being displayed:**  Verify that you've correctly included the Mailcheck library in your project and that the `suggested` callback function is properly defined and connected to the `Mailcheck.run()` or `mailcheck()` function. Double-check that the `email` property in your configuration correctly points to your email input element.  Ensure that the input element actually exists on the page and that it is accessible to your Javascript code.
+
+* **Incorrect suggestions are being provided:** This could be due to an incomplete or inaccurate custom `domains` list.  Ensure your custom domain list is comprehensive and up-to-date.  If using the default domain list, there might be edge cases not handled; this could be reported as an issue in the project's issue tracker.
+
+* **Form submission isn't prevented after an incorrect email:** Verify that your form submission prevention logic is correctly integrated with your suggestion handler.  Make sure the condition in your event listener correctly checks for suggestions and the user's input.  Ensure that the event listener is attached to the correct form element and that the `event.preventDefault()` is executed.  Conflicts with other Javascript libraries handling form submission may interfere with the process.
+
+* **Mailcheck is not working after update:** Clear your browser's cache and try again. If the issue persists, check for breaking changes in the latest version of Mailcheck by referring to the release notes or changelog.
+
+* **Error messages are not being displayed:**  Make sure you have proper error handling within your custom suggestion handler to catch any errors encountered during suggestion processing. Log any errors to the console to aid debugging.
+
+
+### Debugging Tips
+
+* **Console Logging:** Use `console.log()` statements extensively within your `suggested` and `empty` callbacks to track the values of variables, the suggestions received, and the state of your input elements.  Logging the `suggestion` object, `element` object and other relevant data will help identify issues.
+
+* **Browser Developer Tools:** Utilize your browser's developer tools to inspect the HTML structure, network requests, and JavaScript console for errors.  The network tab might be useful if you're using external resources or making API calls related to email validation. Check for Javascript errors in your console.
+
+* **Simplify the Setup:**  Create a minimal test case to isolate the problem.  Create a simple HTML file with a single email input field and a basic implementation of Mailcheck to rule out conflicts with other parts of your application.
+
+* **Check the Mailcheck Source Code:** If necessary, examine the Mailcheck source code itself to understand the internal mechanisms and how it processes email addresses.  This helps in identifying potential issues and may reveal edge-cases related to your specific use-case or input.
+
+
+### Community Support and Resources
+
+* **Issue Tracker:** Report bugs or request features through the Mailcheck project's issue tracker (if available). Providing a minimal, reproducible example is beneficial for faster resolution.
+
+* **Online Forums:** Search for relevant discussions on online forums or communities related to JavaScript or email validation.  You might find solutions to common problems or discussions that address similar scenarios.
+
+* **Mailcheck Documentation:** Always refer to the official Mailcheck documentation for the latest information, usage examples, and API specifications.  It provides comprehensive details on the project's functionalities and various options.
+
+* **Source Code:**  The source code itself can be invaluable for understanding implementation details and tracking down issues.  Thoroughly examining the source code may give insights into internal algorithms and logic which may reveal unexpected behavior.
+
+
+## Contributing to Mailcheck
+
+This section assumes you wish to contribute to the Mailcheck project.  If the project doesn't accept contributions, this section is not applicable.  Please check the project's repository for contribution guidelines before proceeding.
+
+### Setting up the Development Environment
+
+1. **Fork the Repository:** Create a fork of the official Mailcheck repository on GitHub.
+
+2. **Clone your Fork:** Clone your forked repository to your local machine using Git:
+
+   ```bash
+   git clone <your_fork_url>
+   ```
+
+3. **Install Dependencies:** Navigate to the project directory and install the necessary dependencies using npm or yarn:
+
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
+
+4. **Set up a Development Server (if applicable):** Some projects might require a development server for testing purposes. Refer to the project's `README` or documentation for instructions on setting up the development server.  This might involve using tools like Webpack, Parcel, or similar build systems.
+
+
+### Coding Style Guidelines
+
+Adhere to the existing coding style used in the Mailcheck project. This typically involves:
+
+* **Consistent Indentation:** Use consistent indentation (usually 2 spaces).
+
+* **Naming Conventions:** Follow the project's naming conventions for variables, functions, and classes.
+
+* **Comments:** Write clear and concise comments to explain complex logic or non-obvious code sections.
+
+* **Linters:** Use a linter (like ESLint) to ensure code quality and consistency.  The project likely specifies a `.eslintrc` configuration file; make sure your code conforms to the linter's rules.
+
+
+### Testing and Code Reviews
+
+* **Write Tests:** Before submitting any code changes, write comprehensive unit tests to ensure the correctness of your code and prevent regressions.  The project likely uses a testing framework (like Jest or Mocha).  Familiarise yourself with the existing test suite and its structure.  Ensure your changes are thoroughly tested.
+
+* **Code Reviews:** Submitting a pull request initiates a code review process.  Be prepared to address feedback from other contributors.  Actively participate in the review process to improve your code and ensure high-quality contributions.
+
+
+### Submitting Pull Requests
+
+1. **Create a Branch:** Create a new branch for your changes using Git:
+
+   ```bash
+   git checkout -b <your_branch_name>
+   ```
+
+2. **Make your Changes:** Implement your changes, ensuring they adhere to the coding style guidelines and are thoroughly tested.
+
+3. **Commit your Changes:** Commit your changes with clear and concise commit messages:
+
+   ```bash
+   git add .
+   git commit -m "Your descriptive commit message"
+   ```
+
+4. **Push your Branch:** Push your branch to your forked repository:
+
+   ```bash
+   git push origin <your_branch_name>
+   ```
+
+5. **Create a Pull Request:**  On GitHub, create a pull request from your branch to the main branch of the original Mailcheck repository. Provide a clear description of your changes and address any feedback provided during the code review process.  Follow any specific contribution guidelines provided by the project maintainers.
+
+
+

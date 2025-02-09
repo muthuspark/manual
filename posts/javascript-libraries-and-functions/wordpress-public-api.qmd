@@ -1,0 +1,437 @@
+---
+title: "Wordpress Public API - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction to the WordPress Public API
+
+### What is the WordPress Public API?
+
+The WordPress Public API provides a standardized way to interact with WordPress websites programmatically.  It allows developers to access and manipulate data (posts, pages, comments, custom post types, etc.)  from a WordPress site without needing direct access to the site's files or database.  This is achieved through HTTP requests (primarily GET and POST) that adhere to a RESTful architecture, making it easy to integrate with various applications and services.  The API returns data in a structured format like JSON, enabling seamless parsing and usage in different programming languages.  Note that the availability and functionality of the Public API depend on the WordPress version and the specific plugins and themes installed on the target website.
+
+### Why use the WordPress Public API?
+
+Using the WordPress Public API offers several significant advantages:
+
+* **Decoupled Architecture:** Separate your frontend applications (mobile apps, web apps, etc.) from your WordPress backend. This allows for independent scaling and development.
+* **Extensibility:** Easily integrate WordPress content into other systems and platforms.
+* **Data Reusability:**  Access and reuse WordPress content in multiple contexts without redundant data entry.
+* **Automation:** Automate tasks like content updates, data imports/exports, and more.
+* **Headless WordPress:** Build a completely decoupled website, using WordPress solely as a content repository.  This offers great flexibility in front-end design and technology choices.
+* **Improved Performance:** Reduce server load on your WordPress site by offloading data processing to external applications.
+
+
+### API Key Authentication
+
+To securely access the WordPress Public API, API Key authentication is essential.  This typically involves generating a unique consumer key and consumer secret pair within your WordPress site's settings (often under "Users" or a similar section depending on plugins used).  These keys are then passed with each API request, usually in the HTTP headers using the `Authorization` header with a Basic Authentication scheme.  For example:
+
+```
+Authorization: Basic <base64_encoded(consumer_key:consumer_secret)>
+```
+
+Where `<base64_encoded(consumer_key:consumer_secret)>` is a Base64 encoded string of your consumer key and consumer secret concatenated with a colon.   **Never** hardcode your API keys directly in your client-side code; always store them securely on your server. The exact authentication method and location of API keys may vary depending on the specific WordPress version and any installed plugins that modify or extend the API. Always consult the documentation for your specific WordPress installation and any relevant plugins.
+
+
+### Setting up your Development Environment
+
+To begin developing with the WordPress Public API, you will need:
+
+1. **A WordPress installation:**  This can be a local installation using tools like XAMPP, MAMP, or Docker, or a staging environment on your hosting provider.
+2. **A code editor:** Choose your preferred text editor or IDE (e.g., VS Code, Sublime Text, Atom).
+3. **An HTTP client:** Tools like Postman, curl, or Insomnia are helpful for testing API requests. You'll also need familiarity with making HTTP requests (GET, POST, etc.)
+4. **A programming language:**  Any language with HTTP request capabilities (e.g., JavaScript, Python, PHP, Ruby) can be used.
+
+
+### Making your first API request
+
+Let's make a simple request to retrieve a list of posts.  Assuming your WordPress site is at `https://your-wordpress-site.com`, and you've obtained your API keys, the following `curl` command will fetch the posts:
+
+```bash
+curl -H "Authorization: Basic <base64_encoded(your_consumer_key:your_consumer_secret)>" https://your-wordpress-site.com/wp-json/wp/v2/posts
+```
+
+Replace `<base64_encoded(your_consumer_key:your_consumer_secret)>` with the Base64 encoded string of your credentials.  This command will send a GET request to the `/wp-json/wp/v2/posts` endpoint, returning a JSON representation of your posts. Examine the response to understand the data structure and how to access specific information like post titles, content, and IDs.  Remember to consult the official WordPress REST API documentation for details on available endpoints and parameters.  Further requests will require understanding the different API endpoints, parameters, and data formats.
+
+
+## Core API Endpoints
+
+### Posts
+
+The `/wp-json/wp/v2/posts` endpoint provides access to WordPress posts.  You can retrieve posts using GET requests, create new posts with POST requests, update existing posts with PUT requests, and delete posts with DELETE requests.  
+
+* **GET:** Retrieve posts.  Parameters include `page`, `per_page`, `search`, `categories`, `tags`, `author`, and others to filter and paginate results.  The response includes an array of post objects, each containing details like `id`, `title`, `content`, `author`, `date`, `categories`, and `tags`.
+
+* **POST:** Create a new post.  The request body must include the post data (title, content, etc.) in JSON format.  Authentication is required.
+
+* **PUT:** Update an existing post.  Specify the post ID in the request URL and provide updated data in the JSON request body.  Authentication is required.
+
+* **DELETE:** Delete a post.  Specify the post ID in the request URL.  Authentication is required.
+
+
+### Pages
+
+Similar to posts, the `/wp-json/wp/v2/pages` endpoint handles WordPress pages.  The available methods (GET, POST, PUT, DELETE) are the same as for posts, but operate on pages instead.  The structure of the returned page objects and the required data for creating or updating pages is largely analogous to posts, but with page-specific attributes.
+
+### Media
+
+The `/wp-json/wp/v2/media` endpoint allows interaction with uploaded media files (images, videos, etc.).  
+
+* **GET:** Retrieve media items.  Parameters for filtering and pagination apply similarly to posts and pages.  Each media item object includes details like `id`, `title`, `alt_text`, `source_url`, `media_details` (containing dimensions, file type, etc.).
+
+* **POST:** Upload a new media file.  This typically involves sending a multipart/form-data request, including the file itself and metadata.
+
+* **PUT:** Update existing media file metadata (title, alt text, etc.).
+
+* **DELETE:** Delete a media item.
+
+### Categories
+
+The `/wp-json/wp/v2/categories` endpoint manages WordPress categories.  
+
+* **GET:** Retrieve categories.  This returns an array of category objects, each with properties like `id`, `name`, `slug`, `description`, and `count` (number of posts in the category).
+
+* **POST:** Create a new category (requires authentication).
+
+* **PUT:** Update an existing category (requires authentication).
+
+* **DELETE:** Delete a category (requires authentication).
+
+
+### Tags
+
+The `/wp-json/wp/v2/tags` endpoint handles WordPress tags, functioning similarly to the categories endpoint.  Methods available are GET, POST, PUT, and DELETE, allowing retrieval, creation, update, and deletion of tags.  Each tag object includes properties like `id`, `name`, `slug`, and `count`.
+
+### Users
+
+The `/wp-json/wp/v2/users` endpoint provides access to user data (requires authentication, often with higher privileges than just reading posts).  However, access to this endpoint may be restricted depending on site configuration and security settings.
+
+* **GET:** Retrieve users (potentially limited based on permissions).  Each user object includes properties like `id`, `name`, `username`, `email`, and potentially other details depending on site settings.
+
+* **POST, PUT, DELETE:** These methods for user manipulation are typically restricted for security reasons and may not be available or require elevated privileges.
+
+### Comments
+
+The `/wp-json/wp/v2/comments` endpoint interacts with comments on posts and pages.
+
+* **GET:** Retrieve comments.  Parameters allow filtering by post ID, author, status (approved, pending, etc.), and pagination.  Each comment object contains `id`, `post`, `author`, `content`, `date`, and `status`.
+
+* **POST:** Create a new comment.  This requires appropriate authentication and often involves spam prevention measures.
+
+* **PUT:** Update an existing comment (often requires specific permissions).
+
+* **DELETE:** Delete a comment (often requires specific permissions).
+
+
+**Note:** The precise functionality and available parameters for each endpoint might vary slightly depending on the WordPress version and any plugins that modify the REST API.  Always refer to the official WordPress REST API documentation for the most up-to-date and accurate information.
+
+
+## Working with Data
+
+### Retrieving Data
+
+Retrieving data from the WordPress REST API involves making HTTP GET requests to the appropriate endpoint.  For instance, to fetch all posts, you would send a GET request to `/wp-json/wp/v2/posts`. The response will be in JSON format, containing an array of post objects, each with various attributes like `id`, `title`, `content`, `author`, `date`, and more.  The specific attributes available will vary depending on the endpoint and the post's metadata.  You can use any HTTP client (like `curl`, Postman, or within your programming language) to make these requests.  Remember to include your API Key authentication in the request headers.
+
+
+### Filtering Data
+
+The WordPress API allows you to filter the data retrieved using query parameters appended to the endpoint URL.  These parameters vary depending on the endpoint but commonly include:
+
+* **`search`:**  Find posts or other content matching a search term.
+* **`per_page`:** Specifies the number of items to return per page.
+* **`page`:**  Specifies the page number for pagination.
+* **`categories`:**  Filter by category ID(s).
+* **`tags`:** Filter by tag ID(s).
+* **`author`:** Filter by author ID.
+* **`status`:** Filter by post status (e.g., `publish`, `draft`, `pending`). (Applies to posts and comments).
+
+For example, to get 10 published posts with the category ID 5, you might use:
+
+`/wp-json/wp/v2/posts?per_page=10&categories=5&status=publish`
+
+Refer to the documentation for specific endpoints to see what parameters they support.
+
+
+### Pagination
+
+For large datasets, the API uses pagination to prevent overwhelming the client with a single, massive response.  The `per_page` and `page` parameters control this.  `per_page` sets the number of items per page, and `page` specifies which page to retrieve.  The API response usually includes `total` and `pages` properties indicating the total number of items and the total number of pages available. You'll need to make multiple requests to retrieve all data, iterating through the pages.
+
+### Data Formatting (JSON)
+
+The WordPress REST API returns data in JSON (JavaScript Object Notation) format.  JSON is a lightweight text-based format that's easily parsed by most programming languages.  Each response is a JSON object or an array of JSON objects, depending on the request and endpoint.  Here's a simple example of a single post returned as JSON:
+
+```json
+{
+  "id": 123,
+  "title": "My Post Title",
+  "content": "This is the post content.",
+  "author": 456,
+  "date": "2024-10-27T10:00:00"
+  // ... other attributes
+}
+```
+
+You'll need to use your chosen language's JSON parsing libraries (e.g., `json.loads()` in Python, `JSON.parse()` in JavaScript) to work with the data effectively.
+
+
+### Handling Errors
+
+The WordPress API uses standard HTTP status codes to indicate success or failure.  A 2xx status code (like 200 OK) signals success, while 4xx (like 404 Not Found) and 5xx (like 500 Internal Server Error) codes indicate errors.  The response body often contains additional error details in JSON format, providing information about what went wrong.  Your client-side code should be robust enough to check for these error codes and handle them gracefully, providing appropriate feedback to the user or taking corrective actions.
+
+
+### Rate Limits
+
+To prevent abuse and ensure server stability, the WordPress REST API may implement rate limits.  This means there's a limit on the number of requests you can make within a specific time frame.  Exceeding these limits will result in error responses.  The specific limits depend on server configuration and may vary between different WordPress installations.  If you encounter rate limiting, you should implement strategies to handle these limitations, such as adding delays between requests or implementing caching mechanisms to reduce the number of API calls needed.  Check your hosting provider's documentation for potential rate limit information relevant to your site.
+
+
+## Advanced API Usage
+
+### Creating Posts
+
+Creating a new post via the API involves sending an HTTP POST request to `/wp-json/wp/v2/posts` with the post data in the request body as JSON.  The required fields are typically `title` and `content`, but others like `status` (e.g., `draft`, `publish`, `pending`), `categories`, `tags`, and `author` can also be included.  Here's an example of a JSON payload:
+
+```json
+{
+  "title": "My New Post",
+  "content": "This is the content of my new post.",
+  "status": "publish",
+  "categories": [12], // Array of category IDs
+  "tags": [34, 56]    // Array of tag IDs
+}
+```
+
+Remember to include your API key in the request headers for authentication.  The response will include the newly created post's data, including its ID.  Error handling is crucial, as incorrect data or insufficient permissions will result in error responses.
+
+
+### Updating Posts
+
+Updating an existing post requires a PUT request to `/wp-json/wp/v2/posts/{id}`, replacing `{id}` with the post's ID.  The request body should contain a JSON object with the fields to be updated.  You don't need to provide all fields; only those you want to change.  For example:
+
+```json
+{
+  "title": "Updated Post Title",
+  "content": "This is the updated content."
+}
+```
+
+Again, proper authentication is essential.  The response will confirm the update or indicate an error.
+
+
+### Deleting Posts
+
+Deleting a post uses an HTTP DELETE request to `/wp-json/wp/v2/posts/{id}`, with `{id}` representing the post's ID.  Authentication is required.  A successful deletion usually returns a 200 OK status code or similar.
+
+
+### Custom Post Types
+
+The WordPress API supports custom post types.  To interact with a custom post type, replace `/wp-json/wp/v2/posts` with the custom post type's slug in the endpoint URL.  For example, if your custom post type's slug is "books", you would use `/wp-json/wp/v2/books` for creating, reading, updating, and deleting "book" posts. The fields available will depend on the custom post type's definition.
+
+
+### Custom Fields
+
+Custom fields extend the data associated with posts, pages, and other content types.  To access custom fields using the API, you will generally find them within the response data under a dedicated `_embedded` section.  However, the exact location and access methods might vary depending on how the custom fields were registered.  Some plugins offer ways to directly query and manage custom field data through specialized API endpoints. Consult your theme or plugin documentation for details on how to handle custom fields within the API context, since the structure isn't standardized.
+
+### Relationships between posts
+
+WordPress offers various ways to create relationships between posts, such as parent-child relationships (pages and sub-pages) or custom relationships managed through plugins.  The API's handling of these relationships is not fully standardized across all implementations.  For parent-child relationships (pages), the `parent` attribute within the page object will indicate the parent page.  Other relationships often rely on custom fields or plugin-specific extensions to the API, requiring you to consult the documentation of those plugins for information on how to create, retrieve, or manipulate relationships via the API.  There isn't a universally consistent method for handling all types of post relationships through the WordPress REST API.
+
+
+## JavaScript Libraries and Tools
+
+### Using Fetch API
+
+The Fetch API is a modern JavaScript interface for making network requests. It's built into most modern browsers and provides a clean way to interact with the WordPress REST API.  Here's an example of fetching posts using Fetch:
+
+```javascript
+fetch('/wp-json/wp/v2/posts', {
+  headers: {
+    'Authorization': 'Basic ' + btoa('your_consumer_key:your_consumer_secret') // Base64 encoded credentials
+  }
+})
+.then(response => {
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  return response.json();
+})
+.then(data => {
+  // Process the JSON data (array of posts)
+  console.log(data);
+})
+.catch(error => {
+  // Handle errors
+  console.error('There has been a problem with your fetch operation:', error);
+});
+```
+
+Remember to replace `"your_consumer_key:your_consumer_secret"` with your actual Base64 encoded API credentials.
+
+
+### Using Axios
+
+Axios is a popular JavaScript library that simplifies making HTTP requests.  It offers features like automatic JSON transformation and better error handling compared to the native Fetch API.  Here's how you would make the same request using Axios:
+
+```javascript
+axios.get('/wp-json/wp/v2/posts', {
+  headers: {
+    'Authorization': 'Basic ' + btoa('your_consumer_key:your_consumer_secret') // Base64 encoded credentials
+  }
+})
+.then(response => {
+  // Process the JSON data (array of posts)
+  console.log(response.data);
+})
+.catch(error => {
+  // Handle errors
+  console.error('There has been a problem with your Axios operation:', error);
+});
+```
+
+You'll need to include Axios in your project (`npm install axios` or a similar command depending on your package manager).  Axios handles the JSON parsing automatically, making the code cleaner.
+
+
+### Asynchronous Operations
+
+API calls are inherently asynchronous.  This means the JavaScript code continues executing without waiting for the API response.  The `then()` and `catch()` methods in both Fetch and Axios examples handle the asynchronous nature of the request.  The code within `then()` executes once the response is received and successfully processed, while `catch()` handles any errors during the request or response processing.
+
+
+### Handling Promises
+
+Both Fetch and Axios return Promises.  A Promise is an object representing the eventual completion (or failure) of an asynchronous operation. The `.then()` method is used to specify what to do when the Promise is fulfilled (successful response), and `.catch()` handles the case where the Promise is rejected (error).  Proper Promise handling is vital for managing asynchronous API calls effectively and preventing unexpected behavior in your JavaScript code.
+
+
+### Error Handling
+
+Robust error handling is essential when working with APIs.  The examples above show basic error handling by catching exceptions and logging errors to the console.  In a production application, you would implement more sophisticated error handling, such as displaying user-friendly error messages, retrying failed requests, or implementing fallback mechanisms to gracefully handle API unavailability.  Check the HTTP status code in the response to identify the type of error (4xx client errors, 5xx server errors) and handle them accordingly.  The error object itself may contain more specific details about the problem.
+
+
+## Security Best Practices
+
+### Protecting your API Keys
+
+API keys provide access to your WordPress site's data.  Treat them like passwords—never expose them in client-side code (e.g., JavaScript running in a web browser), and never hardcode them directly into your application.  Store API keys securely on your server, ideally using environment variables or a dedicated secrets management system.  If a key is compromised, immediately revoke it and generate a new one.  Consider rotating your keys periodically to further enhance security.
+
+### Input Sanitization
+
+Always sanitize and validate any data received from API requests *before* using it in your application.  Never trust data from external sources.  Malicious users could inject harmful code or data that could compromise your system.  WordPress itself provides some built-in sanitization functions, and many libraries offer additional tools for data validation.  Check that the data received matches expected types and formats before processing it.  Fail safe by rejecting requests with invalid input.
+
+### Output Encoding
+
+Encode any data before displaying it to the user.  This prevents cross-site scripting (XSS) attacks where malicious code is injected into your application's output and executed by the user's browser.  WordPress typically handles some encoding automatically, but it's crucial to explicitly encode data, especially when dealing with user-generated content retrieved from the API. Use appropriate encoding functions based on the context (e.g., HTML encoding for data displayed on a webpage, URL encoding for data used in URLs).
+
+### Authentication and Authorization
+
+Proper authentication and authorization are vital for securing your WordPress API.  API Key authentication, as discussed earlier, is a good starting point.  However, you might need more granular authorization to control what actions different users or applications can perform.  This could involve using roles and capabilities within WordPress, coupled with API authentication to restrict access to specific API endpoints or actions based on the authenticated user's permissions. Consider using OAuth 2.0 or other robust authentication protocols for increased security if your application requires more complex authorization schemes.
+
+### Rate Limiting and Throttling
+
+Implement rate limiting and throttling mechanisms on your server-side code to prevent abuse of your API.  This involves limiting the number of requests a single client can make within a given time frame. If a client exceeds the limit, you can temporarily block them or return an error indicating that they've exceeded the rate limit.  This helps protect your server from denial-of-service (DoS) attacks and ensures fair resource allocation for all users of your API.  WordPress may have default rate limits, but you may need to configure them or add additional rate-limiting logic depending on your specific needs and hosting environment.  Consider using a dedicated rate-limiting library or plugin to handle this efficiently.
+
+
+## Examples and Use Cases
+
+### Building a WordPress-powered website with JavaScript
+
+The WordPress REST API enables building completely decoupled websites using JavaScript frameworks like React, Vue, or Angular on the front-end and WordPress as a headless CMS (Content Management System) on the back-end.  This architecture separates the presentation layer from the content repository, offering greater flexibility and control over design and technology choices.  Your JavaScript application would make API requests to fetch content from WordPress and render it dynamically in the user interface.  This approach leverages WordPress's strengths in content management while allowing you to build a highly customized and responsive front-end experience using modern JavaScript frameworks.
+
+
+### Fetching and Displaying Blog Posts
+
+This is a common use case.  A JavaScript application can fetch posts from `/wp-json/wp/v2/posts` using `fetch` or Axios.  The response data is then processed to extract relevant information (title, content, excerpt, featured image, etc.). This information is then used to dynamically generate the HTML for displaying the blog posts on the website.  You could use pagination to handle a large number of posts, displaying them in multiple pages. Error handling should be implemented to manage situations where the API request fails.
+
+```javascript
+// Example using Axios
+axios.get('/wp-json/wp/v2/posts')
+  .then(response => {
+    const posts = response.data;
+    const postList = document.getElementById('post-list');
+    posts.forEach(post => {
+      const postElement = document.createElement('div');
+      postElement.innerHTML = `<h3>${post.title.rendered}</h3><p>${post.excerpt.rendered}</p>`;
+      postList.appendChild(postElement);
+    });
+  })
+  .catch(error => {
+    console.error("Error fetching posts:", error);
+  });
+```
+
+This code snippet shows a simplified example. A real-world application would likely involve more complex templating and styling to create a visually appealing blog post display.
+
+
+### Creating a Custom Admin Panel
+
+While WordPress provides a built-in admin panel, the API allows you to create custom admin interfaces.  This can be useful for extending WordPress functionality or building specialized tools for managing specific aspects of your content. You can use a JavaScript framework to build a custom interface that interacts with the API to create, update, and delete posts, pages, or custom post types. This custom panel can be accessed via a separate URL or integrated within the existing WordPress admin area.  Security is paramount in such implementations, ensuring that only authorized users can access and modify data.
+
+
+### Integrating with Third-Party Services
+
+The API facilitates integration with various third-party services.  For example, you could automatically publish WordPress posts to social media platforms (Twitter, Facebook), send email notifications based on new content, or integrate with analytics services to track website traffic. This integration would involve using the API to retrieve relevant data from WordPress and then sending it to the third-party service via their respective APIs.  Authentication and authorization mechanisms would need to be implemented to securely access both WordPress and the third-party services' APIs.  Error handling is vital to manage situations where the third-party services might not be available or fail to process the data correctly.
+
+
+
+
+## Troubleshooting and FAQs
+
+### Common Errors and Solutions
+
+Several common errors can occur when working with the WordPress REST API.  Here are a few examples:
+
+* **401 Unauthorized:** This error means your API key authentication failed.  Double-check that you're using the correct consumer key and consumer secret, that they are properly Base64 encoded, and that the API key has the necessary permissions.
+
+* **403 Forbidden:**  This indicates that you lack the necessary permissions to perform the requested action.  Ensure your API key has the appropriate capabilities.
+
+* **404 Not Found:**  The requested resource (endpoint or ID) doesn't exist.  Verify the URL and ID are correct.
+
+* **500 Internal Server Error:**  This indicates a server-side error on the WordPress site. Check your server logs for more information.  It might be caused by plugin conflicts, database issues, or other problems with the WordPress installation.
+
+* **Network Errors:**  Problems with your network connection can prevent requests from reaching the server.  Check your internet connection and firewall settings.
+
+* **JSON Parsing Errors:** Ensure your code correctly parses the JSON responses from the API.  Errors here often manifest as unexpected results or crashes in your application.
+
+
+### Debugging Techniques
+
+Debugging API interactions involves a multi-faceted approach:
+
+* **Check HTTP Status Codes:**  Pay close attention to the HTTP status code returned by the API.  This code provides vital clues about the nature of any errors.
+
+* **Inspect API Responses:**  Examine the complete API response, including the response body (often JSON), to understand why an error occurred.  Error messages within the response often contain valuable information.
+
+* **Use Developer Tools:**  Browser developer tools (Network tab) allow you to inspect the HTTP requests and responses, identifying potential issues with headers, parameters, or the request itself.
+
+* **Simplify Requests:**  Start with simple API requests to isolate the problem.  Gradually increase complexity once the basic requests are working correctly.
+
+* **Logging:**  Add logging statements to your code to track the flow of data and identify where errors occur.
+
+* **Testing Tools:** Use tools like Postman or Insomnia to test API requests independently of your application, helping to isolate problems in your application logic from problems with the API itself.
+
+
+### Troubleshooting API Issues
+
+When encountering API issues:
+
+1. **Verify Authentication:** Ensure your API keys are correct and properly configured.
+2. **Check Network Connectivity:**  Confirm a stable network connection between your application and the WordPress server.
+3. **Examine Server Logs:** Look for errors in your WordPress server's logs, which can provide insights into server-side issues.
+4. **Test with Different Tools:** Use tools like `curl` or Postman to make API requests directly, isolating whether the problem is with your application code or the API itself.
+5. **Consult WordPress Documentation:** Refer to the official WordPress REST API documentation for details on endpoints, parameters, and common issues.
+6. **Deactivate Plugins:** If server-side issues are suspected, temporarily deactivate WordPress plugins to check if any of them are interfering with the API.
+7. **Check WordPress Version:** Ensure your WordPress version is up-to-date and compatible with the API features you're using.
+
+
+### Frequently Asked Questions
+
+While a comprehensive FAQ would depend on the specifics of user questions, here are some common questions that may arise:
+
+* **Q: How do I get my API keys?**  A: Typically, API keys are generated within the WordPress admin interface.  The exact location depends on the WordPress version and any installed plugins.  Search for terms like "REST API," "Application Passwords," or "OAuth" in the admin settings.
+
+* **Q: What is the difference between `posts` and `pages`?** A:  `posts` typically represent blog posts that are displayed in reverse chronological order, often categorized and tagged. `pages` usually represent static content like About Us or Contact pages, typically organized hierarchically.
+
+* **Q: How do I handle pagination?** A: The API uses the `per_page` and `page` parameters for pagination.  You'll need to make multiple requests, incrementing the `page` parameter until all data is retrieved.  The API response usually includes metadata (like `total` and `pages`) to help manage pagination.
+
+* **Q: Why am I getting a 404 error?** A: This usually means the requested resource (endpoint or ID) doesn't exist.  Double-check your URL and ensure it's correctly formatted.
+
+* **Q: How do I secure my API keys?** A: Never hardcode them into client-side code.  Use environment variables or a secrets management service to store them securely on the server.
+
+
+This section will be expanded over time based on user feedback and commonly encountered problems.  Please submit your questions and issues for consideration.
+

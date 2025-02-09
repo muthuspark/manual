@@ -1,0 +1,414 @@
+---
+title: "Typed.js - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Getting Started
+
+### Installation
+
+Typed.js can be easily installed via npm or yarn.  For npm, use the following command in your terminal:
+
+```bash
+npm install typed.js
+```
+
+For yarn, use:
+
+```bash
+yarn add typed.js
+```
+
+Alternatively, you can include Typed.js directly from a CDN. Add the following `<script>` tag to your HTML file, replacing `<version>` with the latest version number (check the project's website for the current version):
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/typed.js@<version>/lib/typed.min.js"></script>
+```
+
+
+### Basic Usage
+
+After installation, you can initialize Typed.js on any HTML element containing the text you want to type.  The core functionality relies on the `new Typed()` constructor.  This constructor takes two arguments:  the selector for the target element and an options object (optional).  The options object allows for customization of the typing behavior.  See the options section for a complete list.
+
+A basic initialization would look like this:
+
+```javascript
+const typed = new Typed('.element', {
+  strings: ["These are my strings"],
+  typeSpeed: 50,
+  // other options...
+});
+```
+
+This code will type out the text "These are my strings" into the element with the class "element".  `typeSpeed` is set to 50 milliseconds per character.
+
+
+### First Example
+
+Let's create a simple example that types out a few different phrases.  First, include Typed.js in your HTML (using either the CDN or your installed version).  Then, add a `<span>` element to your HTML where the typing will occur:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Typed.js Example</title>
+</head>
+<body>
+  <span id="typed-text"></span>
+
+  <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.16/lib/typed.min.js"></script>  <!-- Replace with your version or local path -->
+  <script>
+    var typed = new Typed('#typed-text', {
+      strings: ["Hello, world!", "This is Typed.js", "It's easy to use!"],
+      typeSpeed: 30,
+      backSpeed: 20,
+      loop: true
+    });
+  </script>
+</body>
+</html>
+```
+
+This example uses the `#typed-text` selector to target the `<span>` element. The `strings` array defines the phrases to be typed. `typeSpeed` controls how fast the text is typed, `backSpeed` controls how fast it is deleted, and `loop` makes the typing cycle through the strings repeatedly. Remember to replace the CDN link with your installation path if you installed it via npm or yarn.
+
+
+## Core Concepts
+
+### Strings and Typing
+
+Typed.js's core function is to dynamically type out strings of text.  These strings are provided to the `Typed` constructor via the `strings` option.  This option accepts an array of strings, where each string represents a phrase to be typed. Typed.js will sequentially type out each string in the array.
+
+The order of strings is important; Typed.js will follow the order exactly as defined in the array. You can include HTML tags within your strings, but be mindful that Typed.js treats them as literal characters.  It doesn't interpret or render them as active HTML elements during the typing process; the browser will render them after the typing is complete.
+
+
+### Options and Customization
+
+Typed.js offers extensive options for customization. These options are passed to the `Typed` constructor as a JavaScript object.  Here are some key options:
+
+* **`strings` (Array of strings):** The array of strings to be typed.  Required.
+* **`typeSpeed` (Number):** The typing speed in milliseconds per character.  Defaults to 50.
+* **`backSpeed` (Number):** The deleting speed in milliseconds per character. Defaults to 0 (no deleting).
+* **`startDelay` (Number):** The delay in milliseconds before typing begins. Defaults to 0.
+* **`backDelay` (Number):** The delay in milliseconds after a string is typed before it is deleted. Defaults to 500.
+* **`loop` (Boolean):** Whether to loop through the strings continuously. Defaults to false.
+* **`loopCount` (Number):** The number of times to loop through the strings. Defaults to Infinity (loops indefinitely if `loop` is true).
+* **`showCursor` (Boolean):** Whether to show the cursor. Defaults to true.
+* **`cursorChar` (String):** The character used for the cursor. Defaults to "|".
+* **`attr` (Object):** Allows modifying attributes of the target element during typing. Useful for things like adding classes dynamically.  This is an object where keys are attribute names and values are functions that return the updated attribute value.
+
+For a complete list of options and their detailed descriptions, refer to the project's documentation.
+
+
+### Event Handling
+
+Typed.js doesn't directly support custom event handling in the traditional `addEventListener` sense. However, you can achieve similar functionality by using callbacks.  Events effectively occur at specific points in the typing process, allowing you to execute code at those moments.  The main callback to utilize is `onComplete`.
+
+
+### Callbacks
+
+Callbacks provide a way to trigger custom functions at specific stages of the typing process. The most common callback is `onComplete`, which is executed when all strings have been typed and, if `loop` is false, the typing process completes. Other callbacks include `onStringTyped`, `onTyped`, `onCursorChange`, and `onReset`.  These are defined within the options object.  For example:
+
+```javascript
+const typed = new Typed('.element', {
+  strings: ["String 1", "String 2"],
+  onComplete: function() {
+    console.log("All strings typed!");
+    // Add your custom code here
+  },
+    onStringTyped: function(arrayPos, self){
+        console.log("String " + arrayPos + " typed!");
+    }
+});
+```
+
+The `onComplete` callback is called once all strings have been typed.  The `self` parameter provides a reference to the Typed instance.  `arrayPos` within `onStringTyped` indicates the index of the currently typed string.  Consult the project documentation for details on all available callbacks and their parameters.
+
+
+## Advanced Techniques
+
+### Custom Elements
+
+While Typed.js primarily targets simple text elements, you can use it with more complex HTML structures.  The key is to ensure that the selector you provide to the `Typed` constructor accurately targets the element(s) where you want the typing to occur.  If you want to type within specific elements *inside* a larger structure, you'll need to target those inner elements appropriately.  For example, if you have a `<div>` containing multiple `<span>` elements, and you only want to type within one of the spans, you must use a selector that specifically targets that span.
+
+Avoid directly manipulating the DOM within your Typed.js callbacks unless absolutely necessary.  If you need to update other parts of the page based on the typing, it's generally best practice to trigger those updates from your callbacks rather than altering the Typed.js target element's structure directly.
+
+
+### Multiple Instances
+
+You can easily create multiple Typed.js instances on a single page.  Each instance is independent and operates on its own target element.  Simply create new `Typed` objects, each with its own selector and options.  This allows for creating complex, coordinated typing effects across different parts of a page.
+
+```javascript
+const typed1 = new Typed('.element1', { /* options */ });
+const typed2 = new Typed('.element2', { /* options */ });
+```
+
+
+### Chaining and Sequencing
+
+To create more elaborate typing sequences, you can chain or sequence multiple Typed.js instances.  You can use callbacks like `onComplete` to trigger the initialization of subsequent instances.  This allows for a controlled progression of typing effects.  For example, you could have one instance finish typing before another begins.
+
+```javascript
+const typed1 = new Typed('.element1', {
+  strings: ["First set of strings"],
+  onComplete: function() {
+    const typed2 = new Typed('.element2', { strings: ["Second set of strings"] });
+  }
+});
+```
+
+
+### Looping and Iteration
+
+The `loop` and `loopCount` options provide control over how many times Typed.js iterates through the provided strings.  Setting `loop` to `true` and `loopCount` to `Infinity` will create an endless loop, continuously typing and deleting the strings.  You can control the number of loops using `loopCount`.  Careful consideration is needed when using continuous loops to avoid performance issues on resource-constrained devices.
+
+
+### Asynchronous Operations
+
+If you need to integrate Typed.js with asynchronous operations (like fetching data from an API), ensure that the `Typed` instance is created *after* the data has been received and processed.  You can use promises or callbacks to manage the asynchronous flow and initialize Typed.js once the necessary data is available.  Do not attempt to dynamically change the `strings` array after initialization; create a new instance instead.
+
+```javascript
+fetch('/data.json')
+  .then(response => response.json())
+  .then(data => {
+    const strings = data.map(item => item.text);  // Extract strings from data
+    const typed = new Typed('.element', { strings: strings });
+  });
+```
+
+
+## Styling and Theming
+
+### CSS Customization
+
+Typed.js relies heavily on CSS for styling its output.  The library itself doesn't provide many styling options directly; instead, it leverages CSS classes to control the appearance of the typed text and the cursor.  You can completely customize the look and feel of Typed.js by targeting these classes with your own CSS rules.  The core classes you'll likely interact with include (but aren't limited to):
+
+* **`.typed-cursor`**: Styles the cursor element.
+* **`.typed-line`**: Styles each line of typed text.
+
+
+You can add your custom CSS rules to your stylesheet to override the default styling or create entirely new looks. For example:
+
+```css
+.typed-cursor {
+  color: #ff0000; /* Red cursor */
+  font-size: 2em;
+}
+
+.typed-line {
+  font-family: 'Arial', sans-serif;
+  color: #008000; /* Green text */
+}
+```
+
+
+### Class Names and Selectors
+
+Typed.js uses specific class names that can be targeted with CSS selectors to modify the appearance of the typed text and the cursor.  Understanding these class names is crucial for effective styling.  You can inspect the rendered HTML elements in your browser's developer tools to identify the exact class names used in your specific setup.  Be aware that future versions might introduce minor changes to class names, so it's always advisable to inspect the rendered HTML to verify current class names.
+
+You can use various CSS selectors (like class selectors, element selectors, and pseudo-classes) to style the elements precisely.
+
+### Inline Styles
+
+While possible, directly applying inline styles to the target element or its children is generally discouraged. Using inline styles overrides external stylesheets, making your CSS less maintainable and harder to debug.  It's much better to manage all your styling through external stylesheets or embedded `<style>` tags.  Inline styles should only be considered as a last resort for very specific, one-off styling needs.
+
+
+### Predefined Themes
+
+Typed.js itself does not come with predefined themes.  However, you can easily create your own reusable stylesheets and apply them to multiple instances of Typed.js to achieve a consistent thematic look across your web application.  You can abstract your common CSS rules into separate CSS files and include them in your HTML using `<link>` tags.  This approach promotes reusability and maintainability of your styles.  Consider using CSS preprocessors (like Sass or Less) for organizing and managing larger styling projects.
+
+
+## Troubleshooting and Debugging
+
+### Common Errors
+
+Several common errors can arise when using Typed.js.  Here are some of the most frequently encountered issues and their potential solutions:
+
+* **`TypeError: Cannot read properties of undefined (reading 'length')` or similar:** This often indicates that the selector used to target the element is incorrect. Double-check that the selector (e.g., `#myElement`, `.myElement`) accurately points to an existing element in your HTML.  Use your browser's developer tools to inspect the element and ensure it's correctly structured.
+
+* **No text appears:** Verify that the `strings` array in your Typed.js options is not empty and contains at least one string.  Also, check that the `typeSpeed` value is not excessively high (resulting in imperceptible typing).
+
+* **Unexpected behavior or errors:**  Ensure that you're using the correct version of Typed.js. Check for conflicting JavaScript code or libraries that might interfere with Typed.js.
+
+* **Cursor issues:** If the cursor is not displayed correctly, check your CSS rules for `.typed-cursor` to ensure they are not accidentally hiding or misplacing it.
+
+* **Callback functions not executing:** Confirm that your callback functions (like `onComplete`) are correctly defined and that their names are accurately specified in the options object.  Check your browser's console for JavaScript errors.
+
+
+
+### Debugging Tips
+
+Here are some debugging tips to help you resolve issues with Typed.js:
+
+* **Use your browser's developer tools:** The browser's developer tools (usually accessed by pressing F12) are invaluable for debugging.  Check the console for JavaScript errors, and use the debugger to step through your code and inspect variables.
+
+* **Simplify your code:** Isolate the problem by creating a minimal, reproducible example.  Start with a basic Typed.js setup and gradually add features until you identify the source of the issue.
+
+* **Check your CSS:** Carefully examine your CSS rules to ensure they are not unintentionally affecting the appearance or behavior of the Typed.js output.
+
+* **Consult the documentation:** The official Typed.js documentation often provides solutions to common problems and helpful examples.
+
+
+### Browser Compatibility
+
+Typed.js is designed to work across a wide range of modern browsers.  However, very old or outdated browsers might have limited support.  Generally, browsers supporting modern JavaScript features should work without significant issues.  If you encounter compatibility problems with a specific browser, you might need to check the browser's JavaScript engine capabilities and ensure they meet the minimum requirements of Typed.js (or consider providing polyfills for any missing features).  For the best experience, aim to support commonly used modern browsers.  Testing on different browsers is highly recommended before deployment to catch any unexpected compatibility problems.
+
+
+## API Reference
+
+### Typed.js Constructor
+
+The core of Typed.js is its constructor function: `new Typed(selector, options)`.
+
+* **`selector` (String):** A CSS selector specifying the HTML element where the typing effect should occur.  This is required.  The selector should target a single element;  multiple elements might lead to unexpected behavior.
+
+* **`options` (Object):** An object containing options to customize the typing effect.  This is optional but highly recommended for controlling various aspects of the typing behavior.  See the "Options" section below for a detailed list.
+
+
+Example:
+
+```javascript
+const typed = new Typed('#myElement', {
+    strings: ['Hello, world!'],
+    typeSpeed: 30
+});
+```
+
+
+### Options
+
+The `options` object accepts numerous parameters to configure the typing effect.  Here's a summary; refer to the full documentation for complete details on each option:
+
+
+* **`strings` (Array of strings):** An array of strings to be typed sequentially. This is required.
+
+* **`typeSpeed` (Number):** Typing speed in milliseconds per character (default: 50).
+
+* **`backSpeed` (Number):** Deleting speed in milliseconds per character (default: 0).
+
+* **`startDelay` (Number):** Delay in milliseconds before typing begins (default: 0).
+
+* **`backDelay` (Number):** Delay in milliseconds after a string is typed before it's deleted (default: 500).
+
+* **`loop` (Boolean):** Enables continuous looping (default: `false`).
+
+* **`loopCount` (Number):** Number of times to loop (default: `Infinity` if `loop` is `true`).
+
+* **`showCursor` (Boolean):** Shows the typing cursor (default: `true`).
+
+* **`cursorChar` (String):** Character used for the cursor (default: `|`).
+
+* **`attr` (Object):** Allows modifying attributes of the target element dynamically during typing.
+
+* **`onComplete` (Function):** Callback function executed when all strings are typed.
+
+* **`onStringTyped` (Function):** Callback function executed when a single string is typed.
+
+* **`onTyped` (Function):** Callback function executed when each character is typed.
+
+* **`onCursorChange` (Function):** Callback function executed when the cursor state changes.
+
+* **`onReset` (Function):** Callback function executed when the typing effect is reset.
+
+
+### Methods
+
+Typed.js instances expose several methods:
+
+* **`destroy()`:** Stops the typing effect and removes the instance from the DOM.
+
+* **`reset()`:** Resets the typing effect to the beginning.
+
+* **`start()`:** Starts the typing effect if it's paused.
+
+* **`stop()`:** Pauses the typing effect.
+
+
+### Events
+
+While Typed.js doesn't use the standard `addEventListener` model for events, the callbacks specified in the `options` object act as event handlers.  These callbacks allow you to respond to specific stages of the typing process:
+
+* **`onComplete`**: Fired when all strings are typed.
+* **`onStringTyped`**: Fired after each string is typed.
+* **`onTyped`**: Fired after each character is typed.
+* **`onCursorChange`**: Fired when the cursor state (visible/invisible) changes.
+* **`onReset`**: Fired when the typing is reset.
+
+These functions are called with context (`this`) referring to the Typed instance itself and relevant parameters (e.g., array position, typed string).  Leverage these callbacks to integrate custom actions and other dynamic elements to your application.
+
+
+## Examples and Use Cases
+
+### Simple Text Typing
+
+The most basic use case is typing out a set of strings.  This is ideal for simple introductions, headlines, or short messages.
+
+```html
+<span id="typed-text"></span>
+<script>
+  new Typed('#typed-text', {
+    strings: ["Hello,", "world!", "This is Typed.js"],
+    typeSpeed: 50
+  });
+</script>
+```
+
+This code will type out each string sequentially into the `<span>` element with the ID "typed-text".
+
+
+### Animated Text Effects
+
+Typed.js can be used to create more engaging text animations.  By combining it with CSS animations or transitions, you can create visually appealing effects. For example, you might change the color of the text or add a scaling animation as each character is typed. This requires a deeper integration with CSS styling.
+
+
+```html
+<span id="animated-text"></span>
+<style>
+  #animated-text span {
+    transition: transform 0.2s ease-in-out; /* Example animation */
+  }
+  #animated-text span.active {
+    transform: scale(1.1);
+  }
+</style>
+<script>
+  new Typed('#animated-text', {
+    strings: ["Animated text"],
+    typeSpeed: 20,
+    onTyped: function(arrayPos, self) {
+      // Add "active" class on character typing to trigger CSS transition
+      this.el.querySelector('span:nth-child('+arrayPos+')').classList.add('active');
+    }
+  });
+</script>
+```
+
+This example uses `onTyped` callback to add a CSS class to each element dynamically during typing.  You need to adjust the CSS selector to match your HTML structure if you are using different elements than `<span>` elements.
+
+
+### Data-Driven Typing
+
+For dynamic content, you can fetch strings from an external data source (e.g., an API) and use them as the input for Typed.js.  This is particularly useful when the text to be typed changes frequently.
+
+```javascript
+fetch('/api/strings')
+  .then(response => response.json())
+  .then(data => {
+    const strings = data.map(item => item.text);
+    new Typed('#data-driven-text', { strings: strings });
+  });
+```
+
+This example fetches an array of strings from an API endpoint and uses the result to populate the `strings` option.  Remember to handle potential errors during the fetch operation.
+
+
+
+### Integration with Other Libraries
+
+Typed.js can be integrated with other JavaScript libraries to create even more sophisticated effects. For instance:
+
+* **Animation Libraries (GreenSock, Anime.js):** Combine Typed.js with animation libraries for complex visual effects that go beyond simple typing.
+* **UI Frameworks (React, Vue, Angular):**  You can seamlessly integrate Typed.js into any popular JavaScript framework, using it within component lifecycles or as part of a larger application.  Just remember to mount Typed.js after the component's DOM element has been rendered.
+* **Game Engines:** While uncommon, technically you could use Typed.js for text displays within a game or interactive application.
+
+
+Remember that integrating with other libraries requires careful consideration of timing and potential conflicts.  Use the callbacks (e.g., `onComplete`) to coordinate actions between Typed.js and other libraries.
+

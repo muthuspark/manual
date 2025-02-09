@@ -1,0 +1,456 @@
+---
+title: "numeral.js - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction
+
+### What is numeral.js?
+
+Numeral.js is a JavaScript library designed for formatting and manipulating numbers.  It provides a simple and consistent API for working with numbers in various formats, including currency, percentages, and more.  It handles localization, allowing you to display numbers according to different cultural conventions.  At its core, it's a lightweight yet powerful tool for ensuring your application displays numerical data clearly and correctly for your users.
+
+### Why use numeral.js?
+
+Using numeral.js offers several advantages:
+
+* **Simplified Number Formatting:**  Easily format numbers into various styles (currency, percentage, etc.) without complex string manipulation.
+* **Localization:**  Support for displaying numbers according to different locales, ensuring your application is globally accessible.
+* **Concise API:**  A clean and intuitive API makes it easy to learn and use, even for developers unfamiliar with the library.
+* **Lightweight:**  Numeral.js has a small footprint, minimizing the impact on your application's performance.
+* **Extensive Functionality:**  Beyond basic formatting, it includes functions for number parsing, rounding, and more advanced operations.
+
+
+### Installation and Setup
+
+Numeral.js can be easily integrated into your project using several methods:
+
+* **npm:** For Node.js projects, install it via npm:  `npm install numeral`
+
+* **yarn:**  For yarn users: `yarn add numeral`
+
+* **CDN:** Include the numeral.js script directly in your HTML: `<script src="https://cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>` (replace with the latest version number if needed).
+
+After installation, you can include the library in your JavaScript code using a `require()` statement (for Node.js) or by simply using the globally available `numeral` object (when using a CDN).
+
+
+### Basic Usage
+
+The core function of numeral.js is the `numeral()` function. It takes a number as input and returns a numeral.js object that can then be formatted using various methods.
+
+```javascript
+// Basic number formatting
+const num = numeral(1234.56);
+console.log(num.format('0,0.00')); // Output: 1,234.56
+
+// Currency formatting
+console.log(numeral(1234.56).format('$0,0.00')); // Output: $1,234.56
+
+// Percentage formatting
+console.log(numeral(0.5).format('0%')); // Output: 50%
+
+// Using locales (requires loading the appropriate locale file)
+// Note:  You'll need to include the locale files separately.  See the documentation for details.
+numeral.locale('fr'); // Set locale to French
+console.log(numeral(1234.56).format('0,0.00 $')); // Output will be formatted according to French locale conventions.
+
+// Unformat a number
+console.log(numeral('1,234.56').value()); // Output: 1234.56
+
+
+```
+
+This provides a basic overview of how to use numeral.js. Refer to the complete documentation for more advanced features and options.
+
+
+## Formatting Numbers
+
+### Format Options
+
+Numeral.js uses format strings to control how numbers are displayed.  These strings employ a variety of symbols and placeholders to specify the desired output.  Common elements include:
+
+* **`0`:**  A zero placeholder.  If the number has a digit in the corresponding position, the digit is displayed; otherwise, a zero is shown.
+* **`.`:**  Decimal separator.  Defines the position of the decimal point.
+* **`,`:**  Thousands separator.  Separates thousands, millions, etc.
+* **`$`:** Currency symbol (default position is before the number; see below for customization).
+* **`%`:** Percentage symbol (multiplies the number by 100 and adds the % symbol).
+
+The position and number of these symbols determine the final format.  For example, `'0,0.00'` will format a number with thousands separators and two decimal places.
+
+
+### Number Formatting
+
+Basic number formatting utilizes the `format()` method with a format string as an argument:
+
+```javascript
+console.log(numeral(1234.56).format('0,0')); // Output: 1,234
+console.log(numeral(1234.56).format('0,0.00')); // Output: 1,234.56
+console.log(numeral(1234).format('0.0')); // Output: 1234.0
+console.log(numeral(1234567.89).format('0.0a')); // Output: 1.2m (using abbreviation)
+console.log(numeral(1234567.89).format('0a')); // Output: 1m (using abbreviation)
+console.log(numeral(0.001234).format('0.0000a')); // Output: 0.0012m (using abbreviation)
+
+
+```
+
+The `'0a'` format uses abbreviation for millions (m), billions (b), trillions (t) and thousands (k).
+
+
+### Currency Formatting
+
+Currency formatting uses the currency symbol (`$` by default) and often includes decimal places:
+
+```javascript
+console.log(numeral(1234.56).format('$0,0.00')); // Output: $1,234.56
+console.log(numeral(1234.56).format('€0,0.00')); // Output: €1,234.56  (Euro symbol)
+console.log(numeral(-1234.56).format('$0,0.00')); // Output: -$1,234.56 (Negative sign included)
+```
+
+The currency symbol's position can be changed using custom formats (see below).
+
+### Percentage Formatting
+
+Percentage formatting multiplies the number by 100 and adds the `%` symbol:
+
+```javascript
+console.log(numeral(0.5).format('0%')); // Output: 50%
+console.log(numeral(0.05).format('0.0%')); // Output: 5.0%
+console.log(numeral(1.234).format('0%')); //Output: 123%
+```
+
+### Time Formatting
+
+Numeral.js doesn't directly support time formatting in the same way as date/time libraries.  For time formatting, consider using a dedicated library like Moment.js or date-fns alongside numeral.js for numerical aspects (e.g., formatting elapsed time in seconds).
+
+
+### Custom Formatting
+
+For complex formatting needs, you can create custom format strings.  For example, to place the currency symbol after the number:
+
+
+```javascript
+console.log(numeral(1234.56).format('0,0.00 $')); // Output: 1,234.56 $
+
+//Example with custom thousands and decimal separators.
+console.log(numeral(1234.56).format('0.000,00')); // Output: 1.234,560 (Thousands separator is "." and decimal separator is ",")
+```
+
+You can also create more sophisticated custom formats by combining different elements.  Refer to the complete numeral.js documentation for the full range of available options and advanced customization techniques.
+
+
+## Working with Units
+
+### Unit Abbreviations
+
+Numeral.js offers built-in support for abbreviating numbers with units like thousands (k), millions (m), billions (b), and trillions (t).  This is achieved using the `'a'` format character within the format string.  The level of abbreviation is determined by the magnitude of the number.
+
+```javascript
+console.log(numeral(1000).format('0a'));     // Output: 1k
+console.log(numeral(1234567).format('0.0a')); // Output: 1.2m
+console.log(numeral(1e9).format('0.00a'));   // Output: 1.00b
+console.log(numeral(0.001).format('0.000a')); //Output: 0.001k
+```
+
+Note that the number of decimal places shown can be controlled using the standard format string elements (e.g., `'0.0a'`, `'0.00a'`, etc.).
+
+
+### Unit Conversions
+
+Numeral.js itself does *not* provide built-in unit conversion functionality (e.g., converting meters to feet, kilograms to pounds).  For unit conversions, you'll need to implement the conversion logic separately within your application.  You can then use numeral.js to format the converted values appropriately.
+
+For instance, to convert meters to feet and then format the result:
+
+```javascript
+function metersToFeet(meters) {
+  return meters * 3.28084;
+}
+
+let meters = 10;
+let feet = metersToFeet(meters);
+console.log(numeral(feet).format('0.00 ft')); // Output (example): 32.81 ft
+```
+
+### Custom Units
+
+Numeral.js does not directly support defining entirely custom units. The built-in abbreviation system (`a`) handles k, m, b, and t. Extending this to other units requires a manual implementation outside of numeral.js' core functionality.  You would need to create your own functions for formatting and handling custom units.
+
+
+### Unit Formatting
+
+Unit formatting is primarily achieved by combining the numeral.js format string with text representing the unit.  This usually involves adding the unit symbol or abbreviation directly to the format string, as shown in the examples above.
+
+To display a value with a specific unit (like "kg" for kilograms), concatenate the unit to the formatted numeral:
+
+```javascript
+let weightInKg = 12.5;
+let formattedWeight = numeral(weightInKg).format('0.00') + ' kg';
+console.log(formattedWeight); // Output: 12.50 kg
+```
+
+More complex unit formatting might involve creating helper functions to manage different unit systems and display conventions.  Remember to handle potential unit inconsistencies and ambiguities in your application logic.
+
+
+## Number Manipulation
+
+### Rounding Numbers
+
+Numeral.js doesn't directly provide dedicated rounding functions in the same way as `Math.round()`.  However, you can achieve rounding effects through the formatting capabilities.  The format string determines how many decimal places are displayed, effectively rounding the displayed value.   Note that this is *display* rounding; the underlying numerical value is not changed.  To actually round the numerical value, use JavaScript's built-in `Math` functions *before* passing the number to numeral.js.
+
+```javascript
+// Display rounding (no change to the underlying number)
+let num = 1234.567;
+console.log(numeral(num).format('0.00')); // Output: 1234.57 (displayed as rounded)
+console.log(num); //Output: 1234.567 (original number unchanged)
+
+// Actual numerical rounding using JavaScript's Math functions
+let roundedNum = Math.round(num);
+console.log(roundedNum); // Output: 1235 (numerically rounded)
+console.log(numeral(roundedNum).format('0')); // Output: 1235 (formatted rounded number)
+
+//Rounding to a specific number of decimal places using toFixed()
+let num2 = 1234.56789;
+let roundedNum2 = parseFloat(num2.toFixed(2)); // toFixed returns a string, need to parse back to number
+console.log(roundedNum2); // Output: 1234.57
+console.log(numeral(roundedNum2).format('0.00')); // Output: 1234.57
+```
+
+### Absolute Values
+
+To get the absolute value of a number, use JavaScript's `Math.abs()` function before passing it to numeral.js:
+
+```javascript
+let negativeNum = -123.45;
+let absoluteNum = Math.abs(negativeNum);
+console.log(numeral(absoluteNum).format('0.00')); // Output: 123.45
+```
+
+
+### Exponents and Logarithms
+
+Numeral.js does not provide built-in functions for exponents or logarithms. Use JavaScript's `Math.pow()` (for exponents) and `Math.log()` (for natural logarithms), `Math.log10()` (for base-10 logarithms), etc., as needed, before formatting the result with numeral.js:
+
+
+```javascript
+let base = 2;
+let exponent = 5;
+let result = Math.pow(base, exponent);
+console.log(numeral(result).format('0')); // Output: 32
+
+let numForLog = 100;
+let logResult = Math.log10(numForLog);
+console.log(numeral(logResult).format('0.00')); // Output: 2.00
+```
+
+### Arithmetic Operations
+
+Numeral.js is primarily for formatting and display; it does not directly support arithmetic operations on its numeral objects.  Perform arithmetic operations using standard JavaScript operators and functions on the underlying number values *before* using numeral.js for formatting.
+
+```javascript
+let num1 = 10;
+let num2 = 5;
+let sum = num1 + num2;
+console.log(numeral(sum).format('0')); // Output: 15
+
+let difference = num1 - num2;
+console.log(numeral(difference).format('0')); // Output: 5
+
+let product = num1 * num2;
+console.log(numeral(product).format('0')); //Output: 50
+
+let quotient = num1 / num2;
+console.log(numeral(quotient).format('0.0')); // Output: 2.0
+```
+
+Remember to perform all calculations using standard JavaScript before utilizing numeral.js for presenting the final formatted numerical results.
+
+
+## Advanced Usage
+
+### Localization
+
+Numeral.js supports localization, allowing you to format numbers according to different cultural conventions.  This is achieved using locale files.  While the core library includes the `en` (English) locale, others must be loaded separately.  You can find locale files on the numeral.js project page or via CDN resources.
+
+To use a different locale:
+
+1. **Include the locale file:**  Include the JavaScript file for your desired locale (e.g., `numeral.min.js` and `numeral.locale.fr.js`).
+
+2. **Set the locale:** Use `numeral.locale('localeCode')` to set the active locale before formatting numbers. Replace `'localeCode'` with the appropriate locale code (e.g., 'fr' for French, 'de' for German, etc.).
+
+```javascript
+// Assuming you've included numeral.min.js and numeral.locale.fr.js
+numeral.locale('fr');
+console.log(numeral(1234.56).format('0,0.00 $')); // Output will be formatted according to French locale
+numeral.locale('de');
+console.log(numeral(1234.56).format('0,0.00 €')); // Output will be formatted according to German locale
+
+```
+
+Refer to the numeral.js documentation for a complete list of available locales and how to include them.
+
+
+### Custom Number Systems
+
+Numeral.js doesn't directly support defining entirely new number systems (e.g., base-12, Roman numerals).  Its core functionality centers around standard decimal representations.  Creating support for a different number system would require significant custom development outside the scope of the library itself.  You would need to handle the conversion to and from the custom system within your application logic and then use numeral.js to format the standard decimal representation.
+
+
+### Working with Large Numbers
+
+Numeral.js handles large numbers reasonably well, thanks to its abbreviation format (`'0a'`, `'0.0a'`, etc.).  However, for extremely large numbers that might exceed JavaScript's safe integer limits (numbers beyond 2<sup>53</sup>-1), you should consider using a specialized library designed for arbitrary-precision arithmetic (like `bignumber.js` or similar) to perform calculations accurately before sending the values to numeral.js for formatting.
+
+```javascript
+// Example of potential problem with very large numbers:
+const hugeNumber = 1e100;
+console.log(hugeNumber); // This might lead to inaccuracies in some JavaScript engines
+//Use bignumber.js or similar libraries for handling these situations.
+```
+
+### Integration with Other Libraries
+
+Numeral.js can be easily integrated with other JavaScript libraries.  There's no specific integration required; you simply use numeral.js to format numerical data that comes from or is processed by other libraries.
+
+For example, you might use a charting library (like Chart.js or D3.js) to generate a chart, and then use numeral.js to format the numerical values displayed on the chart's axes or tooltips.  Similarly, you can use numeral.js to display values calculated by a mathematical library, a data processing library, or any other library generating numerical outputs.  The integration is straightforward as you can pass numeric values to numeral.js independently from where the values originated.
+
+
+## API Reference
+
+### `numeral()` function
+
+The `numeral()` function is the entry point for creating a numeral.js object. It takes a number (or a string that can be parsed as a number) as input and returns a numeral object.
+
+```javascript
+let num = numeral(1234.56); // Creates a numeral object
+let numFromString = numeral("1234.56"); //Creates a numeral object from string
+
+```
+
+### `format()` method
+
+The `format()` method formats the number according to the specified format string.
+
+```javascript
+let formattedNum = num.format('0,0.00'); // Formats to "1,234.56"
+let formattedCurrency = num.format('$0,0.00'); // Formats to "$1,234.56"
+```
+
+
+### `unformat()` method
+
+The `unformat()` method (available on a numeral object) parses a formatted number string and returns the underlying numerical value.  It handles various formats, including those with thousands separators, currency symbols, and decimal points according to the currently set locale.
+
+
+```javascript
+let unformattedValue = numeral("1,234.56").unformat(); //Returns 1234.56
+let unformattedCurrency = numeral("$1,234.56").unformat(); //Returns 1234.56
+```
+
+Note that this method requires numeral.js to parse the format; if the input isn't in a recognizable format it will likely return NaN.
+
+
+### `value()` method
+
+The `value()` method returns the underlying numerical value of the numeral object.  This is the same value as passed to `numeral()` initially, unaltered by any formatting.
+
+```javascript
+console.log(num.value()); // Output: 1234.56
+```
+
+### `set()` method
+
+The `set()` method changes the underlying numerical value of the numeral object.
+
+```javascript
+num.set(9876.54);
+console.log(num.value()); // Output: 9876.54
+```
+
+### `add()` method
+
+The `add()` method adds a number to the existing value of the numeral object and returns a *new* numeral object with the updated value. The original object remains unchanged.
+
+
+```javascript
+let num2 = numeral(10);
+let addedNum = num2.add(5); //addedNum is a new numeral object with value 15
+console.log(num2.value()); // Output: 10 (original unchanged)
+console.log(addedNum.value()); //Output: 15
+```
+
+### `subtract()` method
+
+The `subtract()` method subtracts a number from the existing value of the numeral object and returns a *new* numeral object with the updated value. The original object remains unchanged.  It operates similarly to `add()`.
+
+```javascript
+let subtractedNum = num2.subtract(3);
+console.log(num2.value()); // Output: 10 (original unchanged)
+console.log(subtractedNum.value()); // Output: 7
+```
+
+
+### `multiply()` method
+
+The `multiply()` method multiplies the existing value of the numeral object by a given number and returns a *new* numeral object with the updated value. The original object remains unchanged. It operates similarly to `add()` and `subtract()`.
+
+```javascript
+let multipliedNum = num2.multiply(2);
+console.log(num2.value()); // Output: 10 (original unchanged)
+console.log(multipliedNum.value()); // Output: 20
+```
+
+### `divide()` method
+
+The `divide()` method divides the existing value of the numeral object by a given number and returns a *new* numeral object with the updated value. The original object remains unchanged. It operates similarly to `add()`, `subtract()`, and `multiply()`.
+
+```javascript
+let dividedNum = num2.divide(2);
+console.log(num2.value()); // Output: 10 (original unchanged)
+console.log(dividedNum.value()); // Output: 5
+```
+
+### Others
+
+Numeral.js provides additional methods and functionalities, including:
+
+* **`locale()` (static method):**  Gets or sets the current locale.  `numeral.locale('fr')` sets the locale to French, while `numeral.locale()` returns the current locale.
+* **`version()` (static method):** Returns the version number of the numeral.js library.
+* **`register()` (static method):** Allows registering custom formats.
+
+
+Consult the complete numeral.js documentation for detailed information about all methods and their usage.  Remember that `add()`, `subtract()`, `multiply()`, and `divide()` return *new* numeral objects, leaving the original object unmodified.
+
+
+## Troubleshooting
+
+### Common Errors
+
+* **`numeral is not defined`:** This error typically occurs when the numeral.js library hasn't been properly included in your project.  Double-check that you've included the script file (`numeral.min.js` or a similar file) in your HTML (for browser environments) or have correctly installed and required it in your Node.js project using npm or yarn.
+
+* **Incorrect format strings:**  Typos or incorrect usage of format string symbols (e.g., `0`, `.`, `,`, `$`, `%`, `a`) will lead to unexpected formatting results. Carefully review your format strings for any errors. The documentation provides details on the valid symbols and their usage.
+
+* **Locale issues:** If you're using localization, ensure that the correct locale file is included and that you've used `numeral.locale()` to set the appropriate locale before calling `format()`.  Incorrect locale settings can result in numbers being displayed using the wrong formatting conventions.
+
+* **NaN (Not a Number):**  This occurs if you're passing a non-numeric value to the `numeral()` function or attempting to perform an operation on a non-numeric result.  Ensure all your input data is valid numerical data and handle potential errors in your calculations.  The `unformat()` method might return NaN if passed an unparseable string.
+
+* **Unexpected results with large numbers:** For extremely large numbers exceeding JavaScript's safe integer limits, you may encounter inaccuracies. Consider using a library supporting arbitrary-precision arithmetic for calculations before formatting with numeral.js.
+
+
+### Debugging Tips
+
+* **Console logging:** Use `console.log()` liberally to check the values of your variables and intermediate results at different stages of your code to identify where errors occur.  Log the input numbers, format strings, and the outputs of numeral.js methods to track the flow of data.
+
+* **Inspect the format string:** Pay close attention to your format strings to ensure they correctly specify the desired formatting.  Small errors in these strings can cause significant issues.
+
+* **Check the locale:** Verify that the correct locale is set using `numeral.locale()`, and that the appropriate locale files are included in your project.
+
+* **Simplify your code:**  If you're facing complex issues, isolate the problem by simplifying your code as much as possible.  Create a small, self-contained example that reproduces the error, making it easier to diagnose the cause.
+
+* **Use a debugger:** Use your browser's developer tools or a Node.js debugger to step through your code line by line, inspecting variables and observing program flow. This helps identify the exact point where problems arise.
+
+
+### Support and Community
+
+The primary support resource for numeral.js is its official documentation.  While there isn't an official dedicated support forum or community in the same way as some larger projects, you can find assistance through several avenues:
+
+* **GitHub Issues:**  For bug reports and feature requests, use the GitHub issue tracker for the numeral.js project.  Make sure to provide a clear description of the problem, including relevant code snippets and steps to reproduce the issue.
+
+* **Stack Overflow:**  Search Stack Overflow for questions related to numeral.js.  If you don't find a solution, posting a well-formatted question with a clear explanation of the problem might help you receive assistance from the broader developer community.
+
+* **Online JavaScript communities:**  Other online forums and communities dedicated to JavaScript development can be helpful if you're facing difficulties integrating numeral.js with other technologies or libraries.  Remember to provide sufficient context when seeking assistance.
+

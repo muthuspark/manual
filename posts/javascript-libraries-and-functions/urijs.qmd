@@ -1,0 +1,482 @@
+---
+title: "URI.js - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction to URI.js
+
+### What is URI.js?
+
+URI.js is a lightweight, robust, and versatile JavaScript library for parsing, manipulating, and serializing URIs (Uniform Resource Identifiers), including URLs (Uniform Resource Locators). It provides a consistent and easy-to-use interface for working with the various components of a URI, such as scheme, host, port, path, query, and fragment.  Unlike many other libraries that focus solely on URLs, URI.js handles the broader scope of URIs, supporting a wider range of URI schemes.
+
+### Why use URI.js?
+
+URI.js offers several advantages over manually parsing and manipulating URIs:
+
+* **Robustness:**  Handles edge cases and malformed URIs gracefully, providing sensible defaults and error handling.
+* **Consistency:** Ensures consistent URI handling across different browsers and environments.
+* **Ease of Use:**  Provides a simple and intuitive API for common URI manipulation tasks.
+* **Feature-Rich:** Supports a wide range of URI schemes and features, including percent-encoding and normalization.
+* **Lightweight:**  Has a small footprint, minimizing the impact on your application's performance.
+* **Extensible:** Offers flexibility to work with custom URI schemes and components.
+
+### Installation and Setup
+
+URI.js can be installed via several methods:
+
+* **npm:**
+  ```bash
+  npm install uri-js
+  ```
+
+* **yarn:**
+  ```bash
+  yarn add uri-js
+  ```
+
+* **CDN (e.g., jsDelivr):** Include the library directly in your HTML using a `<script>` tag:
+  ```html
+  <script src="https://cdn.jsdelivr.net/npm/uri-js@latest/src/URI.min.js"></script>
+  ```
+
+After installation, you can import and use URI.js in your JavaScript code:
+
+
+* **ES Modules (if using npm or yarn):**
+
+```javascript
+import URI from 'uri-js';
+// or
+import { URI } from 'uri-js';
+```
+
+* **CommonJS (if using npm or yarn):**
+
+```javascript
+const URI = require('uri-js');
+```
+
+* **Global Variable (if using CDN):**  The `URI` constructor will be available globally.
+
+
+### Basic Usage Examples
+
+Here are some basic examples demonstrating the core functionality of URI.js:
+
+
+**Creating a URI:**
+
+```javascript
+const uri = new URI('http://example.com/path?query=string#fragment');
+console.log(uri.toString()); // Output: http://example.com/path?query=string#fragment
+```
+
+**Accessing URI components:**
+
+```javascript
+console.log(uri.protocol());  // Output: http
+console.log(uri.hostname()); // Output: example.com
+console.log(uri.path());     // Output: /path
+console.log(uri.query());    // Output: query=string
+console.log(uri.fragment()); // Output: fragment
+```
+
+**Modifying URI components:**
+
+```javascript
+uri.path('/new/path');
+uri.query({ newQuery: 'value' });
+uri.fragment('newFragment');
+console.log(uri.toString()); // Output: http://example.com/new/path?newQuery=value#newFragment
+
+```
+
+**Parsing a URI string:**
+
+```javascript
+const parsedUri = URI.parse('ftp://user:password@host:port/path');
+console.log(parsedUri); // Output: Object containing parsed URI components
+```
+
+**Resolve a relative URI:**
+
+```javascript
+const baseUri = new URI("http://example.org/dir1/dir2/");
+const relativeUri = new URI("./file.txt");
+const resolvedUri = baseUri.resolve(relativeUri);
+console.log(resolvedUri.toString()); //Output: http://example.org/dir1/dir2/file.txt
+
+```
+
+These examples illustrate the basic capabilities.  The URI.js API provides many more methods for advanced URI manipulation.  Refer to the full API documentation for comprehensive details.
+
+
+## Core Functionality
+
+### Creating URIs
+
+URI.js offers several ways to create URI objects:
+
+**1. Using the constructor with a string:**
+
+The most common method is to pass a URI string directly to the constructor:
+
+```javascript
+const uri = new URI('https://example.com/path?param=value#fragment');
+console.log(uri.toString()); // Output: https://example.com/path?param=value#fragment
+```
+
+This handles various URI formats, including those with or without components.  If an invalid URI string is provided, URI.js will attempt to create a URI object representing what it can parse, potentially leaving certain components undefined.
+
+**2. Using the constructor with an object:**
+
+You can also create a URI object from a JavaScript object containing URI components:
+
+```javascript
+const uri = new URI({
+  scheme: 'ftp',
+  username: 'user',
+  password: 'password',
+  host: 'example.org',
+  port: 21,
+  path: '/path/to/file',
+  query: {param1: 'value1', param2: 'value2'},
+  fragment: 'anchor'
+});
+console.log(uri.toString());
+//Output: ftp://user:password@example.org:21/path/to/file?param1=value1&param2=value2#anchor
+```
+
+This approach is useful for programmatically constructing URIs.  Note that not all components are required.
+
+**3. Using `URI.create`:**
+
+The static method `URI.create` provides a convenient alternative to the constructor. It accepts the same arguments:
+
+```javascript
+const uri = URI.create('http://example.net');
+console.log(uri.toString()); // Output: http://example.net
+```
+
+
+
+### Parsing URIs
+
+URI.js provides the `URI.parse` method for parsing a URI string into a JavaScript object representing its components:
+
+
+```javascript
+const parsedUri = URI.parse('mailto:someone@example.com?subject=Hello');
+console.log(parsedUri);
+// Output: { scheme: 'mailto', userInfo: 'someone', host: 'example.com', path: '', query: { subject: 'Hello' } }
+```
+
+The resulting object contains properties like `scheme`, `host`, `path`, `query`, etc.  `URI.parse` doesn't throw errors for malformed URIs; it handles them gracefully,  returning an object with as much information as possible and leaving unspecified components undefined.
+
+
+### Accessing URI Components
+
+Once you have a URI object, you can access its individual components using various getter methods:
+
+```javascript
+const uri = new URI('https://user:pass@www.example.com:8080/path/to/file?query=string#fragment');
+
+console.log(uri.scheme());      // Output: https
+console.log(uri.username());    // Output: user
+console.log(uri.password());    // Output: pass
+console.log(uri.host());       // Output: www.example.com
+console.log(uri.port());       // Output: 8080
+console.log(uri.hostname());   //Output: www.example.com
+console.log(uri.path());       // Output: /path/to/file
+console.log(uri.query());      // Output: query=string  (String representation)
+console.log(uri.query(true)); // Output: { query: 'string' } (Object representation)
+console.log(uri.fragment());   // Output: fragment
+```
+
+
+The `query()` method allows accessing the query string as either a string or a parsed object (using `query(true)`).  Methods like `authority()`, `origin()` and `toString()` provide convenient access to composite parts of the URI.
+
+### Modifying URI Components
+
+URI.js allows you to modify URI components using various setter methods:
+
+```javascript
+let uri = new URI('http://example.com/oldPath');
+
+uri.scheme('https');
+uri.host('newExample.com');
+uri.path('/newPath');
+uri.query({ newParam: 'newValue' }); // sets a new query parameter
+uri.fragment('newFragment');
+
+console.log(uri.toString());
+// Output: https://newExample.com/newPath?newParam=newValue#newFragment
+```
+
+You can also use methods such as `addQuery`, `removeQuery` for more fine-grained control over query parameters.  Additionally, methods exist for manipulating the path component, such as `addPath` and `removePath`.
+
+
+### Stringifying URIs
+
+The `toString()` method converts a URI object back into its string representation:
+
+```javascript
+const uri = new URI({ scheme: 'sftp', host: 'example.org', path: '/file.txt' });
+console.log(uri.toString()); // Output: sftp://example.org/file.txt
+```
+
+This method automatically handles the correct formatting and escaping of URI components.  You can optionally specify a `serializeQuery` parameter to control how the query string is serialized.
+
+
+## Advanced Usage
+
+### Working with Query Parameters
+
+URI.js provides robust methods for manipulating query parameters.  Beyond simple setting with `uri.query({key: 'value'})`,  you can:
+
+* **Add parameters:** Use `addQuery(key, value)` to add individual parameters, or `addQuery(queryObject)` to add multiple parameters from a key-value object.
+
+* **Remove parameters:** Use `removeQuery(key)` to remove a specific parameter or `removeQuery()` with no arguments to clear all query parameters.
+
+* **Get individual parameters:** Access individual parameters using `query(true)[key]` to safely access a specific query parameter (handling cases where it might not exist).
+
+* **Iterate over parameters:** Use a `for...in` loop on `uri.query(true)` to iterate over all query parameters,  handling the parsed object representation.
+
+```javascript
+let uri = new URI('https://example.com/path?param1=value1');
+
+uri.addQuery('param2', 'value2');
+uri.addQuery({ param3: 'value3' });
+console.log(uri.toString()); // Output: https://example.com/path?param1=value1&param2=value2&param3=value3
+
+uri.removeQuery('param1');
+console.log(uri.toString()); // Output: https://example.com/path?param2=value2&param3=value3
+
+console.log(uri.query(true).param2); //Output: value2
+
+for (const key in uri.query(true)) {
+  console.log(key, uri.query(true)[key]);
+}
+```
+
+
+### Handling Fragments
+
+The fragment component (the part after the `#` symbol) can be accessed and modified using the `fragment()` method.
+
+```javascript
+let uri = new URI('https://example.com/page#section1');
+console.log(uri.fragment()); // Output: section1
+
+uri.fragment('section2');
+console.log(uri.toString()); // Output: https://example.com/page#section2
+
+uri.fragment(''); // Clear the fragment
+console.log(uri.toString()); // Output: https://example.com/page
+```
+
+Note that URI.js handles the proper encoding/decoding of fragment identifiers.
+
+
+### Encoding and Decoding
+
+URI.js uses the `encodeComponent` and `decodeComponent` methods to encode and decode URI components according to RFC3986. This ensures that special characters are properly escaped and unescaped within the URI.
+
+```javascript
+let encoded = URI.encodeComponent('Space+Chars?'); // Output: Space%2BChars%3F
+let decoded = URI.decodeComponent(encoded);     // Output: Space+Chars?
+```
+These methods are crucial when dealing with dynamic content or user-provided input within URIs, preventing issues caused by unescaped characters.  Remember to appropriately encode components before including them in a URI object.
+
+### Relative vs. Absolute URIs
+
+URI.js can handle both relative and absolute URIs.  The `isAbsolute()` method checks if a given URI is absolute. The `resolve()` method allows you to resolve a relative URI against a base URI.
+
+```javascript
+const base = new URI('https://example.com/base/path');
+const relative = new URI('../relative/path');
+const resolved = base.resolve(relative);
+console.log(resolved.toString()); //Output: https://example.com/relative/path
+```
+
+Understanding this distinction is critical for correct URI manipulation, especially when working with links and paths in web applications.
+
+
+### Normalization and Resolution
+
+URI.js performs normalization automatically when creating and manipulating URIs. This includes simplifying paths (removing redundant `.` and `..` segments) and ensuring consistent representation.  The `normalize()` method can be called explicitly if needed. The `resolve` method, shown above, handles relative URI resolution correctly, accounting for path normalization and base URI components.
+
+### Custom Schemes and Protocols
+
+While URI.js primarily focuses on standard URI schemes, it provides some flexibility for handling custom schemes.  The core functionality for parsing and manipulating components remains consistent even with non-standard schemes. However, you'll need to manage the specific behavior and semantics associated with your custom scheme within your application logic.  URI.js won't inherently understand the meaning or processing requirements of a non-standard scheme; it simply handles the URI structure itself.
+
+
+## Error Handling and Best Practices
+
+### Common Errors and Troubleshooting
+
+Most errors with URI.js stem from incorrect input or unexpected URI formats. Here's a breakdown of common issues:
+
+* **Invalid URI strings:** Passing an invalid URI string to the constructor or `URI.parse` won't throw exceptions, but may result in an object with incomplete or undefined components.  Always validate user-provided URIs before processing.
+
+* **Encoding issues:**  Incorrectly encoded or decoded components can lead to unexpected behavior. Ensure that you use `URI.encodeComponent` and `URI.decodeComponent` where needed, especially when dealing with user input.
+
+* **Path manipulation:**  Incorrect use of path manipulation methods (`addPath`, `removePath`, etc.) can lead to unexpected path structures. Be mindful of relative vs. absolute paths.
+
+* **Query parameter handling:**  Errors occur if you try to access non-existent query parameters. Always check for the existence of parameters before accessing them.
+
+Debugging:  Use `console.log` to inspect the URI object's components at various stages to identify errors.  Also, carefully review the return values from methods to ensure they are as expected.  Consider using a linter to help with static code analysis.
+
+
+### Security Considerations
+
+* **Input sanitization:** Always sanitize user-provided URI strings before using them. This prevents potential injection attacks or unexpected behavior from malformed URIs.  Never directly trust user input when constructing URIs.
+
+* **Output encoding:** Ensure proper encoding of URI components, especially when generating URLs or links to be displayed to users.  This prevents XSS vulnerabilities.
+
+* **Avoid direct manipulation of the URI object's internal properties:**  Use the provided methods for modification. Direct manipulation can bypass important checks and validation, leading to inconsistencies and security risks.
+
+* **Use of the `toString()` method:**  Use the `toString()` method for serialization; don’t attempt to manually reconstruct the URI string from components. This ensures proper encoding and formatting.
+
+
+### Performance Optimization
+
+URI.js is already quite efficient.  However, for optimal performance in large-scale applications:
+
+* **Avoid unnecessary object creation:**  If you're performing many operations on the same URI, reuse the existing URI object instead of constantly creating new ones.
+
+* **Use appropriate methods:** Choose the most efficient method for the task.  Using `addQuery` is better than recreating the entire query string for a minor change.
+
+* **Cache parsed URIs:** In scenarios with a fixed set of URIs, consider pre-parsing and caching them to avoid repeated parsing overhead.
+
+* **Batch operations:** When you need to perform multiple operations on a URI, combine them into a single operation whenever possible. This reduces the number of object manipulations.
+
+
+### Working with Different Browsers and Environments
+
+URI.js is designed to work consistently across different browsers and environments. It handles inconsistencies in browser implementations and provides a uniform API.  However:
+
+* **Compatibility testing:** It's always recommended to test your application with different browsers and versions to ensure compatibility.
+
+* **Polyfills:** While URI.js itself doesn't require any polyfills for modern browsers, if you are targeting very old browsers you may need to ensure your environment includes appropriate polyfills for the JavaScript features it uses.
+
+* **Node.js compatibility:** URI.js works seamlessly in Node.js environments through `npm` or `yarn` installation.  No browser-specific adjustments are needed.
+
+
+
+
+## API Reference
+
+This section provides a comprehensive reference for the URI.js API.  Note that the exact methods and properties might vary slightly depending on the version of URI.js you are using.  Always refer to the latest documentation on the project's website for the most up-to-date information.
+
+
+### URI Object
+
+The core of URI.js is the `URI` object.  It's created using the `new URI(uriString)` constructor or `URI.create(uriString or uriObject)` method.  This object represents a parsed URI and provides methods for accessing and manipulating its components.  The `URI` object does *not* inherit from any specific JavaScript prototype.
+
+### Methods and Properties
+
+The `URI` object exposes numerous methods for accessing and modifying URI components.  Key methods include (but are not limited to):
+
+* **`scheme()`**: Getter and setter for the URI scheme (e.g., `http`, `https`, `ftp`).
+
+* **`username()`**, **`password()`**: Getters and setters for the username and password components of the URI's authority (often used with `ftp` and other protocols).
+
+* **`host()`**: Getter and setter for the host component (hostname or IP address).
+
+* **`hostname()`**: Getter for the hostname, separated from the port.
+
+* **`port()`**: Getter and setter for the port number.
+
+* **`path()`**: Getter and setter for the path component.  Several methods help manipulate paths, such as `addPath()`, `removePath()`.
+
+* **`query()`**: Getter and setter for the query component.  It accepts a boolean argument: `true` returns a parsed object of query parameters, `false` (default) returns a string. Methods like `addQuery()`, `removeQuery()` facilitate fine-grained control of parameters.
+
+* **`fragment()`**: Getter and setter for the fragment component.
+
+* **`authority()`**: Getter for the `username:password@host:port` component.
+
+* **`origin()`**: Getter for the origin (`scheme://host:port`).
+
+* **`toString()`**: Converts the URI object back into its string representation.
+
+* **`isAbsolute()`**:  Checks if the URI is an absolute URI.
+
+* **`normalize()`**: Normalizes the URI (e.g., simplifying the path).
+
+* **`resolve(relativeUri)`**:  Resolves a relative URI against the current URI.
+
+
+* **`equals(otherUri)`**: Checks if two URI objects are equal.
+
+For a complete list and detailed descriptions, always consult the official API documentation.  The exact syntax and capabilities may evolve with URI.js updates.
+
+
+### Static Methods
+
+URI.js provides several static methods, primarily `URI.parse()` and `URI.create()`.
+
+* **`URI.parse(uriString)`**: Parses a URI string and returns an object representing its components.  It is more lenient about malformed input than the constructor.
+
+* **`URI.encodeComponent(component)`**:  Percent-encodes a URI component string.
+
+* **`URI.decodeComponent(component)`**:  Percent-decodes a URI component string.
+
+
+### Events (if applicable)
+
+URI.js itself does not have an event system.  It's a utility library focused on URI manipulation; any events would be handled within the application using the modified URI objects.  There are no built-in events triggered by the library's methods.
+
+
+## Contributing to URI.js
+
+This section outlines how to contribute to the URI.js project.  Contributions are welcome and appreciated!  Before contributing, please take some time to familiarize yourself with the project's guidelines and coding style.
+
+### Code Style Guide
+
+URI.js follows a consistent coding style to ensure readability and maintainability.  The primary style guide is generally consistent with standard JavaScript conventions, emphasizing clarity and simplicity.
+
+* **Indentation:** Use 2 spaces for indentation.
+
+* **Line length:** Keep lines under 80 characters.
+
+* **Semicolons:** Use semicolons consistently to terminate statements.
+
+* **Variable naming:** Use descriptive and consistent variable names (camelCase).
+
+* **Comments:** Write clear and concise comments explaining complex logic or non-obvious code sections.
+
+Specific style preferences might be documented within the project's source code or in a separate style guide file.  It's recommended to review the existing codebase to understand the preferred style before making any changes.
+
+
+### Testing and Debugging
+
+URI.js utilizes a comprehensive test suite.  All contributions should include corresponding tests to ensure correctness and prevent regressions.  The tests are typically written using a unit testing framework (check the project's documentation for specifics on the testing framework used).  To run the tests:
+
+1. **Clone the repository:** Obtain a local copy of the URI.js repository.
+
+2. **Install dependencies:**  Install the project's dependencies (e.g., using npm or yarn).
+
+3. **Run the tests:** Execute the test runner command (instructions will be in the project's README or contributing guide).
+
+Debugging can be done using standard JavaScript debugging tools in your IDE or browser's developer console.  Use `console.log` strategically to inspect variable values and the flow of execution during testing and development.
+
+
+### Submitting Pull Requests
+
+1. **Fork the repository:** Create a fork of the main URI.js repository on GitHub.
+
+2. **Create a branch:** Create a new branch for your changes. Use descriptive branch names (e.g., `fix/bug-123` or `feature/new-method`).
+
+3. **Make your changes:** Implement your changes and write comprehensive tests. Ensure your code adheres to the project's code style guide.
+
+4. **Commit your changes:** Commit your changes with clear and concise messages describing your modifications.
+
+5. **Push your branch:** Push your branch to your forked repository.
+
+6. **Create a pull request:**  Submit a pull request to the main URI.js repository.  Provide a detailed description of your changes and their purpose in the pull request description.
+
+
+### Community Support
+
+For questions, discussions, or help with using URI.js, please use the project's designated channels for community support (e.g., GitHub Issues, a forum, a dedicated chat channel).  Be sure to check the project's documentation and existing issues before posting to avoid duplicates.  Respectful and constructive communication is essential when interacting with the project's maintainers and other community members.  Provide clear and concise descriptions of your questions or problems, including relevant code snippets and error messages.
+

@@ -1,0 +1,532 @@
+---
+title: "anime.js - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction to anime.js
+
+### What is anime.js?
+
+anime.js is a lightweight and versatile JavaScript animation library.  It allows you to create compelling animations for your web projects with a simple, yet powerful API.  Unlike some animation libraries that focus on specific animation types, anime.js offers a flexible approach, letting you animate almost any CSS property, SVG attribute, or JavaScript object property. This makes it ideal for a wide range of animation needs, from simple transitions to complex, multi-element sequences.  Its intuitive syntax and well-documented API make it easy to learn and use, even for developers with limited animation experience.  Anime.js prioritizes performance and smooth animations, even on less powerful devices.
+
+
+### Setting up anime.js
+
+There are several ways to include anime.js in your project:
+
+* **CDN:** The easiest method is using a CDN link directly in your HTML `<head>`:
+
+```html
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+```
+Remember to replace `3.2.1` with the latest version number if needed.  Check the official anime.js website for the most up-to-date version.
+
+* **npm:** For projects using npm (Node Package Manager), install anime.js using:
+
+```bash
+npm install animejs
+```
+
+Then, you can import it into your JavaScript file:
+
+```javascript
+import anime from 'animejs';
+```
+
+* **Yarn:** If you're using Yarn, the installation is similar:
+
+```bash
+yarn add animejs
+```
+
+Followed by the import:
+
+```javascript
+import anime from 'animejs';
+```
+
+After including anime.js using your preferred method, you're ready to start creating animations.
+
+
+### Basic animation concepts
+
+Understanding a few key concepts will make using anime.js much easier.  Anime.js animations are defined using *targets*, *properties*, *values*, *duration*, and *easing*.
+
+* **Targets:** This specifies the HTML element(s) or JavaScript object(s) you want to animate.  This can be a CSS selector (e.g., `'.element'`), a DOM element, or an array of elements.
+
+* **Properties:** These are the CSS properties, SVG attributes, or JavaScript object properties you want to change over time.  Examples include `'left'`, `'opacity'`, `'transform'`, `'fill'`, etc.
+
+* **Values:** These determine the start and end values for your animation.  They can be single values, arrays of values for keyframes, or even functions for more complex animations.
+
+* **Duration:** This specifies the animation's length in milliseconds.
+
+* **Easing:** This controls the animation's speed and smoothness over time. Anime.js offers a variety of built-in easing functions, and you can also define custom easing functions.
+
+A simple animation might look like this:
+
+```javascript
+anime({
+  targets: '.element',
+  opacity: [0, 1], //Start at 0 opacity, end at 1
+  duration: 1000, //1 second
+  easing: 'easeInOutQuad'
+});
+```
+
+This code animates the opacity of an element with the class "element" from 0 to 1 over one second, using a smooth easeInOutQuad easing function.  More complex animations can be created by adding more properties, keyframes, and animation parameters.
+
+
+## Core Concepts and API
+
+### The `anime()` function
+
+The heart of anime.js is the `anime()` function.  This function takes a single object as an argument, which defines all aspects of the animation.  This object can contain various properties, each controlling a specific aspect of the animation's behavior.  The most fundamental properties are `targets`, `properties`, `duration`, and `easing`, as introduced previously.  However, `anime()` supports a rich set of options for fine-grained control over your animations.  A basic example illustrates its structure:
+
+
+```javascript
+anime({
+  targets: '.element',
+  translateX: 250,
+  duration: 1000,
+  easing: 'linear'
+});
+```
+
+This animates the `.element`'s horizontal position by 250 pixels over one second using linear easing.  The `anime()` function returns an `anime.Anime` instance, which allows you to control the animation after it's started (discussed in "Controlling animation playback").
+
+
+### Targets and properties
+
+`targets` specifies what to animate.  It accepts a variety of values:
+
+* **CSS Selectors:**  Strings like `'.my-class'`, `'#my-id'`, or `'div p'` select elements in the DOM.
+* **DOM Elements:**  An array or a single DOM element.
+* **Arrays of Elements:**  Multiple elements can be animated simultaneously.
+* **JavaScript Objects:** Animate properties of plain JavaScript objects.
+
+`properties` dictates which properties to animate. These can be CSS properties (e.g., `'left'`, `'opacity'`, `'transform'`), SVG attributes (e.g., `'cx'`, `'fill'`, `'d'`), or custom JavaScript object properties.  You can animate multiple properties simultaneously by passing an object:
+
+```javascript
+anime({
+  targets: '.element',
+  properties: {
+    translateX: 250,
+    opacity: [1, 0] // Array for start and end values
+  },
+  duration: 1000
+});
+```
+
+
+### Animation timelines
+
+Anime.js doesn't have a dedicated timeline object in the same way some other animation libraries do. Instead,  the sequencing and synchronization of animations are typically achieved using `delay`, `begin`, `complete`, and `update` callbacks within the `anime()` function, and through chaining animations (explained below).  You can precisely control when animations start and end relative to each other using these methods.
+
+
+### Easing functions
+
+Easing functions control the animation's speed and smoothness over time. Anime.js provides a wide variety of pre-defined easing functions (e.g., `'linear'`, `'easeInQuad'`, `'easeOutCubic'`, `'easeInOutElastic'`), which can be specified via the `easing` property in the `anime()` options object.  For custom easing, you can provide a function that takes a normalized time value (0 to 1) and returns the corresponding eased value.  Refer to the documentation for the full list of built-in easing functions.
+
+
+### Animation loops and iterations
+
+To create looping animations, use the `loop` property within the `anime()` options.  Setting `loop: true` will repeat the animation indefinitely.  You can control the number of repetitions with `loop: n` where `n` is the number of times to loop.
+
+
+### Staggering animations
+
+Anime.js allows staggering the animations of multiple elements.  The `delay` property can be an array to provide unique delays for each element, or you can use the `stagger` property to create a uniform delay between consecutive elements:
+
+```javascript
+anime({
+  targets: '.element',
+  translateX: 250,
+  duration: 1000,
+  delay: anime.stagger(200) // 200ms delay between each element
+});
+```
+
+
+### Chaining animations
+
+Anime.js makes chaining animations straightforward.  You can queue animations one after another. The `complete` callback of one animation can trigger the next.  More sophisticated sequencing can be achieved by using promises.
+
+```javascript
+anime({
+    targets: '.element',
+    translateX: 250,
+    duration: 1000,
+    complete: function() {
+        anime({
+            targets: '.element',
+            translateY: 250,
+            duration: 1000
+        });
+    }
+});
+
+```
+
+
+### Controlling animation playback
+
+The `anime()` function returns an `anime.Anime` instance. This instance provides methods to control the animation's playback:
+
+* **`animeInstance.play()`:** Resumes a paused animation.
+* **`animeInstance.pause()`:** Pauses an animation.
+* **`animeInstance.reverse()`:** Reverses the animation's direction.
+* **`animeInstance.restart()`:** Restarts the animation from the beginning.
+* **`animeInstance.seek(time)`:** Jumps to a specific time in the animation (in milliseconds).
+* **`animeInstance.finished`:** A promise that resolves when the animation completes.
+* **`animeInstance.stop()`:** Stops the animation immediately.
+
+
+These methods offer comprehensive control over animation playback, enabling dynamic and interactive animation sequences.
+
+
+## Animation Properties
+
+### Transformations (`translateX`, `translateY`, `scale`, `rotate`, etc.)
+
+Anime.js provides comprehensive support for CSS transform properties.  You can animate `translateX`, `translateY`, `translateZ`, `scale`, `scaleX`, `scaleY`, `scaleZ`, `rotate`, `rotateX`, `rotateY`, `rotateZ`, `skew`, `skewX`, `skewY`, and `matrix` directly.  These properties accept numerical values (representing pixels for translations, ratios for scale, and degrees for rotations).  You can also use array values to specify start and end values or create keyframes:
+
+
+```javascript
+anime({
+  targets: '.element',
+  translateX: 250, //Move 250px to the right
+  rotate: 360, //Rotate 360 degrees
+  scale: 2, //Scale to double size
+  duration: 1000
+});
+
+
+anime({
+  targets: '.element',
+  scale: [1, 2, 1], //Scale from 1 to 2 and back to 1
+  duration: 2000
+});
+```
+
+Note that for transforms involving multiple properties, it's generally more efficient to use a single `transform` property with a string value (e.g., `"translate(10px, 20px) rotate(45deg)"`).  However, Anime.js's individual transform property support offers more granular control and easier readability.
+
+### Opacity
+
+The `opacity` property controls the transparency of an element. Values range from 0 (fully transparent) to 1 (fully opaque).  Animations can smoothly transition between different opacity levels:
+
+```javascript
+anime({
+  targets: '.element',
+  opacity: [0, 1], //Fade in
+  duration: 1000,
+  easing: 'easeInOutSine'
+});
+
+anime({
+  targets: '.element',
+  opacity: {
+    value: 0,
+    duration: 1000
+  }
+});
+```
+
+### Color attributes
+
+Anime.js handles color animations effectively. You can animate CSS properties like `color`, `background-color`, `border-color`, `fill` (for SVG elements), and `stroke` (for SVG elements).  These properties accept various color formats, including hexadecimal (`#FF0000`), RGB (`rgb(255, 0, 0)`), RGBA (`rgba(255, 0, 0, 0.5)`), HSL (`hsl(0, 100%, 50%)`), and named colors (`red`).   Anime.js will interpolate between colors automatically:
+
+```javascript
+anime({
+  targets: '.element',
+  backgroundColor: ['#FF0000', '#0000FF'], //Animate from red to blue
+  duration: 1500
+});
+
+anime({
+  targets: '.element',
+  color: ['red', 'green', 'blue'], //Animate through multiple colors
+  duration: 3000
+});
+
+```
+
+### Other CSS properties
+
+Anime.js can animate a wide range of other CSS properties, including:
+
+* **Dimensions:** `width`, `height`, `maxWidth`, `maxHeight`, `minWidth`, `minHeight`, `left`, `top`, `right`, `bottom`, `margin`, `padding`, `border`, etc.
+* **Box-shadow:**  The `boxShadow` property allows you to animate the position, blur radius, and color of the box-shadow.
+* **Text properties:** `fontSize`, `fontWeight`, `fontFamily`, `lineHeight`, etc.
+* **Filter effects:** `blur`, `grayscale`, `sepia`, `hue-rotate`, etc.  (Note: browser compatibility for filter animations may vary.)
+
+
+Remember to consult the official documentation for the most up-to-date list of supported CSS properties.  For properties that are not directly supported, you might need to use JavaScript to indirectly manipulate the property values.  For example, if you want to animate the `scroll-top` property, you would need to use JavaScript to get and set the scroll position, as it is not directly animatable using CSS.
+
+
+## Advanced Techniques
+
+### Creating complex animations
+
+Anime.js excels at creating intricate animations involving multiple elements, properties, and timelines.  To achieve complexity, leverage several key features:
+
+* **Keyframes:**  Use arrays within property values to define keyframes for smooth, non-linear animations:
+
+```javascript
+anime({
+  targets: '.element',
+  translateX: [
+    {value: 200, easing: 'easeInOutSine'},
+    {value: -100, easing: 'easeOutExpo'}
+  ],
+  duration: 2000
+});
+```
+
+* **Staggering and Delays:** Fine-tune the timing of animations within a sequence using `stagger` and `delay` properties to create visually engaging effects, such as wave-like animations or cascading effects.
+
+* **Chaining Animations:** Sequence animations using callbacks (`complete`, `begin`) or Promises to create intricate flows of animation events.  Asynchronous operations can be integrated seamlessly.
+
+* **Complex Easing:** Employ custom easing functions or explore the numerous built-in easing functions to achieve precise control over animation curves.
+
+
+### Using animation events
+
+Anime.js provides several events that trigger callbacks at specific points within the animation lifecycle:
+
+* **`begin`:** Executes a function when the animation starts.
+* **`update`:** Executes a function on every animation frame, providing access to the current animation values.  This is useful for real-time updates or dynamic behavior.
+* **`complete`:** Executes a function when the animation finishes.
+* **`loopComplete`:** For looping animations, this event fires at the end of each loop.
+* **`pause`:** Executes a function when the animation is paused.
+* **`resume`:** Executes a function when the animation resumes after being paused.
+
+Use these events to trigger other actions, create interactive elements, or synchronize animations with other parts of your application.
+
+
+### Working with SVG
+
+Anime.js seamlessly animates SVG attributes.  Animate `cx`, `cy`, `r`, `x`, `y`, `width`, `height`, `fill`, `stroke`, `stroke-width`, and path data (`d` attribute) to create dynamic SVG animations.
+
+```javascript
+anime({
+  targets: 'circle', //select SVG circle
+  r: 100,
+  fill: '#f00',
+  duration: 1000
+});
+
+anime({
+  targets: 'path', //select SVG path
+  d: [ //array of path data strings as keyframes
+    'M10 10 H 90 V 90 H 10 Z',
+    'M10 10 H 90 V 90 H 10 L 50 150 Z'
+  ],
+  duration: 2000
+});
+```
+
+
+### Integrating with other libraries
+
+Anime.js is designed to be compatible with other JavaScript libraries.  You can seamlessly integrate it into your existing projects using frameworks like React, Vue, or Angular.  Remember to manage dependencies carefully and consider the order in which libraries are loaded.
+
+### Performance optimization
+
+For optimal performance, consider these strategies:
+
+* **Minimize the number of elements animated:**  Animate only the elements that require animation.
+* **Use hardware acceleration where possible:**  Utilize CSS transforms whenever feasible, as they are often hardware-accelerated.
+* **Optimize easing functions:** Complex or computationally expensive easing functions can impact performance.  Choose efficient easing functions, or create custom functions with performance in mind.
+* **Avoid unnecessary updates:** If you're using the `update` event, only perform the necessary calculations within the callback.
+* **Avoid blocking the main thread:** Use `requestAnimationFrame` or other techniques to prevent the animation from blocking other parts of your application.  Anime.js itself is generally well-optimized, so this is less crucial unless you have extremely complex animations.
+
+
+By following these guidelines, you can create complex, visually stunning animations with anime.js while maintaining smooth performance.
+
+
+## Examples and Use Cases
+
+### Simple animation examples
+
+Here are a few simple examples to get you started:
+
+**1.  Fade-in effect:**
+
+```javascript
+anime({
+  targets: '.element',
+  opacity: [0, 1],
+  duration: 1000
+});
+```
+
+This code fades in an element with the class "element" over one second.
+
+**2.  Moving an element:**
+
+```javascript
+anime({
+  targets: '.element',
+  translateX: 200,
+  duration: 1500,
+  easing: 'easeInOutQuad'
+});
+```
+
+This moves the element 200 pixels to the right using a smooth easing function.
+
+**3.  Scaling an element:**
+
+```javascript
+anime({
+  targets: '.element',
+  scale: 1.5,
+  duration: 800
+});
+```
+
+This scales the element to 150% of its original size.
+
+
+### Complex animation examples
+
+More complex animations can combine multiple properties, keyframes, and event handlers. Here's an example of animating multiple elements with different delays:
+
+
+```javascript
+anime({
+  targets: '.box',
+  translateX: 250,
+  duration: 1000,
+  delay: anime.stagger(200),
+  easing: 'easeInOutElastic'
+});
+```
+
+This code animates multiple elements with the class "box," each with a 200ms delay between them, moving them to the right with a bouncy easing effect.
+
+
+Another example demonstrates a more involved keyframe animation:
+
+```javascript
+anime({
+  targets: '.circle',
+  keyframes: [
+    {scale: 1, opacity: 1},
+    {scale: 2, opacity: 0.5},
+    {scale: 1, opacity: 1}
+  ],
+  duration: 2000,
+  loop: true
+});
+```
+
+This creates a pulsing circle animation.
+
+
+
+### Real-world use cases
+
+Anime.js is applicable to a wide range of scenarios:
+
+* **Loading indicators:** Create smooth and visually appealing loading animations.
+* **Interactive elements:** Animate elements on hover, click, or other user interactions.
+* **Micro-interactions:** Add subtle animations to enhance user experience.
+* **Data visualizations:** Animate charts and graphs to improve readability and engagement.
+* **Game development:** Although not specifically designed for game development, anime.js can be used for simpler animation requirements within games.
+* **Web page transitions:** Craft more engaging transitions between pages or sections of a website.
+* **UI Animations:**  Enhance the user interface of web applications with smooth transitions, feedback animations, and other visual effects.
+
+
+### Creating custom animations
+
+Anime.js's flexibility makes building custom animations relatively easy. You combine different properties, easing functions, and event handlers to create your unique animations. For instance, you could animate the stroke-dasharray property of an SVG path to create a drawing effect, or use the update event to dynamically change animation parameters based on user input or other real-time data.  The library provides the building blocks; your creativity determines the final animation.  Experimentation is encouraged!
+
+
+## Troubleshooting and Debugging
+
+### Common issues and solutions
+
+Here are some common issues encountered when using anime.js and their solutions:
+
+* **Animation doesn't play:**
+    * **Problem:**  Check if anime.js is correctly included in your project.  Ensure there are no typos in the script tag or import statement. Verify that the target elements exist in the DOM when the animation is initiated.  Confirm that there are no JavaScript errors preventing the animation from running.
+    * **Solution:** Double-check the inclusion of the library, inspect the console for errors, and use browser developer tools to ensure the target elements are available.
+
+* **Animation is jerky or not smooth:**
+    * **Problem:** This might be due to performance bottlenecks, particularly with many elements or complex animations.  Overly complex easing functions can also contribute.
+    * **Solution:** Optimize the animation (fewer elements, simpler easing), ensure hardware acceleration where possible (using transforms), and check for performance bottlenecks in your browser's developer tools.
+
+* **Incorrect animation behavior:**
+    * **Problem:** This often results from errors in the `anime()` function's parameters, such as incorrect property names, invalid values, or misuse of keyframes.
+    * **Solution:** Carefully review the animation parameters. Use the browser's developer console to inspect the values of the properties being animated to identify discrepancies.
+
+* **Animation doesn't stop or pause correctly:**
+    * **Problem:** This can occur if the `stop()` or `pause()` method isn't called correctly on the returned `anime.Anime` instance.
+    * **Solution:** Make sure you are using the correct method (`animeInstance.stop()`, `animeInstance.pause()`) on the instance returned by `anime()`.
+
+
+* **Unexpected behavior with SVG animations:**
+    * **Problem:** SVG animation can be more complex.  Incorrect path data, missing attributes, or browser compatibility issues might cause problems.
+    * **Solution:** Carefully check your SVG markup and ensure the attributes you are animating exist. Test in different browsers to check for compatibility. Use your browser's developer tools to inspect the SVG elements.
+
+* **Conflicting libraries:**
+    * **Problem:**  Anime.js might conflict with other JavaScript libraries that manipulate the DOM or handle animations.
+    * **Solution:** Try loading anime.js after other libraries or resolving any potential conflicts by adjusting the order of execution.
+
+
+### Debugging tools and techniques
+
+Several tools and techniques can aid in debugging anime.js animations:
+
+* **Browser Developer Tools:**  Use your browser's developer tools (usually accessed by pressing F12) to inspect the elements, network requests, console errors, and animation performance.  The console allows you to log values and trace the execution flow.
+
+* **Console Logging:** Use `console.log()` statements within your JavaScript code to track variable values, the timing of events, and the status of the animations.  This will help to pinpoint problems.
+
+* **Step-through Debugging:**  Set breakpoints in your code using your browser's debugger and step through the execution line by line.  This allows you to observe variable changes and track the progress of the animation.
+
+* **Simplify your code:**  When facing complex issues, try to isolate the problem by creating a minimal, reproducible example. This will help to identify the root cause more easily.
+
+* **Check the anime.js documentation:** The official documentation provides detailed explanations of the API, common issues, and best practices.
+
+By using these tools and techniques, you'll be able to efficiently identify and resolve any problems you encounter when working with anime.js.  Remember to check the console for errors—this is often the first place to find clues about why an animation isn't working as expected.
+
+
+## Appendix
+
+### Glossary of terms
+
+* **Targets:** The HTML elements, SVG elements, or JavaScript objects that will be animated.
+* **Properties:** The CSS properties, SVG attributes, or JavaScript object properties being animated.
+* **Values:** The starting and ending values (or keyframes) for the animated properties.
+* **Duration:** The length of the animation in milliseconds.
+* **Easing:**  A function that determines the speed and smoothness of the animation over time.
+* **Keyframes:**  Intermediate points in an animation, defining the state at specific times.
+* **Stagger:**  A delay applied between animations of multiple targets, creating sequential or staggered effects.
+* **Callback:**  A function executed at specific points in the animation lifecycle (e.g., `begin`, `complete`, `update`).
+* **Timeline:**  While anime.js doesn't have a formal "Timeline" object, it refers to the sequencing and synchronization of animations using delays, callbacks, and chaining.
+
+
+### List of easing functions
+
+Anime.js provides a wide range of easing functions.  A complete list is available in the official documentation.  However, here are some examples of the common easing function types and their general behavior:
+
+* **Linear:** Constant speed throughout the animation.
+* **Quadratic (easeInQuad, easeOutQuad, easeInOutQuad):**  Acceleration or deceleration at the beginning or end.
+* **Cubic (easeInCubic, easeOutCubic, easeInOutCubic):** Similar to quadratic, but with a more pronounced acceleration/deceleration effect.
+* **Quartic (easeInQuart, easeOutQuart, easeInOutQuart):**  Even more pronounced acceleration/deceleration than cubic.
+* **Quintic (easeInQuint, easeOutQuint, easeInOutQuint):**  Similar to quartic, but even smoother.
+* **Sine (easeInSine, easeOutSine, easeInOutSine):**  Smooth, sinusoidal easing.
+* **Exponential (easeInExpo, easeOutExpo, easeInOutExpo):**  Fast start or end with slow middle.
+* **Circular (easeInCirc, easeOutCirc, easeInOutCirc):**  Smooth, circular easing.
+* **Elastic (easeInElastic, easeOutElastic, easeInOutElastic):**  Bouncy, spring-like effect.
+* **Back (easeInBack, easeOutBack, easeInOutBack):** Overshoots the target before settling.
+* **Bounce (easeInBounce, easeOutBounce, easeInOutBounce):**  Bounces before coming to a stop.
+
+
+The exact behavior of each easing function can be found in the official anime.js documentation.  You can also define and use your own custom easing functions.
+
+
+### Browser compatibility
+
+Anime.js is designed to be compatible with modern web browsers.  While it strives for broad compatibility, some features might have limitations depending on the browser and its version.  Generally, modern browsers (Chrome, Firefox, Safari, Edge) should provide good support.  However, for older browsers or those with limited JavaScript engine capabilities, you might need to consider polyfills or alternative approaches for certain features.  Always test your animations across the target browsers to ensure consistent behavior.  Consult the official documentation or release notes for the most up-to-date information on browser compatibility.
+

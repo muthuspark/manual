@@ -1,0 +1,505 @@
+---
+title: "JsRender JsViews - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction to JsRender & JsViews
+
+### What are JsRender and JsViews?
+
+JsRender and JsViews are client-side JavaScript templating engines that work together to provide powerful data binding and template rendering capabilities.  JsRender is a high-performance template engine focusing on rendering HTML and text templates, while JsViews extends JsRender with advanced features like data binding, event handling, and component composition.  They are designed to be fast, flexible, and easy to use, making them suitable for a wide range of web development projects. JsRender handles the rendering of templates based on data, while JsViews adds the data-binding layer that enables dynamic updates to the rendered output when the underlying data changes.
+
+
+### Key Features and Benefits
+
+* **High Performance:** JsRender's optimized rendering engine ensures fast template processing, even with large datasets or complex templates.
+* **Data Binding:** JsViews' data-binding capabilities enable automatic updates to the rendered output whenever the data model changes.  This eliminates the need for manual DOM manipulation.
+* **Extensible Tags:** Both JsRender and JsViews allow for custom tag creation, providing significant flexibility and extensibility for building reusable components and functionality.
+* **Clean Syntax:** The template syntax is intuitive and easy to learn, making it accessible to developers with various levels of experience.
+* **Integration:** JsRender and JsViews seamlessly integrate with popular JavaScript frameworks and libraries like jQuery, making them easy to incorporate into existing projects.
+* **Small Footprint:** The libraries are lightweight and optimized for minimal performance impact.
+* **Server-Side Rendering (SSR) Support:**  While primarily client-side,  JsRender can be used in server-side environments with Node.js for pre-rendering.
+
+
+### Comparison with other templating engines
+
+Compared to other JavaScript templating engines like Handlebars, Mustache, or Angular's templating system, JsRender and JsViews offer several advantages:
+
+* **Performance:** JsRender generally outperforms other engines in terms of rendering speed, particularly with larger datasets.
+* **Data Binding:**  While some engines offer data binding, JsViews' implementation is often considered more powerful and flexible.  It handles complex scenarios and relationships between data elements better.
+* **Extensibility:** The custom tag system in JsRender and JsViews is highly versatile, allowing developers to tailor the functionality to meet specific needs.
+* **Control Flow:** JsRender and JsViews provide more robust control flow features within templates than some simpler engines, allowing for conditional rendering and looping with greater flexibility.
+
+However,  the learning curve might be slightly steeper than some simpler engines like Mustache, especially when mastering the advanced features of JsViews.
+
+
+### Setting up JsRender and JsViews
+
+Include the JsRender and JsViews libraries in your HTML file. You can download them from the official website or use a package manager like npm or yarn.  A typical inclusion might look like this:
+
+```html
+<script src="jsrender.min.js"></script>
+<script src="jsviews.min.js"></script>
+```
+
+Alternatively, using a CDN:
+
+```html
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsrender/1.0.4/jsrender.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsviews/1.0.4/jsviews.min.js"></script>
+```
+
+Remember to replace the version numbers (`1.0.4` in this example) with the latest stable version.
+
+
+### Example: A simple data-binding scenario.
+
+This example demonstrates a simple data-binding scenario using JsRender and JsViews:
+
+```html
+<script id="myTemplate">
+  <h1>{{:name}}</h1>
+  <p>Age: {{:age}}</p>
+</script>
+
+<div id="target"></div>
+
+<script>
+  const data = { name: "John Doe", age: 30 };
+  const template = $.templates("#myTemplate");
+  const html = template.render(data);
+  $("#target").html(html);
+
+  //Later, update the data:
+  data.age = 31;
+  //The view automatically updates thanks to JsViews data-binding
+
+</script>
+```
+
+This code defines a template with placeholders for `name` and `age`.  The `$.templates` function compiles the template. `template.render` renders the template with the provided data.  The rendered HTML is inserted into the `#target` div. Because JsViews is used, changing `data.age` will automatically update the age displayed on the page.  (Note: This example assumes you're using jQuery, though it's not strictly required for JsRender/JsViews).  For more complex data-binding scenarios, you may want to investigate the use of `{{>}}`  (for nested templates) and `{{if}}`, `{{for}}`, etc., (for control flow).
+
+
+## JsRender: Templating Basics
+
+### Templates: Structure and Syntax
+
+JsRender templates are written within `<script>` tags with the `id` attribute to identify them.  The template content uses a simple syntax based on curly braces `{{...}}`.  These tags are processed by JsRender to insert data and control the rendering logic.
+
+A basic template might look like this:
+
+```html
+<script id="myTemplate">
+  <h1>Hello, {{:name}}!</h1>
+  <p>You are {{:age}} years old.</p>
+</script>
+```
+
+Here, `{{:name}}` and `{{:age}}` are data placeholders that will be replaced with the corresponding values from your data object during rendering.  The colon (`:`) indicates a simple data binding to a property of the data object.
+
+
+### Data Binding with {{tags}}
+
+Data binding is the core functionality of JsRender.  The simplest form, as shown above, uses the `{{:propertyName}}` syntax.  More complex data access is possible:
+
+* **Nested Properties:** `{{:user.address.street}}` accesses the `street` property within the nested `address` property of the `user` object.
+* **Array Access:** `{{:myArray[0]}}` accesses the first element of the `myArray` array.
+* **Functions:** `{{:formatDate(myDate)}}` calls the `formatDate` function with `myDate` as an argument.  (You would need to define the `formatDate` function separately).
+* **Convertors:** `{{:~myConverter(myValue)}}` uses the `myConverter` registered converter function (You must register converters beforehand).
+
+
+### Conditional Rendering with {{if}} and {{else}}
+
+Conditional rendering allows you to include or exclude parts of the template based on conditions.
+
+```html
+<script id="conditionalTemplate">
+  {{if age >= 18}}
+    <p>You are an adult.</p>
+  {{else}}
+    <p>You are a minor.</p>
+  {{/if}}
+</script>
+```
+
+This example shows a simple `if/else` statement.  You can nest `{{if}}` and `{{else}}` blocks for more complex conditional logic.  The expressions within the `{{if}}` tags are evaluated in JavaScript context.
+
+
+### Iteration with {{for}} loops
+
+The `{{for}}` tag iterates over arrays or other iterable objects.
+
+```html
+<script id="forLoopTemplate">
+  <ul>
+    {{for items}}
+      <li>{{:name}} - {{:age}}</li>
+    {{/for}}
+  </ul>
+</script>
+```
+
+In this example, the `{{for items}}` tag iterates through each object in the `items` array, rendering a `<li>` element for each item.  The `name` and `age` properties of each item are accessed within the loop.  `{{for}}` supports index access via `{{:#index}}` and other helpful properties like `{{:#data}}` (the item) and `{{:#item}}` (same as data)
+
+
+### Working with Helpers
+
+Helpers are reusable functions that can be incorporated into your templates to perform more complex logic or formatting.  They are called using `{{helperName(...)}}`.
+
+```javascript
+$.views.helpers({
+  formatPrice: function(price) {
+    return "$" + price.toFixed(2);
+  }
+});
+```
+
+This defines a `formatPrice` helper.  You can then use it in your template like this: `{{:formatPrice(price)}}`.
+
+
+### Escaping HTML
+
+To prevent the data from being interpreted as HTML, use the `{{&}}` tag for HTML escaping:
+
+```html
+<p>{{&myData}}</p>
+```
+
+This will render `myData` as plain text, escaping any HTML tags it might contain.  The default rendering (`{{:}}`) does *not* escape HTML.
+
+
+### Advanced Tag Syntax
+
+JsRender supports a powerful, flexible, and extensible tag syntax:
+
+* **Custom Tags:** You can create your own custom tags to extend the functionality of JsRender.
+* **Complex Expressions:** The expressions within tags can include JavaScript operators, functions, and conditional logic.
+* **Tag Attributes:** Many tags support attributes to modify their behavior.
+* **Data Context:** JsRender manages data context effectively, allowing access to data from different levels of the data hierarchy.
+
+Mastering these features unlocks the full potential of JsRender for creating dynamic and complex web applications.  Consult the official JsRender documentation for detailed information on these advanced topics.
+
+
+## JsViews: Data Binding and Controls
+
+### Data Binding with JsViews
+
+JsViews enhances JsRender with powerful data-binding capabilities.  While JsRender focuses on template rendering, JsViews adds the dynamic aspect, automatically updating the rendered output when the underlying data changes.  This is achieved by linking the rendered elements to the data model.  Simple data binding, as shown in previous sections with `{{:propertyName}}`, is already implicitly using JsViews' capabilities when included in your project.  However, JsViews unlocks more advanced features.
+
+To enable full JsViews data binding, you would typically use the `$.templates` method to create a template and then render it, as shown in earlier examples.  The binding is established during the rendering process.
+
+
+### Observing Data Changes
+
+JsViews automatically observes changes to the data model and updates the rendered output accordingly.  This typically works best with plain JavaScript objects (or objects that support the `observe` method).  For complex objects or arrays,  using an observable pattern (e.g., using a library like Knockout or a custom observable implementation) is recommended to guarantee detection of changes within nested structures.
+
+If using plain objects, changes to properties directly on the top-level data object used in the initial render are automatically reflected.  However, adding or removing items from arrays or modifying nested objects might not trigger automatic updates reliably without using more sophisticated methods to observe such changes.
+
+
+### Two-way Data Binding
+
+While JsViews primarily supports one-way data binding (data changes update the view), you can achieve two-way binding by combining JsViews with event handling and manual data updates.  This means that user interactions in the view (e.g., changing the value of an input field) can trigger changes in the underlying data model, which in turn updates the view.  This often involves using event handlers (e.g., `change` event for input fields) to update the data model and trigger a re-rendering of the relevant part of the view (often using the `this.refresh()` method on the view object).
+
+
+### Custom Controls and Components
+
+JsViews allows you to create custom controls or components by extending the template syntax and adding custom functionality.  This enables the creation of reusable UI elements with their own data-binding and event handling.  This is typically done by creating templates with custom tags that encapsulate a specific piece of UI.   These custom tags would likely handle internal data changes, rendering, and event handling to achieve a reusable and well-encapsulated component.
+
+
+### Events in JsViews
+
+JsViews provides a mechanism for handling events within templates. You can attach event handlers to elements within the template using the `{{events}}` tag.
+
+```html
+<script id="myTemplate">
+  <button {{events on-click="myClickHandler"}}>Click Me</button>
+</script>
+
+<script>
+  function myClickHandler(event, data) {
+     // Handle the click event
+     alert("Button clicked!");
+  }
+</script>
+```
+
+This example shows a button with a click handler attached.  The `data` parameter in the handler provides access to the data context for that part of the template.  Note the use of the `on-click` attribute, which is a common convention but customizable.
+
+
+### Advanced Data Binding Scenarios
+
+JsViews' data binding can handle complex scenarios, including:
+
+* **Nested Data:**  JsViews efficiently manages data-binding within nested structures (e.g., rendering lists of objects, each with its own nested properties).
+* **Array Manipulation:**  Efficiently handles additions, removals, and reordering of items in arrays (though you might need to employ observable patterns or explicit refreshing in some cases).
+* **Data Transformations:**  Data can be transformed before rendering using converters and helpers within the data-binding expressions.
+* **Asynchronous Data:** JsViews works well with asynchronous data sources (e.g., AJAX calls). The update mechanism takes care of refreshing the view when data arrives asynchronously.
+
+  For the most robust handling of complex data structures and asynchronous operations, combining JsViews with techniques like observables or explicit refreshing of parts of the view based on data change events is advisable.
+
+
+## Advanced Topics
+
+### Working with complex data structures
+
+JsRender and JsViews are designed to handle complex data structures effectively.  However, for optimal performance and maintainability, consider these strategies when working with deeply nested objects or large arrays:
+
+* **Data flattening:** For very large or deeply nested datasets, consider pre-processing your data to a flatter structure before rendering. This can significantly improve rendering speed.
+* **Data virtualization:**  For extremely large datasets that cannot be reasonably processed at once, implement data virtualization techniques.  This involves loading and rendering only the portion of the data currently visible to the user.
+* **Observables (recommended):**  For complex data structures (especially nested objects and arrays), using an observable pattern (e.g., provided by a library like Knockout.js, or by implementing your own) is strongly recommended.  This ensures that JsViews is properly notified of changes deep within the data structure, triggering the necessary updates to the view.  Directly manipulating nested objects in a plain JavaScript object might not always trigger automatic updates in JsViews.
+* **Efficient Data Access:** Use concise and efficient expressions within your templates to access data.  Avoid unnecessary nested property access or complex calculations within the template itself.  Perform data transformations beforehand if possible.
+
+
+### Nested templates and Partials
+
+Nested templates and partials promote code reusability and organization.  JsViews supports this through several methods:
+
+* **`{{>}}` tag:** The `{{>}}` tag renders a sub-template.  This is ideal for incorporating reusable components or sections within a larger template. You can pass data to the sub-template as needed.
+* **`$.templates()` for sub-templates:** Define separate templates using `$.templates()` and then render them with the `{{>}}` tag or by using the rendered sub-template object directly.
+* **Template inheritance:** While not direct inheritance in the classic sense, you can achieve similar effects by strategically using sub-templates and passing data to control the rendering of common elements.
+
+By using nested templates effectively, you can maintain cleaner, more modular, and easily maintainable code.
+
+
+### Performance Optimization
+
+Optimizing the performance of JsRender and JsViews templates is crucial for large applications. Here are key techniques:
+
+* **Minimize template complexity:** Avoid overly complex expressions and nested loops within your templates.
+* **Pre-compile templates:** Compile templates once and reuse the compiled templates multiple times instead of compiling them repeatedly.
+* **Data preprocessing:** Process and transform your data before passing it to the template. This can simplify template logic and improve rendering speed.
+* **Use converters and helpers effectively:** Leverage converters and helpers to perform complex data transformations outside the rendering process.
+* **Profiling tools:** Use browser developer tools to profile your application and identify performance bottlenecks.
+* **Avoid unnecessary DOM manipulation:** Rely on JsViews' data binding capabilities whenever possible. Avoid direct DOM manipulation unless absolutely necessary.
+
+
+### Debugging and Troubleshooting
+
+Debugging JsRender and JsViews templates can be simplified with the following strategies:
+
+* **Browser developer tools:** Use your browser's developer tools (especially the console) to inspect the rendered output, check for errors, and examine the data context.
+* **`console.log()`:** Strategically place `console.log()` statements within your templates or data handlers to trace data flow and identify problematic areas.
+* **JsRender/JsViews debugger (if available):** Check for a debugger extension or tool specifically designed for JsRender and JsViews.
+* **Check the data:** Verify that the data passed to your templates is correct and in the expected format. Incorrect data is a common source of errors.
+* **Simplify your template:** If you're having trouble debugging a complex template, simplify it to isolate the problem.
+
+
+### Extending JsRender and JsViews
+
+JsRender and JsViews are designed to be extensible.  You can extend them by:
+
+* **Creating custom tags:** Develop custom tags to encapsulate reusable UI elements or add specific functionality.
+* **Registering custom helpers:** Implement custom helper functions to perform specific data transformations or logic.
+* **Registering custom converters:**  Add custom converter functions to modify how data is formatted before rendering.
+
+
+### Integration with other libraries
+
+JsRender and JsViews integrate well with other JavaScript libraries.  Here are some examples:
+
+* **jQuery:**  While not strictly required, many examples use jQuery for DOM manipulation.  The `$` in the examples refers to the jQuery object.  If not using jQuery, you'll need to replace those references with methods suitable for your DOM manipulation library.
+* **Knockout.js:** Combining JsViews with Knockout.js provides a powerful combination of data binding and template rendering. Knockout.js provides the observable pattern, greatly enhancing JsViews' data-binding capabilities, particularly with complex data structures.
+* **Other frameworks:** JsRender and JsViews can typically be integrated with other JavaScript frameworks (Angular, React, Vue.js etc.) though the integration method might need to be tailored to the framework in question.  You might be using JsRender/JsViews only for the template rendering portion and handling data binding and other framework-specific elements separately.
+
+
+
+
+## API Reference
+
+This section provides a concise overview of the key APIs for JsRender and JsViews.  For complete and up-to-date details, refer to the official documentation.  The specific methods and properties available might vary slightly depending on the version of the libraries.
+
+
+### JsRender API
+
+The core JsRender API revolves around the `$.templates()` function and related methods for template compilation and rendering.
+
+* **`$.templates(template)`:** Compiles a template string or a jQuery object representing a template element.  Returns a template object.
+* **`template.render(data, options)`:** Renders the compiled template using the provided data object and optional rendering options.  Returns the rendered HTML string.
+* **`$.render(template, data, options)`:** A convenience function that compiles and renders a template in one step.
+* **`$.views`:**  A global object providing access to various JsRender functionalities, including helpers and registered converters.
+* **`$.views.helpers`:** Register custom helper functions.
+* **`$.views.converters`:** Register custom converters.
+
+
+### JsViews API
+
+JsViews extends the JsRender API with data-binding capabilities.  The core functionality relies on the automatic linking of templates to data and the subsequent observation of data changes. The API largely operates implicitly through the rendering process, and the core JsRender functions are still used but produce views that are capable of updating based on data changes.
+
+* **`template.link(data)`:**  Explicitly links the rendered content to data changes; generally not required unless you need more fine-grained control over the linking process or are not using standard data rendering methods.
+* **`view.refresh()`:** Manually refreshes a view instance, forcing re-rendering based on the current data. This is useful after making direct changes to the data model that might not automatically trigger an update.
+* **`view.unlink()`:** Unlinks the data from the view, preventing any further updates.
+* **`view.data`:** Provides access to the data context associated with a view.
+* **`view.html`:** Provides access to the rendered HTML of the view.
+* **`view.tmpl`:** Provides access to the underlying template object.
+
+
+### Helper Functions
+
+Helper functions extend the functionality of JsRender and JsViews templates. They're JavaScript functions registered with `$.views.helpers()`.
+
+```javascript
+$.views.helpers({
+  formatDate: function(date) {
+    return date.toLocaleDateString();
+  },
+  formatCurrency: function(amount) {
+    return "$" + amount.toFixed(2);
+  }
+});
+```
+
+These helpers can then be called within templates using `{{:formatDate(myDate)}}` and `{{:formatCurrency(price)}}`.
+
+
+### Tags Reference
+
+This section provides a brief summary of the key tags used in JsRender and JsViews templates.  Again, the official documentation should be consulted for exhaustive details and any version-specific differences.
+
+* **`{{:data}}` (or `{{=data}}`):** Simple data binding.  The `=` variant prevents HTML escaping.
+* **`{{&data}}`:** Data binding with HTML escaping (default behavior of `{{:}}`).
+* **`{{>templateName}}`:**  Includes a nested or partial template.
+* **`{{if condition}} ... {{else}} ... {{/if}}`:** Conditional rendering.
+* **`{{for items}} ... {{/for}}`:**  Iterates over an array or other iterable object.  `{{:#index}}` provides the index of the current item. `{{:#data}}` or `{{:#item}}` provides the item itself.
+* **`{{events on-click=handler}}`:** Attaches event handlers to elements (in JsViews).
+* **`{{include}}`:** Include templates.
+* **`{{props}}`:** Defines component properties.
+
+
+This API reference is a simplified overview. Consult the official JsRender and JsViews documentation for a complete and detailed description of all available methods, properties, and tags, including any parameters or options they might accept.  Remember to check the documentation for the specific version you are using.
+
+
+## Examples and Use Cases
+
+This section presents practical examples demonstrating how to use JsRender and JsViews in various scenarios.  These examples assume basic familiarity with the core concepts covered in previous sections.  For brevity, error handling and advanced features are omitted in some cases, but you should include these in your production code.
+
+
+### Building a simple to-do list
+
+This example demonstrates a simple to-do list application:
+
+```html
+<script id="todoTemplate">
+  <li>
+    <input type="checkbox" {{events on-change="toggleComplete"}}>
+    <span>{{:text}}</span>
+    <button {{events on-click="deleteItem"}}>Delete</button>
+  </li>
+</script>
+
+<input type="text" id="newTodo" placeholder="Add a to-do">
+<button id="addTodo">Add</button>
+<ul id="todoList"></ul>
+
+<script>
+  let todos = [];
+  const template = $.templates("#todoTemplate");
+
+  $("#addTodo").click(() => {
+    const newTodoText = $("#newTodo").val();
+    if (newTodoText) {
+      todos.push({ text: newTodoText, complete: false });
+      renderTodos();
+      $("#newTodo").val("");
+    }
+  });
+
+  const renderTodos = () => {
+    $("#todoList").html(template.render(todos));
+    // ... (Event handler code for toggleComplete and deleteItem) ...
+  };
+
+  // ... (Implement toggleComplete and deleteItem handlers) ...
+
+  renderTodos(); //Initial render
+</script>
+```
+
+This code defines a template for each to-do item.  The `addTodo` button adds new items to the `todos` array, and `renderTodos` updates the list using the template.  Event handlers (`toggleComplete` and `deleteItem`) would handle checkbox changes and item deletion, updating the `todos` array accordingly.
+
+
+### Creating a dynamic table
+
+This example shows how to create a dynamic table from an array of data:
+
+```html
+<script id="tableTemplate">
+  <table>
+    <thead>
+      <tr>
+        {{for headers}}<th>{{:name}}</th>{{/for}}
+      </tr>
+    </thead>
+    <tbody>
+      {{for rows}}
+        <tr>
+          {{for .}}<td>{{:value}}</td>{{/for}}
+        </tr>
+      {{/for}}
+    </tbody>
+  </table>
+</script>
+
+<div id="dataTable"></div>
+
+<script>
+  const data = {
+    headers: [{ name: "Name" }, { name: "Age" }, { name: "City" }],
+    rows: [
+      [{ value: "Alice" }, { value: 30 }, { value: "New York" }],
+      [{ value: "Bob" }, { value: 25 }, { value: "Los Angeles" }],
+    ],
+  };
+  const template = $.templates("#tableTemplate");
+  $("#dataTable").html(template.render(data));
+</script>
+```
+
+This uses nested `{{for}}` loops to generate the table rows and cells dynamically.
+
+
+### Integrating with a REST API
+
+This example fetches data from a REST API and renders it using a template:
+
+```javascript
+$.ajax({
+  url: "/api/data",
+  success: function(data) {
+    const template = $.templates("#myTemplate");
+    $("#target").html(template.render(data));
+  },
+  error: function(error) {
+    console.error("Error fetching data:", error);
+  }
+});
+
+//myTemplate would be defined earlier in the HTML as a <script> tag with id="myTemplate"
+```
+
+This code makes an AJAX request to `/api/data`. Once the data is received, it renders it using the `myTemplate`.  Error handling is included.  Remember to replace `/api/data` with the actual API endpoint.
+
+
+### Building a complex UI with JsViews
+
+JsViews shines when building more complex UIs with nested data and dynamic updates.  This example outlines the approach:
+
+```javascript
+//Define complex data structure with nested objects and arrays.
+const complexData = {
+  users: [ /* ... array of user objects ... */ ],
+  products: [ /* ... array of product objects ... */ ],
+  // ... more nested data ...
+};
+
+//Define a main template with nested templates for user list and product list.
+const mainTemplate = $.templates("#mainTemplate");
+
+//Render the main template.
+const mainView = mainTemplate.link(complexData);
+
+//Later, when data changes:
+complexData.users.push(newUser); // Add a new user
+mainView.refresh(); // Refresh the view.  (Or, use observable data structures)
+```
+
+This demonstrates how to create a complex UI by breaking it down into nested templates and leveraging JsViews' data-binding capabilities for dynamic updates.  Using observable data patterns will improve efficiency in this type of scenario by making updates more efficient and minimizing the need for explicit refresh calls.  The nested templates would handle rendering the individual user and product sections, making the main template more manageable. Remember to define the `#mainTemplate` script in your HTML with the appropriate nested template calls (`{{>}}`).
+

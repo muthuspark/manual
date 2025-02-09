@@ -1,0 +1,633 @@
+---
+title: "clueTip - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction
+
+### What is clueTip?
+
+clueTip is a lightweight and highly customizable JavaScript tooltip plugin.  It's designed to be easily integrated into any web project, providing elegant and informative tooltips with minimal code. clueTip focuses on simplicity and performance, offering a clean API for developers to create sophisticated tooltip interactions without unnecessary complexity.  It avoids dependencies on large JavaScript frameworks, making it ideal for projects where minimizing file size is a priority.
+
+### Key Features
+
+* **Lightweight and fast:** clueTip boasts a small file size and minimal performance overhead.
+* **Highly customizable:**  Extensive options allow you to tailor the appearance and behavior of tooltips to match your website's design.  Customize styling, positioning, animations, and more.
+* **Simple API:**  The plugin offers an intuitive and easy-to-use API, making integration straightforward.
+* **Multiple trigger types:**  Support for various trigger events, such as hover, click, and focus.
+* **Cross-browser compatibility:**  clueTip is designed to work consistently across modern browsers.
+* **No dependencies:** Works independently of other JavaScript frameworks or libraries.
+
+### Getting Started
+
+To begin using clueTip, you'll need to include the necessary JavaScript and CSS files in your project.  After inclusion, initialize clueTip on elements within your HTML.  The core functionality revolves around attaching clueTip to a target element using a simple JavaScript call.  This call configures the tooltip's content and behavior.  Detailed examples are provided in the examples section of this manual.
+
+### Installation
+
+1. **Download:** Download the latest release of clueTip from [insert download link here]. This will contain the `cluetip.js` and `cluetip.css` files.
+
+2. **Include Files:**  Include both the JavaScript and CSS files in your HTML document's `<head>` section.  You can do this directly, or use a task runner like Webpack or Parcel.
+
+   ```html
+   <link rel="stylesheet" href="path/to/cluetip.css">
+   <script src="path/to/cluetip.js"></script>
+   ```
+
+3. **Initialization:** Use JavaScript to initialize clueTip on the elements you want to have tooltips.  This usually involves selecting elements using a CSS selector and calling the clueTip function. A basic example is shown below.  Refer to the API documentation for advanced usage and configuration options.
+
+   ```javascript
+   $(document).ready(function() {
+       $('.my-element').cluetip({
+           content: 'This is my tooltip text!'
+       });
+   });
+   ```
+
+   Remember to replace `$('.my-element')` with the appropriate selector targeting your elements and adjust the `content` option as needed.  You may need to include jQuery if you're using the selector shown in this example.  Cluetip itself does *not* require jQuery.
+
+
+## Basic Usage
+
+### Creating a clueTip
+
+The simplest way to create a clueTip is by using the `cluetip()` method on a target element.  This method accepts an options object to customize the tooltip's behavior and appearance.  At a minimum, you'll need to specify the tooltip's content.  This example uses jQuery, but clueTip can also be used without it (see the "Without jQuery" section below).
+
+```javascript
+$(document).ready(function() {
+  $('#myElement').cluetip({
+    content: 'This is my tooltip text'
+  });
+});
+```
+
+Replace `#myElement` with the CSS selector for the element you want to attach the tooltip to.  This code will display the text "This is my tooltip text" when the `#myElement` is hovered over.
+
+
+### Positioning the clueTip
+
+clueTip automatically handles tooltip positioning, attempting to place it in a location that doesn't overlap the target element or go off-screen. However, you can fine-tune the positioning using various options:
+
+* **`position`:**  This option controls the position of the tooltip relative to the target element.  Possible values include `top`, `bottom`, `left`, `right`, `top-left`, `top-right`, `bottom-left`, `bottom-right`.  The default is `top`.
+
+* **`offset`:** This option allows for adjusting the tooltip's position relative to the specified `position`. It accepts an object with `x` and `y` properties (e.g., `{x: 10, y: -5}`).
+
+* **`detectOffset`:**  This boolean option enables or disables automatic offset adjustments to prevent the tooltip from going off-screen.  The default is `true`.
+
+Example demonstrating custom positioning:
+
+```javascript
+$('#myElement').cluetip({
+  content: 'My Tooltip',
+  position: 'bottom-right',
+  offset: { x: 10, y: 5 }
+});
+```
+
+
+### Setting Content
+
+The content of the clueTip can be specified in several ways:
+
+* **`content` (String):**  The simplest method, setting the tooltip's text content directly.
+
+* **`content` (Function):**  A function that returns the tooltip's content.  Useful for dynamically generating content.
+
+* **`ajax` (Object):**  Fetches content via AJAX. Requires at least an `url` property.  This allows for loading content from an external source.
+
+* **`local` (String):**  Specifies the ID of a hidden element whose content should be used.  This is useful for pre-loading content without displaying it directly on the page.
+
+
+Examples:
+
+```javascript
+// Static content
+$('#element1').cluetip({ content: 'Simple tooltip text' });
+
+// Dynamic content
+$('#element2').cluetip({ content: function() { return 'Dynamic content: ' + new Date(); } });
+
+// AJAX content
+$('#element3').cluetip({ ajax: { url: '/tooltip-content.html' } });
+
+// Local content
+$('#element4').cluetip({ local: '#hidden-content' });
+```
+
+
+### Styling the clueTip
+
+clueTip provides a default CSS style, but you can easily customize it.  The core CSS class is `cluetip`. You can modify this class directly in your stylesheet or override individual styles using the `style` option within the cluetip() function:
+
+
+```javascript
+// Using CSS
+/* In your CSS file */
+.cluetip {
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+
+// Using the 'style' option (overrides CSS)
+$('#myElement').cluetip({
+  content: 'My Tooltip',
+  style: {
+    backgroundColor: '#ddd',
+    border: '2px solid #000'
+  }
+});
+
+```
+
+Remember that CSS styles set directly with the `style` option will override styles declared elsewhere.  You can use the `cluetip-inner` class to style the tooltip's inner content if needed.
+
+
+## Advanced Configuration
+
+### Customizing Appearance
+
+Beyond the basic styling options, clueTip offers several ways to fine-tune the tooltip's appearance:
+
+* **`width`:**  Sets a fixed width for the tooltip.
+
+* **`class`:**  Adds custom CSS classes to the tooltip container.  Useful for applying additional styling rules.
+
+* **`arrows`:**  A boolean value controlling whether to display arrow pointers indicating the tooltip's target.  Default is `true`.
+
+* **`arrowStyle`:**  Specifies the style of the arrow pointer.  Accepts an object with properties like `color`, `width`, and `height`.
+
+* **`showTitle`:**  A boolean value controlling whether to display a title bar within the tooltip (useful for headings).  Default is `false`.
+
+* **`title`:**  If `showTitle` is `true`, this option sets the title text.
+
+Example:
+
+```javascript
+$('#myElement').cluetip({
+  content: 'My Tooltip',
+  width: 200,
+  class: 'custom-tooltip',
+  arrows: true,
+  arrowStyle: { color: '#FF0000', width: 10, height: 10 },
+  showTitle: true,
+  title: 'Important Information'
+});
+```
+
+Remember to define the `custom-tooltip` class in your CSS file to apply specific styling.
+
+
+### Events and Callbacks
+
+clueTip provides several events and callbacks allowing you to hook into various stages of the tooltip's lifecycle:
+
+* **`cluetipBeforeShow`:** Triggered before the tooltip is shown.  Can be used to cancel the show action.
+
+* **`cluetipShow`:** Triggered after the tooltip is shown.
+
+* **`cluetipBeforeHide`:** Triggered before the tooltip is hidden.  Can be used to cancel the hide action.
+
+* **`cluetipHide`:** Triggered after the tooltip is hidden.
+
+These events can be specified within the options object:
+
+
+```javascript
+$('#myElement').cluetip({
+  content: 'My Tooltip',
+  cluetipBeforeShow: function(ct, element) {
+    console.log('Tooltip about to show');
+    // Return false to prevent showing
+    return true; 
+  },
+  cluetipShow: function(ct, element) {
+    console.log('Tooltip shown');
+  },
+  cluetipBeforeHide: function(ct, element) {
+    console.log('Tooltip about to hide');
+    // Return false to prevent hiding
+    return true;
+  },
+  cluetipHide: function(ct, element) {
+    console.log('Tooltip hidden');
+  }
+});
+```
+
+`ct` refers to the clueTip instance, and `element` is the target element.
+
+
+
+### Animations
+
+clueTip uses simple animations by default, but these can be customized:
+
+* **`showEffect`:**  Specifies the show animation. Possible values include `fade`, `slide`, and `blind`. Default is `fade`.
+
+* **`hideEffect`:** Specifies the hide animation. Possible values include `fade`, `slide`, and `blind`. Default is `fade`.
+
+* **`showSpeed`:**  Sets the speed of the show animation (milliseconds).
+
+* **`hideSpeed`:** Sets the speed of the hide animation (milliseconds).
+
+
+```javascript
+$('#myElement').cluetip({
+  content: 'My Tooltip',
+  showEffect: 'slide',
+  hideEffect: 'blind',
+  showSpeed: 500,
+  hideSpeed: 300
+});
+```
+
+
+### Accessibility
+
+For improved accessibility, ensure that your tooltip content is semantically correct and uses appropriate ARIA attributes. clueTip itself doesn't automatically add ARIA attributes; you might need to add them manually to the tooltip content or using a separate accessibility library. For instance, ensure that you use appropriate heading tags (`<h1>`, `<h2>`, etc.) within the tooltip content for better screen reader support.
+
+
+### Working with Multiple clueTips
+
+clueTip handles multiple tooltips without conflicts.  Simply initialize clueTip on multiple elements independently.  Each element will have its own tooltip instance.  There is no need for special handling or configuration when using multiple tooltips on a single page.  However, ensure that the selectors used for each call to `cluetip()` are specific enough to target the correct elements to avoid unintended behavior.
+
+
+## API Reference
+
+### clueTip()
+
+The primary function for initializing clueTip on an element.
+
+**Syntax:**
+
+```javascript
+$(selector).cluetip(options);
+```
+
+* **`selector`:** A jQuery selector targeting the element(s) to which the tooltip should be attached.  If you are not using jQuery, you will need to adapt this to a method appropriate to your chosen JavaScript library or use vanilla JavaScript DOM manipulation.
+
+* **`options`:** An object containing configuration options (see the "Advanced Configuration" section for details).  This is optional; if omitted, clueTip will use default settings.
+
+
+**Example:**
+
+```javascript
+$('#myElement').cluetip({ content: 'My Tooltip' });
+```
+
+
+### show()
+
+Programmatically shows a clueTip instance.
+
+**Syntax:**
+
+```javascript
+$(selector).cluetip('show');
+```
+
+* **`selector`:** A jQuery selector targeting the element with the attached clueTip.
+
+**Example:**
+
+```javascript
+$('#myElement').cluetip('show');
+```
+
+
+### hide()
+
+Programmatically hides a clueTip instance.
+
+**Syntax:**
+
+```javascript
+$(selector).cluetip('hide');
+```
+
+* **`selector`:** A jQuery selector targeting the element with the attached clueTip.
+
+**Example:**
+
+```javascript
+$('#myElement').cluetip('hide');
+```
+
+
+### destroy()
+
+Completely removes a clueTip instance from an element.  This removes all event handlers and the tooltip element itself.
+
+**Syntax:**
+
+```javascript
+$(selector).cluetip('destroy');
+```
+
+* **`selector`:** A jQuery selector targeting the element with the attached clueTip.
+
+**Example:**
+
+```javascript
+$('#myElement').cluetip('destroy');
+```
+
+
+### updateContent()
+
+Updates the content of an existing clueTip.
+
+**Syntax:**
+
+```javascript
+$(selector).cluetip('updateContent', newContent);
+```
+
+* **`selector`:** A jQuery selector targeting the element with the attached clueTip.
+
+* **`newContent`:** The new content for the tooltip (string, function, or object as described in the "Setting Content" section).
+
+**Example:**
+
+```javascript
+$('#myElement').cluetip('updateContent', 'New tooltip text!');
+```
+
+
+### updatePosition()
+
+Repositions the clueTip. Useful if the target element's position changes dynamically.
+
+**Syntax:**
+
+```javascript
+$(selector).cluetip('updatePosition');
+```
+
+* **`selector`:** A jQuery selector targeting the element with the attached clueTip.
+
+**Example:**
+
+```javascript
+$('#myElement').cluetip('updatePosition');
+```
+
+
+### getOptions()
+
+Retrieves the current configuration options of a clueTip instance.
+
+**Syntax:**
+
+```javascript
+var options = $(selector).cluetip('getOptions');
+```
+
+* **`selector`:** A jQuery selector targeting the element with the attached clueTip.
+
+**Example:**
+
+```javascript
+var currentOptions = $('#myElement').cluetip('getOptions');
+console.log(currentOptions);
+```
+
+
+### setOptions()
+
+Updates the configuration options of a clueTip instance.
+
+**Syntax:**
+
+```javascript
+$(selector).cluetip('setOptions', newOptions);
+```
+
+* **`selector`:** A jQuery selector targeting the element with the attached clueTip.
+
+* **`newOptions`:** An object containing the new options to set.  Only the options specified will be updated; others remain unchanged.
+
+**Example:**
+
+```javascript
+$('#myElement').cluetip('setOptions', { width: 300, position: 'bottom' });
+```
+
+
+
+## Examples
+
+These examples assume you have included the necessary clueTip CSS and JavaScript files in your project (see the "Installation" section).  Remember to replace placeholder selectors like `#myElement` with your actual element selectors.
+
+
+### Simple Tooltip
+
+This example demonstrates the most basic usage of clueTip, displaying a simple tooltip with static text.
+
+**HTML:**
+
+```html
+<p id="myElement">Hover over me!</p>
+```
+
+**JavaScript:**
+
+```javascript
+$(document).ready(function() {
+  $('#myElement').cluetip({
+    content: 'This is a simple tooltip!'
+  });
+});
+```
+
+
+### Tooltip with Custom Content
+
+This example shows how to use a function to dynamically generate the tooltip content.
+
+**HTML:**
+
+```html
+<p id="dynamicElement">Hover over me!</p>
+```
+
+**JavaScript:**
+
+```javascript
+$(document).ready(function() {
+  $('#dynamicElement').cluetip({
+    content: function() {
+      return 'The current time is: ' + new Date();
+    }
+  });
+});
+```
+
+
+### Tooltip with Custom Styling
+
+This example demonstrates how to customize the tooltip's appearance using CSS.
+
+**HTML:**
+
+```html
+<p id="styledElement" class="styled-element">Hover over me!</p>
+```
+
+**CSS:**
+
+```css
+.styled-element .cluetip {
+  background-color: #f08080; /* Light coral */
+  border: 2px solid #800000; /* Dark red */
+  padding: 10px;
+  color: white;
+}
+```
+
+**JavaScript:** (No JavaScript changes needed for this example beyond basic initialization)
+
+
+```javascript
+$(document).ready(function() {
+    $('#styledElement').cluetip();
+});
+```
+
+
+### Tooltip with Animations
+
+This example shows how to customize the tooltip's show and hide animations.
+
+**HTML:**
+
+```html
+<p id="animatedElement">Hover over me!</p>
+```
+
+**JavaScript:**
+
+```javascript
+$(document).ready(function() {
+  $('#animatedElement').cluetip({
+    content: 'This tooltip uses slide animation!',
+    showEffect: 'slide',
+    hideEffect: 'slide',
+    showSpeed: 500,
+    hideSpeed: 300
+  });
+});
+```
+
+
+### Complex Example
+
+This example combines several features, including AJAX content loading, custom positioning, and a title bar.
+
+**HTML:**
+
+```html
+<a id="ajaxElement" href="#">Click me!</a>
+```
+
+**JavaScript:**
+
+```javascript
+$(document).ready(function() {
+  $('#ajaxElement').cluetip({
+    ajax: { url: '/my-ajax-content.html' }, // Replace with your URL
+    position: 'bottom-right',
+    offset: { x: 10, y: 5 },
+    showTitle: true,
+    title: 'AJAX Content',
+    width: 300
+  });
+});
+```
+
+Remember to create a file named `my-ajax-content.html` at the appropriate location to return the content.  This complex example requires the `ajax` option which fetches content from a specified URL. You will need a server-side setup to handle this request.
+
+Remember to adjust paths and URLs to match your project structure.  These examples provide a starting point for exploring clueTip's capabilities; consult the API reference for more advanced options and customizations.
+
+
+## Troubleshooting
+
+### Common Issues
+
+* **Tooltip not appearing:**
+
+    * **Check inclusion:** Ensure that both the clueTip CSS (`cluetip.css`) and JavaScript (`cluetip.js`) files are correctly included in your HTML `<head>` section and the paths are accurate.
+    * **Selector issues:** Verify that your jQuery selector (`$(selector)`) correctly targets the element(s) you intend to attach the tooltip to.  Use your browser's developer tools to inspect the HTML and ensure your selector matches the elements' structure.  Check for typos in your selectors.
+    * **Conflicting JavaScript:**  Other JavaScript libraries or code might interfere with clueTip. Try disabling other scripts temporarily to isolate the problem.
+    * **jQuery Dependency (if using):** If your code uses jQuery selectors, ensure jQuery is included *before* clueTip's JavaScript file.
+    * **Incorrect Content:** If using the `ajax` option, ensure your server returns valid HTML content with an appropriate HTTP status code (200 OK).  Check your server-side logs for any errors. If using a function to generate content, confirm the function returns the expected value.
+
+
+* **Tooltip positioning problems:**
+
+    * **`detectOffset`:** Ensure that the `detectOffset` option is set to `true` (default) to allow clueTip to automatically adjust the tooltip's position to prevent it from going off-screen.
+    * **`offset`:** Experiment with the `offset` option to fine-tune the tooltip's positioning.
+    * **Conflicting elements:**  Other elements on the page might overlap the tooltip. Inspect your page's layout and CSS to resolve any conflicts.
+
+
+* **Tooltip content not updating:**
+
+    * **`updateContent()` method:** If dynamically updating the tooltip's content, use the `updateContent()` method correctly with the new content.
+
+
+* **Unexpected behavior:**
+
+    * **Browser compatibility:** While clueTip strives for cross-browser compatibility, minor rendering differences might occur in older or less-common browsers.  Test thoroughly across your target browsers.
+
+
+### Debugging Tips
+
+* **Browser developer tools:** Use your browser's developer tools (usually accessed by pressing F12) to inspect the HTML, CSS, and JavaScript.  Check the console for error messages.
+* **Simplify your code:**  If you're encountering unexpected behavior with complex configurations, try simplifying your code to isolate the problematic parts.  Create a minimal example that reproduces the issue.
+* **Check the clueTip source code:** If you suspect a bug in the clueTip library itself, examine the source code to understand how it works and identify potential issues.
+* **Test in a clean environment:** To rule out conflicts with other scripts or plugins, try testing your code in a clean HTML file with only clueTip included.
+* **Consult the API reference:**  Carefully review the API documentation to ensure you are using all functions and options correctly.
+* **Search for solutions online:** Search online forums and communities (Stack Overflow, GitHub issues) to see if others have experienced similar problems.  Provide clear details of your issue, including your code and the error messages you're encountering.
+
+
+If you continue to experience issues after trying these troubleshooting steps, consider providing a minimal reproducible example to report a potential bug on the clueTip project's issue tracker (if available).  Include relevant code snippets and screenshots to help developers diagnose the problem efficiently.
+
+
+## Contributing
+
+We welcome contributions to clueTip!  Whether you're reporting bugs, suggesting features, or submitting code improvements, your help is appreciated.
+
+### Reporting Bugs
+
+When reporting bugs, please provide as much detail as possible to help us reproduce and fix the issue.  A good bug report should include:
+
+* **ClueTip version:** Specify the version of clueTip you're using.
+* **Browser and operating system:**  Note the browser(s) and operating system(s) where the bug occurs.
+* **Steps to reproduce:** Clearly describe the steps needed to reproduce the bug.  The more specific you are, the better.
+* **Expected behavior:** Explain what you expected to happen.
+* **Actual behavior:** Describe what actually happened.
+* **Code snippet:** Include a minimal, reproducible code example that demonstrates the bug.  This should be a self-contained example that we can run directly without needing additional files or context.
+* **Screenshots or screen recordings (if applicable):** Visual aids can be incredibly helpful in understanding the issue.
+
+Ideally, create a minimal HTML file that isolates the problem.  This makes it easy for us to test and debug the issue.
+
+
+### Submitting Pull Requests
+
+If you'd like to contribute code improvements or new features, please follow these guidelines:
+
+1. **Fork the repository:** Create a fork of the clueTip repository on GitHub.
+
+2. **Create a new branch:**  Create a new branch for your changes.  Use a descriptive branch name that clearly indicates the purpose of your changes (e.g., "fix-tooltip-positioning", "add-feature-x").
+
+3. **Make your changes:**  Write clean, well-documented code.  Follow the existing coding style and conventions of the project.
+
+4. **Test your changes thoroughly:**  Ensure your changes work correctly and don't introduce new bugs.  Run the provided test suite (if available) and add new tests for your changes if necessary.
+
+5. **Commit your changes:**  Commit your changes with clear and concise commit messages.  Use the imperative mood (e.g., "Fix tooltip positioning issue", "Add support for custom arrow styles").
+
+6. **Push your branch:**  Push your branch to your forked repository.
+
+7. **Create a pull request:**  Create a pull request on the main clueTip repository, linking to your branch.  Provide a clear description of your changes and why they are needed.  Address any comments or feedback received on your pull request promptly.
+
+We appreciate contributions that improve the quality, performance, and usability of clueTip.  By following these guidelines, you can help make the project even better.  Before making significant changes, it is highly recommended that you open an issue to discuss the proposed changes to ensure they align with the project's goals.
+

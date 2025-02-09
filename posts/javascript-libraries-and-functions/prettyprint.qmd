@@ -1,0 +1,430 @@
+---
+title: "PrettyPrint - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction
+
+### What is PrettyPrint?
+
+PrettyPrint is a library designed to enhance the readability of various data structures and code by formatting them into a visually appealing and easily understandable representation.  It supports a wide range of input types, including dictionaries, lists, trees, and even custom data structures, transforming them into neatly formatted strings that are suitable for logging, debugging, or simply displaying information to the user.  The library prioritizes clarity and consistency in its output, making complex data easier to digest.
+
+### Why use PrettyPrint?
+
+Using PrettyPrint offers several key advantages:
+
+* **Improved Readability:**  Transforms complex nested data into a structured and visually appealing format, greatly enhancing readability for both developers and end-users.
+* **Easier Debugging:**  Facilitates the identification of errors and inconsistencies within data structures by presenting them in a clear and organized manner.
+* **Enhanced Logging:** Produces formatted log messages, simplifying the task of analyzing and understanding events within applications.
+* **Flexibility and Customization:** Allows for customization of the output format to meet specific requirements.
+* **Cross-Platform Compatibility:** Designed to work consistently across different operating systems and environments.
+
+
+### Installation and Setup
+
+PrettyPrint can be easily installed using pip:
+
+```bash
+pip install prettyprint
+```
+
+No further setup is typically required.  Simply import the library into your Python scripts to begin using its functionalities.
+
+
+### Basic Usage Example
+
+This example demonstrates how to use PrettyPrint to format a simple Python dictionary:
+
+```python
+from prettyprint import pp
+
+data = {
+    "name": "Example Data",
+    "values": [1, 2, 3, 4, 5],
+    "nested": {
+        "key1": "value1",
+        "key2": [True, False]
+    }
+}
+
+pp(data)
+```
+
+This will output a formatted representation of the `data` dictionary to the console, similar to this (the exact formatting might vary slightly depending on your terminal):
+
+```
+{
+    'name': 'Example Data',
+    'values': [
+        1,
+        2,
+        3,
+        4,
+        5
+    ],
+    'nested': {
+        'key1': 'value1',
+        'key2': [
+            True,
+            False
+        ]
+    }
+}
+```
+The output clearly shows the structure of the dictionary and its nested elements, improving readability compared to a standard Python `print()` output.
+
+
+## Core Concepts
+
+### Data Structures
+
+PrettyPrint natively supports a wide range of Python data structures, including but not limited to:
+
+* **Dictionaries:**  Nested dictionaries are handled gracefully, with clear indentation to show the hierarchical relationships.  Keys and values are displayed clearly.
+* **Lists:** List elements are displayed in a vertical, easy-to-read format, with each item on a new line.  Nested lists are also supported.
+* **Tuples:** Similar to lists, tuples are presented in a clear, vertically aligned format.
+* **Sets:** Set elements are displayed in a compact, unordered format, using curly braces `{}`.
+* **Strings:** Strings are displayed as they are, without any special formatting unless they contain embedded newlines.
+* **Numbers (int, float, complex):** Numbers are displayed using standard Python number representations.
+* **Booleans:** `True` and `False` are displayed as is.
+* **NoneType:** `None` is displayed as `None`.
+* **Custom Objects:** PrettyPrint can handle custom objects if they implement the `__repr__` method.  This method should return a string representation of the object suitable for display.  The `__str__` method can be also used, if defined.
+
+
+### Formatting Options
+
+While PrettyPrint automatically applies sensible formatting,  you can influence the output using various parameters (though most cases require no explicit parameters).  Future versions might offer more explicit configuration options.  Currently, the primary control over formatting comes from the way the input data is structured and the behavior of the `__repr__` and `__str__` methods of any custom classes.  For example, using lists instead of dictionaries will dramatically alter the final format.
+
+
+### Customizing Output
+
+The most significant way to customize the output is by controlling the `__repr__` or `__str__` methods within your custom classes. By carefully crafting the string returned by these methods, you can dictate exactly how your objects are represented in the PrettyPrint output.
+
+
+For example:
+
+```python
+class MyCustomObject:
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+
+    def __repr__(self):
+        return f"<MyCustomObject(name='{self.name}', value={self.value})>"
+
+my_object = MyCustomObject("Example", 123)
+pp(my_object)
+```
+
+This will produce an output that reflects the custom `__repr__` method:  `<MyCustomObject(name='Example', value=123)>`.  By designing informative `__repr__` or `__str__` methods, you ensure that your custom objects are displayed in a clear and contextually relevant manner.  If you don't define these methods, the default representation will be used, showing the class name and memory address.
+
+
+## Advanced Usage
+
+### Conditional Formatting
+
+PrettyPrint doesn't directly support conditional formatting based on data values within the library itself.  Conditional formatting would typically be achieved by preprocessing the data *before* passing it to `pp()`.  You can create functions to modify the data structure based on conditions, adding formatting information (e.g., extra strings or specific characters) to indicate different states. This modified data would then be passed to PrettyPrint for its standard formatting.
+
+
+For example, to highlight values above a certain threshold:
+
+
+```python
+from prettyprint import pp
+
+data = {'a': 10, 'b': 20, 'c': 5}
+
+def highlight_above_threshold(data, threshold=15):
+    for key, value in data.items():
+        if value > threshold:
+            data[key] = f"**{value}**"  # Add visual cues
+    return data
+
+formatted_data = highlight_above_threshold(data)
+pp(formatted_data)
+```
+
+This would output 'b' with visual cues showing it exceeds the threshold.  This approach separates data manipulation from the formatting provided by PrettyPrint.
+
+
+### Handling Complex Data
+
+PrettyPrint handles deeply nested data structures recursively. However, extremely large or complex data structures might lead to very long output. For such scenarios, consider these strategies:
+
+* **Data Sampling:**  Instead of printing the entire dataset, sample a representative subset for analysis and display.
+* **Data Summarization:**  Before printing, summarize the data to highlight key statistics or summaries rather than raw values.
+* **Custom `__repr__` methods:** For your own custom classes with complex internal structures, tailor the `__repr__` method to return a concise summary rather than a complete, verbose representation.
+* **Chunking:** Divide the large dataset into smaller logical chunks.  Print each chunk separately or print summaries of each chunk.
+* **Pagination (Future Enhancement):** Future versions of PrettyPrint might incorporate pagination features to manage very extensive outputs.
+
+### Integrating with other libraries
+
+PrettyPrint is designed to be compatible with other Python libraries.  It works well alongside logging libraries (like `logging`) where its formatted output can enhance the clarity of log messages.   You can seamlessly integrate PrettyPrint into your existing workflows by simply calling `pp()` on data structures generated or processed by other libraries.
+
+Example with logging:
+
+```python
+import logging
+from prettyprint import pp
+
+logging.basicConfig(level=logging.INFO)
+data = {'message': 'This is a log message', 'details': {'code': 200, 'timestamp': '2024-10-27'}}
+logging.info(f"Event details: {pp(data)}")
+```
+
+### Performance Optimization
+
+For large datasets, the performance of PrettyPrint might become noticeable. The `pp()` function generally has a reasonable performance, however for datasets exceeding millions of elements optimization is important.  Consider these techniques for improved performance:
+
+* **Avoid unnecessary calls:** Call `pp()` only when truly needed,  since string formatting and string building have a computational cost.  Batch operations or using buffers can reduce overhead.
+* **Data preprocessing:**  Preprocess large datasets to reduce size or complexity before passing to `pp()`.  For example, filtering or aggregating data.
+* **Use efficient data structures:** Python's built-in data structures are often optimized for efficiency. Use them when possible instead of custom implementations that might be less efficient.
+* **Profiling:** Use Python's profiling tools (`cProfile`, `line_profiler`) to identify performance bottlenecks within your code.  This can pinpoint areas where optimizing calls to `pp()` or preprocessing your data would yield the greatest performance gains.
+
+
+
+
+## API Reference
+
+### PrettyPrint Function
+
+The core functionality of PrettyPrint is encapsulated within the `pp()` function.
+
+**Signature:**
+
+```python
+pp(object, stream=None, indent=4, width=80, depth=None)
+```
+
+**Parameters:**
+
+* `object`: The Python object (dictionary, list, etc.) to be formatted.  This is the only required parameter.
+* `stream`: (Optional) The output stream (e.g., a file object). If `None` (default), the output is printed to standard output (console).
+* `indent`: (Optional) The number of spaces used for indentation. Defaults to 4.
+* `width`: (Optional) The maximum width of the output in characters.  Lines longer than this will be wrapped. Defaults to 80.
+* `depth`: (Optional) The maximum recursion depth.  Defaults to `None` (no limit).  Setting a limit is crucial for preventing infinite recursion with cyclical data structures.
+
+
+**Return Value:**
+
+The `pp()` function doesn't directly return a value; it prints the formatted output to the specified stream.  If you need to capture the formatted string instead of printing, redirect the output using the `io.StringIO()` object:
+
+
+```python
+import io
+from prettyprint import pp
+
+data = {'a': 1, 'b': 2}
+output_buffer = io.StringIO()
+pp(data, stream=output_buffer)
+formatted_string = output_buffer.getvalue()
+print(formatted_string) #Now formatted_string contains the output
+```
+
+
+### Options Object
+
+Currently, PrettyPrint does not utilize a dedicated "Options Object" for configuration.  The parameters directly passed to the `pp()` function control the formatting behavior.  This might change in future versions to provide more fine-grained control and a more object-oriented approach.
+
+
+### Utility Functions
+
+Currently, PrettyPrint does not provide any additional utility functions beyond the core `pp()` function.  Future versions might include helper functions to support additional formatting options or advanced features.
+
+
+## Troubleshooting
+
+### Common Errors
+
+* **RecursionError:** This error typically occurs when dealing with deeply nested data structures or cyclical references (where an object refers back to itself, directly or indirectly).  To resolve this, limit the recursion depth using the `depth` parameter in the `pp()` function.  For example: `pp(my_data, depth=100)`.  Choose a depth value appropriate for your expected data structures. Carefully examine your data for cycles if the error persists.
+
+* **TypeError:**  This error might arise if you pass an unsupported data type to the `pp()` function.  PrettyPrint primarily supports standard Python data structures (dictionaries, lists, tuples, etc.).  Ensure that your data conforms to these supported types.  For custom objects, implement `__repr__` or `__str__` methods for correct representation.
+
+* **UnicodeEncodeError:** This can happen if the data contains characters that cannot be encoded using your system's default encoding.  Specify the encoding explicitly when writing to a file or ensure your terminal supports the necessary characters.
+
+
+### Debugging Tips
+
+* **Simplify your input:** If you are encountering errors with complex data, try simplifying the input to a minimal example that still reproduces the problem.  This helps isolate the source of the error.
+
+* **Check your data structure:** Verify that your data structure is correctly formed and does not contain any unexpected or invalid values.  Incorrectly structured data can lead to unexpected formatting or errors.
+
+* **Use print statements:** Strategically placed `print()` statements before and after calls to `pp()` can help you track the data's state and identify the point where the error occurs.
+
+* **Inspect the `__repr__` method:** If you are working with custom objects, examine the implementation of the `__repr__` (or `__str__`) method. Errors in this method can directly lead to incorrect or error-causing outputs.
+
+
+### Frequently Asked Questions
+
+* **Can PrettyPrint handle custom classes?**  Yes, but you may need to implement the `__repr__` or `__str__` method for those custom classes to control how they are formatted.  Otherwise, the default representation (including memory address) will be printed.
+
+* **How can I change the indentation level?** Use the `indent` parameter in the `pp()` function.  For example:  `pp(my_data, indent=2)` will use two spaces for indentation.
+
+* **What is the maximum size of data PrettyPrint can handle?** There's no strict size limit, but extremely large datasets might cause performance issues.  For very large datasets, consider sampling, summarizing, or using the `depth` parameter to limit recursion.
+
+* **How can I save the formatted output to a file?** Use a file object as the `stream` parameter in `pp()`:
+
+
+```python
+with open("output.txt", "w") as f:
+    pp(my_data, stream=f)
+```
+
+* **Why am I getting a `RecursionError`?**  This usually means you have a deeply nested or cyclical data structure. Use the `depth` parameter to limit recursion or examine your data for cycles.
+
+* **My output is not as expected. How can I debug it?** Start by simplifying your input and systematically using `print()` statements to trace the data at various points.   Review your custom `__repr__` and `__str__` method implementations if used.
+
+
+
+## Examples
+
+### Basic Examples
+
+**Example 1: Formatting a dictionary:**
+
+```python
+from prettyprint import pp
+
+data = {'name': 'John Doe', 'age': 30, 'city': 'New York'}
+pp(data)
+```
+
+Output:
+
+```
+{
+    'name': 'John Doe',
+    'age': 30,
+    'city': 'New York'
+}
+```
+
+**Example 2: Formatting a list:**
+
+```python
+from prettyprint import pp
+
+data = [1, 2, 3, 4, 5]
+pp(data)
+```
+
+Output:
+
+```
+[
+    1,
+    2,
+    3,
+    4,
+    5
+]
+```
+
+**Example 3: Formatting a nested structure:**
+
+```python
+from prettyprint import pp
+
+data = {
+    'name': 'Jane Doe',
+    'address': {
+        'street': '123 Main St',
+        'city': 'Anytown',
+        'zip': '12345'
+    }
+}
+pp(data)
+```
+
+Output:
+
+```
+{
+    'name': 'Jane Doe',
+    'address': {
+        'street': '123 Main St',
+        'city': 'Anytown',
+        'zip': '12345'
+    }
+}
+```
+
+
+### Advanced Examples
+
+**Example 1: Handling a large list:**  To prevent excessively long output, limit the depth of displayed elements.
+
+```python
+from prettyprint import pp
+import random
+
+large_list = [random.randint(1, 100) for _ in range(1000)]
+pp(large_list, depth=10) # Show only the first 10 elements
+```
+
+**Example 2: Custom object formatting:**
+
+```python
+from prettyprint import pp
+
+class Person:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+    def __repr__(self):
+        return f"Person(name='{self.name}', age={self.age})"
+
+person = Person("Alice", 25)
+pp(person)
+```
+
+Output:
+
+```
+Person(name='Alice', age=25)
+```
+
+**Example 3:  Conditional formatting (pre-processing):**
+
+```python
+from prettyprint import pp
+
+data = {'a': 10, 'b': 20, 'c': 5}
+
+def highlight_above_threshold(data, threshold=15):
+    for key, value in data.items():
+        if value > threshold:
+            data[key] = f"**{value}**"
+    return data
+
+formatted_data = highlight_above_threshold(data)
+pp(formatted_data)
+```
+
+Output:
+
+```
+{
+    'a': 10,
+    'b': '**20**',
+    'c': 5
+}
+```
+
+
+### Real-world Use Cases
+
+* **Logging:**  Include `pp(data)` within log messages to provide clear and formatted context information for debugging purposes.
+
+* **Debugging:**  Print complex data structures during debugging sessions to inspect their contents clearly.
+
+* **Command-line interfaces:** Display formatted data neatly in command-line applications.
+
+* **Web application development:**  When debugging or presenting data in a less technical context, `pp()` can be used within handlers to present relevant information.
+
+* **Data analysis:**  Use `pp()` to explore and visualize data structures during initial analysis, facilitating pattern discovery.  (Note: For large datasets, this may need to be coupled with data sampling/summarization techniques.)
+
+* **Reporting:** Generate well-formatted reports containing complex data that is easily understandable by both technical and non-technical users.
+
+
+

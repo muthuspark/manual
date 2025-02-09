@@ -1,0 +1,606 @@
+---
+title: "Bluebird - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction to Bluebird
+
+### What is Bluebird?
+
+Bluebird is a fully featured promise library with unmatched performance.  It implements the Promises/A+ specification and provides numerous additional features to simplify asynchronous programming in JavaScript.  It's designed to be faster and more robust than native Promises, particularly in high-throughput scenarios.  Bluebird offers a rich API with methods for chaining promises, handling errors, and managing concurrency, leading to cleaner and more maintainable asynchronous code.
+
+### Why use Bluebird?
+
+While native Promises are widely supported, Bluebird offers several key advantages:
+
+* **Performance:** Bluebird is significantly faster than many native Promise implementations, especially in environments with less optimized JavaScript engines or under heavy load.  Its performance is a key differentiator.
+* **Enhanced Features:** Bluebird provides extensions and features not found in native Promises, such as `Promise.coroutine`, `Promise.map`, `Promise.try`, and more sophisticated error handling capabilities, improving developer productivity and code clarity.
+* **Backward Compatibility:** Bluebird is designed to be compatible with older JavaScript environments and browsers that may lack robust native Promise support.
+* **Debugging:**  Bluebird offers superior debugging capabilities through detailed stack traces and helpful error messages, making it easier to identify and resolve issues in asynchronous code.
+* **Mature and Well-Tested:** Bluebird has a long history, is extensively tested, and benefits from a large and active community, ensuring stability and reliability.
+
+### Bluebird vs. Native Promises
+
+| Feature          | Bluebird                               | Native Promises                         |
+|-----------------|----------------------------------------|-----------------------------------------|
+| Performance      | Generally faster, especially under load | Can be slower, especially in older engines|
+| Feature Set      | Richer, with many additional methods   | More basic, less functionality          |
+| Error Handling   | More robust and informative error handling | Can be less informative                |
+| Debugging        | Superior stack traces and debugging tools| Can provide less detailed information   |
+| Compatibility    | Wide browser and environment support    | Native support varies across browsers     |
+
+
+### Installation and Setup
+
+Bluebird is easily installed using npm or yarn:
+
+**Using npm:**
+
+```bash
+npm install bluebird
+```
+
+**Using yarn:**
+
+```bash
+yarn add bluebird
+```
+
+After installation, you can include Bluebird in your project:
+
+```javascript
+const Promise = require('bluebird');
+
+// Now you can use the Promise object provided by Bluebird
+Promise.resolve(1)
+  .then(value => console.log(value))
+  .catch(error => console.error(error));
+```
+
+Remember to replace `require('bluebird')` with the appropriate import statement if you are using a module bundler like Webpack or Parcel.  For example, in ES6 modules you might use `import Promise from 'bluebird';`.  Ensure your project's build process handles the Bluebird library correctly.
+
+
+## Core Concepts
+
+### Creating Promises
+
+Bluebird offers several ways to create promises.  The most common are:
+
+* **`Promise.resolve(value)`:** Creates a resolved promise with the given `value`.  If `value` is already a promise, it's returned as is.
+
+```javascript
+const resolvedPromise = Promise.resolve(42); // Resolved with 42
+const alreadyPromise = Promise.resolve(Promise.resolve(42)); // Returns the inner promise
+```
+
+* **`Promise.reject(reason)`:** Creates a rejected promise with the given `reason` (typically an error object).
+
+```javascript
+const rejectedPromise = Promise.reject(new Error('Something went wrong'));
+```
+
+* **`new Promise(executor)`:** Creates a new promise by providing an `executor` function. The executor receives two functions: `resolve` and `reject`.  Calling `resolve(value)` fulfills the promise, while `reject(reason)` rejects it.
+
+```javascript
+const myPromise = new Promise((resolve, reject) => {
+  setTimeout(() => {
+    // Simulate asynchronous operation
+    const success = Math.random() < 0.8; // 80% chance of success
+    if (success) {
+      resolve('Operation successful!');
+    } else {
+      reject(new Error('Operation failed!'));
+    }
+  }, 1000);
+});
+```
+
+* **`Promise.try(func, ...args)`:**  This is a convenient method to wrap a function call in a promise, allowing you to handle potential synchronous exceptions within the promise framework.  If `func` throws, the promise will reject.
+
+```javascript
+const result = Promise.try(() => {
+  const x = 0;
+  return 10 / x; // This will throw an error
+}).catch(error => console.error(error));
+```
+
+
+### Chaining Promises
+
+Bluebird's strength lies in its ability to chain promises using `.then()` and `.catch()`.  `.then()` takes two optional arguments: a function to handle resolution and a function to handle rejection (which is equivalent to a `.catch()` block further down the chain).
+
+```javascript
+Promise.resolve(1)
+  .then(value => value * 2)    // Returns a promise resolving to 2
+  .then(value => value + 3)   // Returns a promise resolving to 5
+  .then(value => console.log(value)) // Logs 5
+  .catch(error => console.error(error)); // Handles any errors in the chain
+```
+
+### Handling Promise Resolution and Rejection
+
+The `.then()` method handles promise resolution.  It takes a function as an argument that receives the resolved value. This function can return a value or a promise, thus continuing the chain.
+
+The `.catch()` method handles promise rejection. It takes a function as an argument that receives the rejection reason.  This is often used to gracefully handle errors.
+
+
+### Error Handling
+
+Bluebird provides robust error handling mechanisms.  `catch()` blocks handle errors that occur anywhere in the promise chain.  Unhandled promise rejections will trigger a warning in the console (in most environments).
+
+You can use multiple `.catch()` blocks to handle specific error types:
+
+```javascript
+Promise.resolve()
+  .then(() => { throw new Error("General Error") })
+  .catch(err => {
+    if (err instanceof TypeError) {
+      console.error("Type Error caught");
+    } else {
+      console.error("General Error caught");
+    }
+  });
+```
+
+### Cancellation
+
+Bluebird doesn't offer built-in promise cancellation in the same way as some other libraries. Promises, by their nature, are not easily cancelled once started. However, you can implement cancellation patterns using techniques like cancellation tokens or signals that your asynchronous operations can check periodically. This requires careful design within your asynchronous functions and is not a direct feature of Bluebird's core promise API.
+
+
+## Advanced Usage
+
+### Using `Promise.map` and `Promise.reduce`
+
+Bluebird provides powerful methods for working with arrays of values or promises.
+
+* **`Promise.map(array, mapper, [concurrency])`:** Applies the `mapper` function to each element in the `array`. The `mapper` function should return a promise. `Promise.map` runs the mapper concurrently up to the specified `concurrency` level (defaults to `Infinity`).  It returns a promise that resolves to an array of the results.
+
+```javascript
+const promises = [1, 2, 3, 4, 5].map(num => Promise.resolve(num * 2));
+
+Promise.map(promises, (promise) => promise, {concurrency: 2})
+  .then(results => console.log(results)); // Output: [2, 4, 6, 8, 10]
+```
+
+* **`Promise.reduce(array, reducer, initialValue)`:**  Applies the `reducer` function cumulatively to the items of `array`, from left to right, so as to reduce it to a single value.  The `reducer` function receives the accumulated value and the current element as arguments and should return a promise which resolves to the next accumulated value.
+
+```javascript
+const numbers = [1, 2, 3, 4, 5];
+Promise.reduce(numbers, (sum, num) => Promise.resolve(sum + num), 0)
+  .then(total => console.log(total)); // Output: 15
+```
+
+
+### Working with Arrays of Promises
+
+You can use `Promise.all` and `Promise.any` to manage arrays of promises efficiently.  Additionally, you can map over an array of promises to transform the results.
+
+
+### Using `Promise.all` and `Promise.any`
+
+* **`Promise.all(promises)`:** Takes an array of promises and returns a single promise that resolves when all promises in the array resolve. The resolved value is an array containing the resolved values of the input promises.  If any promise in the array rejects, `Promise.all` rejects immediately with the reason of the first rejected promise.
+
+```javascript
+const promises = [Promise.resolve(1), Promise.resolve(2), Promise.resolve(3)];
+Promise.all(promises).then(results => console.log(results)); // Output: [1, 2, 3]
+```
+
+* **`Promise.any(promises)`:** Takes an array of promises and returns a single promise that resolves when the *first* promise in the array resolves.  It rejects only if *all* promises in the array reject.
+
+```javascript
+const promises = [Promise.reject(new Error('Failed')), Promise.resolve(2), Promise.resolve(3)];
+Promise.any(promises).then(result => console.log(result)); //Output: 2
+```
+
+
+### Creating Custom Promise Methods
+
+You can extend Bluebird's functionality by creating your own methods using `Promise.method` or by directly extending the `Promise` prototype (generally discouraged for maintaining compatibility).  `Promise.method` is preferred as it ensures correct handling of `this` context and error propagation.
+
+```javascript
+const myAsyncMethod = Promise.method(function(arg1, arg2) {
+  return new Promise((resolve, reject) => {
+    // Your asynchronous operation here...
+    setTimeout(() => {
+      resolve(arg1 + arg2);
+    }, 1000);
+  });
+});
+
+myAsyncMethod(5, 3).then(result => console.log(result)); // Output: 8 after 1 second
+```
+
+### Using `Promise.try`
+
+`Promise.try(function, ...args)` is a utility method that wraps the execution of a function within a promise. This is beneficial for handling potential synchronous exceptions that might occur within the function.  If the function throws an error, `Promise.try` will reject the resulting promise.
+
+```javascript
+const result = Promise.try(() => {
+  // some synchronous operation that might throw an error
+  if (true) {
+     throw new Error("Sync error")
+  }
+  return 10;
+}).catch(error => console.error("Error caught:", error));
+```
+
+
+## Utilities
+
+### Understanding `Promise.resolve` and `Promise.reject`
+
+`Promise.resolve(value)` and `Promise.reject(reason)` are fundamental utility methods for creating promises.
+
+* **`Promise.resolve(value)`:** Creates a resolved promise with the given `value`. If `value` is already a promise, it's returned unchanged. This is useful for ensuring a value is always treated as a promise, simplifying the code's logic.
+
+```javascript
+const resolvedPromise = Promise.resolve(42); // A resolved promise
+const alreadyPromise = Promise.resolve(Promise.resolve(42)); // Returns the existing promise.
+```
+
+* **`Promise.reject(reason)`:** Creates a rejected promise with the given `reason`. The `reason` is usually an error object, but can be any value.  This is used to explicitly reject a promise.
+
+```javascript
+const rejectedPromise = Promise.reject(new Error("Something went wrong"));
+```
+
+These functions are essential for creating promises from various sources (e.g., callback functions, asynchronous operations) and for consistent promise handling throughout your application.
+
+
+### Using `Promise.each`
+
+`Promise.each(array, iterator)` iterates over an array and applies the `iterator` function to each element.  The `iterator` function should accept the element as an argument and should return a promise.  `Promise.each` waits for each promise returned by the `iterator` to resolve before moving to the next element.
+
+```javascript
+const data = [1, 2, 3, 4, 5];
+const promises = Promise.each(data, (item) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+       console.log(`Processing ${item}`);
+       resolve(item * 2);
+    }, 1000);
+  });
+}).then(results => console.log("Results:", results)); // Results: [2,4,6,8,10] (after delays)
+
+```
+
+It's crucial to understand that `Promise.each` is sequential; it doesn't process elements concurrently.  For parallel processing, use `Promise.map` instead.
+
+
+### Working with `Promise.join`
+
+`Promise.join(promise1, promise2, ..., fn)` takes multiple promises as arguments and a function `fn`. It waits for all input promises to resolve, then calls `fn` with the resolved values of those promises as arguments. The result of `fn` will be the resolved value of the resulting promise.
+
+```javascript
+const promise1 = Promise.resolve(10);
+const promise2 = Promise.resolve(20);
+
+Promise.join(promise1, promise2, (val1, val2) => val1 + val2)
+  .then(result => console.log(result)); // Output: 30
+```
+
+`Promise.join` provides a clean way to combine the results of multiple asynchronous operations.
+
+
+### Using `Promise.props`
+
+`Promise.props(object)` takes an object where values are promises and returns a single promise.  This promise resolves to a new object with the same keys, but the values will be the resolved values of the corresponding promises.  Rejections of any of the input promises will cause the resulting promise to reject.
+
+```javascript
+const promiseObject = {
+  a: Promise.resolve(1),
+  b: Promise.resolve(2),
+  c: Promise.resolve(3),
+};
+
+Promise.props(promiseObject)
+  .then(results => console.log(results)); // Output: { a: 1, b: 2, c: 3 }
+```
+
+This is useful for fetching multiple related data points asynchronously and keeping the data structure consistent.
+
+
+### Using `Promise.coroutine`
+
+`Promise.coroutine(generatorFunction)` is a powerful utility for writing asynchronous code that looks and feels like synchronous code using generators.  The generator function yields promises, and `Promise.coroutine` handles the execution and chaining of those promises.
+
+```javascript
+function* myGenerator() {
+  const value1 = yield Promise.resolve(10);
+  const value2 = yield Promise.resolve(20);
+  return value1 + value2;
+}
+
+const result = Promise.coroutine(myGenerator)(); // Call the coroutine
+result.then(sum => console.log(sum)); // Output: 30
+
+```
+
+This makes asynchronous code more readable and maintainable, especially when dealing with complex asynchronous flows.  Note that `Promise.coroutine` is deprecated in newer Bluebird versions, and it's suggested to use async/await instead.
+
+
+## Long Stack Traces
+
+### Enabling Long Stack Traces
+
+Bluebird's long stack traces are a crucial debugging feature, providing much more detailed information than standard JavaScript stack traces, especially helpful in asynchronous code.  To enable them, you need to set the `longStackTraces` option *before* any promises are created.  This is typically done early in your application's startup.
+
+There are two ways to enable long stack traces:
+
+**1.  Environment Variable:** Set the environment variable `BLUEBIRD_LONG_STACK_TRACES` to `1`. This is usually the preferred method for production deployments as it doesn't require modification to the source code.
+
+**2.  Direct Setting:**  Before any Bluebird promise is used,  set the `Promise.config` option:
+
+```javascript
+Promise.config({
+  longStackTraces: true
+});
+```
+
+This should be done as early as possible in your application's initialization, ideally before any other code that uses promises.  Enabling long stack traces after promises have been created will not affect those promises.
+
+### Debugging with Long Stack Traces
+
+With long stack traces enabled, when a promise rejects, the resulting error will contain a significantly more detailed stack trace.  This stack trace will show the complete call chain leading to the error, including asynchronous calls and callbacks.  This greatly simplifies debugging asynchronous code because you can easily trace the flow of execution that led to the failure, even across multiple functions and asynchronous operations.  The stack trace will typically include lines of code that are the source of the problem.
+
+The increased detail in long stack traces helps identify the root cause of errors more quickly.  Standard stack traces often truncate information, especially in asynchronous operations, making debugging much more difficult.
+
+### Performance Considerations
+
+While long stack traces are invaluable for debugging, they do come at a performance cost.  The extra information requires more memory and processing time to generate and store.  Therefore, it's crucial to only enable long stack traces during development and testing.  For production environments, it's strongly recommended to *disable* long stack traces (`longStackTraces: false`) to improve performance and reduce memory consumption.  The memory overhead becomes significant as the complexity of your application grows.   Leaving them enabled in production could lead to performance degradation and potential memory issues.
+
+
+## Debugging and Troubleshooting
+
+### Common Errors and Solutions
+
+Several common errors arise when working with asynchronous code and promises. Here are some frequent issues and their solutions:
+
+* **Unhandled promise rejections:**  If a promise rejects and there's no `.catch()` block to handle it, Bluebird (and most JavaScript environments) will issue a warning to the console.  This indicates an error in your asynchronous code.  Always ensure every promise has appropriate error handling with a `.catch()` block.
+
+* **Incorrect `.then()` chaining:**  Errors can occur if `.then()` methods aren't correctly chained or if the functions passed to `.then()` are not returning promises where expected.  Double-check the return values of the functions used in your `.then()` chain to ensure proper propagation of promises.
+
+* **Race conditions:** In concurrent asynchronous operations, race conditions can lead to unpredictable results. Carefully manage concurrency using tools like `Promise.map` with controlled concurrency or other synchronization mechanisms to prevent race conditions.
+
+* **Forgotten `return` statements:**  If a function within a `.then()` block doesn't explicitly return a promise, the promise chain might be broken, leading to unexpected behavior.  Always explicitly return a promise (or a value that will implicitly create a resolved promise) from the functions in your `.then()` chain.
+
+* **Mixing synchronous and asynchronous operations:**  Incorrectly mixing synchronous and asynchronous operations can cause unexpected timing issues and errors. Structure your code clearly to separate synchronous and asynchronous parts to avoid confusion and maintain predictable behavior.
+
+* **Incorrect error handling within promises:** A `.catch()` block may not catch all errors if they are not properly propagated through the promise chain. Ensure your error handling is comprehensive and robust.
+
+
+### Debugging Tips and Techniques
+
+* **Enable long stack traces:** As discussed previously, enabling long stack traces significantly improves debugging by providing more comprehensive information about the call stack, making it easier to identify the source of errors.
+
+* **Use a debugger:** Integrate Bluebird into your debugging environment (like Chrome DevTools or VS Code debugger).  Set breakpoints within your promise chains to step through the code execution and inspect variables at different stages.
+
+* **Console logging:** Strategically use `console.log` statements within your promise chains to track the values and states of your promises at various points in the asynchronous flow.
+
+* **Simplify your code:** Break down complex asynchronous operations into smaller, more manageable parts.  This simplifies debugging and improves readability.
+
+* **Test thoroughly:**  Write comprehensive unit and integration tests for your asynchronous code, particularly focusing on error handling paths, to detect potential issues early in the development process.
+
+
+### Using Logging for Debugging
+
+Logging is an invaluable tool when debugging asynchronous operations.  Use a structured logging library (like Winston, Bunyan, or console logging) to record key events, promise states (resolved/rejected), and values throughout the promise chains.  This creates a timeline of events that helps you understand the flow of execution and pinpoint problematic areas.  Timestamp your log entries to accurately track the sequence of operations.  In complex situations, log the entire promise chain to track the flow effectively.
+
+
+Example of using console logging:
+
+```javascript
+Promise.resolve(1)
+  .then(value => {
+    console.log(`Step 1: Value is ${value}`);
+    return value * 2;
+  })
+  .then(value => {
+    console.log(`Step 2: Value is ${value}`);
+    return Promise.reject(new Error('Something went wrong!')); //Intentional Error
+  })
+  .catch(error => {
+    console.error(`Error caught: ${error.message}`);
+  });
+```
+
+Structured logging libraries offer more powerful features such as log levels (debug, info, warn, error), custom log formats, and integration with various logging destinations (files, databases, remote services).  Use logging effectively to build a comprehensive audit trail of your application's asynchronous behavior during development and debugging.
+
+
+## Best Practices
+
+### Writing Clean and Maintainable Promise Code
+
+* **Keep Promises short and focused:** Avoid overly long or complex promise chains. Break down large tasks into smaller, more manageable functions, each returning a promise.  This improves readability and maintainability.
+
+* **Use descriptive variable names:** Choose meaningful names for your promises and variables to clarify their purpose.
+
+* **Consistent error handling:** Always include `.catch()` blocks to handle potential errors.  Centralize error handling where possible to avoid repetitive code.
+
+* **Avoid nesting:** Excessive nesting of `.then()` blocks reduces readability.  Use techniques like `Promise.all` or `Promise.join` to handle multiple promises concurrently and avoid nested structures.
+
+* **Use async/await (when available):** If your environment supports async/await, utilize this feature to write asynchronous code that looks and behaves like synchronous code, improving readability significantly.  This often makes error handling and flow control much clearer than traditional promise chaining.
+
+* **Document your promises:**  Add comments to explain the purpose and behavior of your promises, particularly those involving complex logic or asynchronous interactions.
+
+* **Follow a consistent style:** Adhere to a consistent coding style for promise usage throughout your project to maintain uniformity and readability.
+
+
+### Error Handling Best Practices
+
+* **Always handle rejections:** Never let a promise reject without being caught.  Unhandled rejections can lead to unexpected application behavior and crashes.
+
+* **Specific error handling:** Handle specific error types when possible to provide more targeted responses and improve debugging.
+
+* **Centralized error logging:** Log errors in a centralized location to simplify debugging and monitoring.  Use structured logging to provide context and details of errors.
+
+* **Graceful degradation:** Design your error handling to gracefully handle failures and provide informative feedback to users, preventing abrupt application termination.
+
+* **Retry mechanisms:** For transient errors, consider implementing retry logic to automatically retry failed operations after a delay.
+
+* **Circuit breakers:** In situations with frequently failing services, use circuit breaker patterns to prevent repeated failures and allow the system to recover gracefully.
+
+
+### Performance Optimization Strategies
+
+* **Minimize synchronous operations within promises:** Keep synchronous operations within promises to a minimum to avoid blocking the event loop.
+
+* **Use appropriate concurrency levels:**  When using `Promise.map`, choose an appropriate concurrency level to optimize performance based on your system resources and task characteristics.  Too low a value serializes processing; too high a value might overwhelm the system.
+
+* **Batch operations:** When feasible, batch multiple asynchronous operations into a single call to reduce the overhead of multiple individual requests.
+
+* **Optimize network requests:** Minimize network calls by fetching data efficiently and caching appropriately.
+
+* **Efficient data handling:** Avoid unnecessary data copying or manipulation within promises.  Process data efficiently to minimize performance impact.
+
+* **Profiling:** Utilize JavaScript profiling tools to identify performance bottlenecks in your asynchronous code.
+
+
+### Testing Your Promise Code
+
+* **Unit testing:**  Write unit tests for individual promise-based functions to ensure they behave correctly in isolation.
+
+* **Integration testing:**  Test the interactions between multiple promises and asynchronous components to verify they work together correctly.
+
+* **End-to-end testing:** Test the complete flow of asynchronous operations from start to finish to confirm the overall functionality.
+
+* **Mocking:** Mock external dependencies (like network requests or database calls) during testing to ensure consistent and predictable results.
+
+* **Test error handling:**  Thoroughly test error handling paths to verify they work as expected and gracefully handle failures.
+
+* **Use a testing framework:**  Employ a JavaScript testing framework (like Jest, Mocha, or Jasmine) to structure and run your tests effectively.  These frameworks provide tools for assertions, mocking, and test runners to streamline the testing process.
+
+
+## Migration from Other Promise Libraries
+
+### Migrating from Q
+
+Q is another popular promise library.  Migrating from Q to Bluebird is generally straightforward because both libraries adhere to the Promises/A+ specification.  However, there are some key differences in API and functionality to consider:
+
+* **API Differences:** While both libraries offer similar core functionality, the names of some methods might differ slightly. For example, Q's `Q.all` is equivalent to Bluebird's `Promise.all`. Refer to the Bluebird API documentation to find the corresponding Bluebird equivalent for each Q method.
+
+* **Error Handling:**  Both libraries handle errors, but the error handling mechanisms might have subtle differences.  Ensure you thoroughly review how exceptions are caught and handled in your Q code and translate them to Bluebird's `.catch()` mechanism correctly.
+
+* **`Q.defer` vs. `new Promise`:** Q uses `Q.defer` to create deferred objects, whereas Bluebird uses `new Promise(executor)`. You'll need to rewrite code creating deferreds to use the `new Promise` constructor.
+
+* **`Q.async` vs. `Promise.coroutine` (deprecated):** Q's `Q.async` is similar to Bluebird's `Promise.coroutine`, but `Promise.coroutine` is deprecated in favor of async/await.  You'll want to refactor to use the modern async/await approach.
+
+
+**Example of converting Q code to Bluebird:**
+
+**Q:**
+
+```javascript
+var Q = require('q');
+var deferred = Q.defer();
+someAsyncOperation(function(result){
+  if (result) {
+    deferred.resolve(result);
+  } else {
+    deferred.reject(new Error('Operation failed'));
+  }
+});
+deferred.promise.then(result => {
+  console.log(result);
+}).catch(err => {
+  console.error(err);
+});
+```
+
+**Bluebird:**
+
+```javascript
+const Promise = require('bluebird');
+
+const myPromise = new Promise((resolve, reject) => {
+  someAsyncOperation((result) => {
+    if (result) {
+      resolve(result);
+    } else {
+      reject(new Error('Operation failed'));
+    }
+  });
+});
+
+myPromise.then(result => {
+  console.log(result);
+}).catch(err => {
+  console.error(err);
+});
+```
+
+
+### Migrating from jQuery Deferreds
+
+jQuery's Deferred objects provide a mechanism for managing asynchronous operations.  While similar to promises, they have a slightly different API.   Bluebird provides a cleaner and more standardized promise implementation.
+
+The core difference lies in the API. jQuery Deferreds use methods like `resolve`, `reject`, `done`, `fail`, `always`, while Bluebird uses `.then`, `.catch`, and `.finally`.  You need to rewrite your code using Bluebird's promise methods.
+
+**Example:**
+
+**jQuery Deferred:**
+
+```javascript
+$.ajax('someUrl').done(function(data){
+  console.log(data);
+}).fail(function(error){
+  console.error(error);
+});
+```
+
+**Bluebird:**
+
+```javascript
+const Promise = require('bluebird');
+Promise.resolve($.ajax('someUrl')) //wrap the ajax promise
+  .then(data => console.log(data))
+  .catch(error => console.error(error));
+```
+
+
+### Migrating from Native Promises
+
+Migrating from native Promises to Bluebird is often about leveraging Bluebird's enhanced features.  Native Promises are compliant with the Promises/A+ specification, so the core promise functionality will work identically. The benefit of moving to Bluebird is often performance improvements, access to additional utility functions, and enhanced debugging capabilities, especially in complex asynchronous scenarios.
+
+The migration itself is mostly syntactic. You replace references to the global `Promise` object with Bluebird's `Promise` object.  No significant code rewrites are usually necessary besides adding `require('bluebird')` or the appropriate ES6 module import.  However, take advantage of Bluebird's additional functions (`Promise.map`, `Promise.all`, etc.) to potentially simplify and optimize your code.
+
+
+
+
+## Appendix
+
+### Glossary of Terms
+
+* **Promise:** An object representing the eventual result of an asynchronous operation.  It can be in one of three states: pending (the operation is still in progress), fulfilled (the operation completed successfully), or rejected (the operation failed).
+
+* **Fulfilled/Resolved:** A promise that has completed successfully. Its associated `.then()` callbacks will be executed.
+
+* **Rejected:** A promise that has encountered an error during execution. Its associated `.catch()` callbacks will be executed.
+
+* **Pending:** A promise that is neither fulfilled nor rejected; the asynchronous operation is still in progress.
+
+* **Executor:** A function passed to the `new Promise()` constructor.  It contains the asynchronous operation and calls the `resolve` or `reject` functions to determine the promise's outcome.
+
+* **Thenable:**  Any object that has a `then` method that conforms to the Promises/A+ specification.  These objects can be used interchangeably with promises.
+
+* **Concurrency:** The number of asynchronous operations that run simultaneously.  Bluebird's `Promise.map` allows controlling the level of concurrency.
+
+* **Race condition:** A situation where the outcome of an operation depends on the unpredictable order in which multiple asynchronous operations complete.
+
+* **Callback:** A function passed to another function to be executed when an asynchronous operation completes.
+
+* **Long Stack Traces:** A Bluebird feature that provides greatly enhanced and detailed stack traces in case of errors or rejections, improving the debugging experience for asynchronous code.
+
+
+### Further Reading and Resources
+
+* **Bluebird GitHub Repository:** [https://github.com/petkaantonov/bluebird](https://github.com/petkaantonov/bluebird) –  The official source code repository, containing detailed documentation and issue tracking.
+
+* **Promises/A+ Specification:** [https://promisesaplus.com/](https://promisesaplus.com/) – The specification that Bluebird adheres to.  Understanding this specification helps in grasping the core principles of promises.
+
+* **MDN Web Docs on Promises:** [https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) –  A good resource for understanding the fundamental concepts of JavaScript promises.
+
+* **Articles and Tutorials on Asynchronous JavaScript:** Search online for tutorials and articles focusing on asynchronous programming in JavaScript. Many resources delve deeper into managing asynchronous operations, handling errors, and optimizing performance.  Look for materials discussing concepts such as async/await, generators, and concurrency control.
+
+
+This appendix serves as a starting point for further exploration. The JavaScript ecosystem continually evolves, so staying current with best practices and exploring new tools is crucial for efficient asynchronous programming.
+

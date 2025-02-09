@@ -1,0 +1,462 @@
+---
+title: "Ekko Lightbox - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction
+
+### What is Ekko Lightbox?
+
+Ekko Lightbox is a lightweight, responsive, and customizable JavaScript library designed to create beautiful and user-friendly image and video lightboxes. It's built for ease of use and integration, allowing developers to quickly add a robust lightbox functionality to their websites and applications with minimal code.  Ekko Lightbox supports various media types, including images, iframes, and even custom content, offering a flexible solution for diverse content presentation needs.
+
+### Key Features and Benefits
+
+* **Lightweight and Fast:** Ekko Lightbox is optimized for performance, ensuring a smooth and responsive user experience even on slower connections.  Its small file size minimizes loading times.
+* **Responsive Design:** Automatically adapts to different screen sizes and devices, providing a consistent experience across desktops, tablets, and smartphones.
+* **Customizable:** Highly customizable through options and CSS, allowing developers to tailor the lightbox's appearance and behavior to match their website's design.
+* **Multiple Media Support:** Supports images, iframes (for videos and other embedded content), and allows for the inclusion of custom HTML content within the lightbox.
+* **Keyboard Navigation:** Enables users to navigate through the lightbox using keyboard shortcuts for improved accessibility.
+* **Easy Integration:** Simple to integrate into existing projects with minimal code changes.
+* **Open Source:**  Available under an open-source license, enabling community contributions and ensuring ongoing development.
+
+
+### Installation and Setup
+
+Ekko Lightbox can be easily installed via npm or a CDN.
+
+**Using npm:**
+
+```bash
+npm install ekko-lightbox
+```
+
+Then, import it into your project:
+
+```javascript
+import EkkoLightbox from 'ekko-lightbox';
+```
+
+
+**Using a CDN (e.g., jsDelivr):**
+
+Include the following script tag in your HTML `<head>`:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/ekko-lightbox@5.3.0/dist/ekko-lightbox.min.js"></script>
+```
+
+Remember to include the appropriate CSS file as well (either from npm or CDN):
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ekko-lightbox@5.3.0/dist/ekko-lightbox.css">
+```
+
+After including the necessary files, initialize Ekko Lightbox:
+
+```javascript
+$(document).ready(function(){
+    $(document).on('click', '[data-toggle="lightbox"]', function(event) {
+        event.preventDefault();
+        $(this).ekkoLightbox();
+    });
+});
+
+```
+
+
+### Basic Usage Example
+
+This example shows how to create a simple image lightbox:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ekko Lightbox Example</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ekko-lightbox@5.3.0/dist/ekko-lightbox.css">
+</head>
+<body>
+
+<a href="image1.jpg" data-toggle="lightbox" data-gallery="gallery1" data-title="Image 1">
+    <img src="thumbnail1.jpg" alt="Image 1">
+</a>
+<a href="image2.jpg" data-toggle="lightbox" data-gallery="gallery1" data-title="Image 2">
+    <img src="thumbnail2.jpg" alt="Image 2">
+</a>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ekko-lightbox@5.3.0/dist/ekko-lightbox.min.js"></script>
+<script>
+$(document).ready(function(){
+    $(document).on('click', '[data-toggle="lightbox"]', function(event) {
+        event.preventDefault();
+        $(this).ekkoLightbox();
+    });
+});
+</script>
+
+</body>
+</html>
+```
+
+Remember to replace `"image1.jpg"`, `"thumbnail1.jpg"`, etc. with the actual paths to your images.  The `data-gallery` attribute allows grouping images into galleries for sequential navigation. The `data-title` attribute sets the caption for the image.  Ensure you have jQuery included, as Ekko Lightbox relies on it.
+
+
+## Core Functionality
+
+### Opening the Lightbox
+
+Ekko Lightbox is primarily initiated through the use of the `data-toggle="lightbox"` attribute on HTML elements (typically `<a>` tags for images). When a user clicks on an element with this attribute, the lightbox will open, displaying the content specified in the element's `href` attribute.  For example:
+
+```html
+<a href="image.jpg" data-toggle="lightbox" data-title="My Image">View Image</a>
+```
+
+Alternatively, you can programmatically open the lightbox using jQuery:
+
+```javascript
+$('#myElement').ekkoLightbox();
+```
+
+Replace `#myElement` with the appropriate jQuery selector for your element.
+
+
+### Closing the Lightbox
+
+The lightbox can be closed by clicking the close button (usually an "X" in the top-right corner), clicking outside the lightbox overlay, or pressing the Escape key.  Programmatically, you can close the lightbox using:
+
+```javascript
+$.ekkoLightbox.close();
+```
+
+This will close any currently open lightbox instance.
+
+### Image Display Options
+
+Ekko Lightbox offers several options for displaying images within the lightbox.  These options can be set using data attributes on the link element or through JavaScript configuration.  Key options include:
+
+* **`data-gallery`:** Groups multiple images into a gallery for sequential viewing. All elements with the same `data-gallery` value will be part of the same gallery.
+* **`data-title`:** Specifies a caption or title to be displayed below the image.
+* **`data-type`:**  While Ekko Lightbox automatically detects image types, you can explicitly set `data-type="image"` for clarity.
+* **`data-remote`:** This attribute is not specifically for images but is important to note for its use in loading remote content (see Content Loading and Display).  If you are loading an image from a remote source via `data-remote`, ensure the server returns the correct content-type header.
+
+
+### Video Display Options
+
+Ekko Lightbox supports video display primarily through iframes. To display a video, use the `href` attribute to point to the URL of the video embed code (e.g., a YouTube or Vimeo embed link).  For example:
+
+```html
+<a href="https://www.youtube.com/embed/yourVideoID" data-toggle="lightbox" data-type="iframe">Watch Video</a>
+```
+
+Note the `data-type="iframe"` attribute, which is crucial for Ekko Lightbox to correctly handle the iframe content. The lightbox will handle resizing and displaying the video appropriately within its confines.  Consider adding options for autoplay, controls, etc., directly within the embed code from your video hosting platform.
+
+
+### Content Loading and Display
+
+Beyond images and videos, Ekko Lightbox allows you to display custom content.  This is primarily done using the `data-remote` attribute.  This attribute specifies a URL from which the lightbox will load content dynamically.  The content at the specified URL should be valid HTML that will be rendered within the lightbox.
+
+```html
+<a href="#" data-toggle="lightbox" data-remote="content.html" data-type="ajax">Load Content</a>
+```
+
+In this example, the lightbox will load the content of `content.html` via an AJAX request.  The `data-type="ajax"` attribute tells Ekko Lightbox to handle this as an AJAX request.  You can also directly specify HTML content without a remote URL by using the `data-html` attribute.
+
+
+Note:  Always ensure that the content loaded via `data-remote` or `data-html` is appropriately formatted and safe for inclusion in the lightbox.  Consider sanitizing any user-supplied content to prevent XSS vulnerabilities.
+
+
+## Customization
+
+### Styling the Lightbox
+
+Ekko Lightbox's appearance can be customized extensively using CSS.  The library provides a set of CSS classes that can be targeted to modify various aspects of the lightbox's design.  The main container for the lightbox is given the class `ekko-lightbox`.  Within this container, you'll find classes for the overlay, image container, caption, navigation controls, and more. Consult the Ekko Lightbox CSS file for a complete list of classes and their functionality.  You can override these styles in your own CSS file to match your website's design. For example, to change the background color of the overlay:
+
+```css
+.ekko-lightbox .modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.8); /* Adjust opacity as needed */
+}
+```
+
+Remember to include your custom CSS *after* the Ekko Lightbox CSS file to ensure your styles override the defaults.
+
+
+### Customizing Navigation Controls
+
+While Ekko Lightbox provides default navigation controls (previous/next buttons and a close button), you can customize their appearance and behavior through CSS or, to a lesser extent, JavaScript.  CSS allows you to modify the styling of the buttons, changing their size, color, shape, and position.  More complex interactions might require JavaScript modifications, but this is generally not recommended unless absolutely necessary as it can lead to conflicts with updates to the library.
+
+
+### Adding Custom Content
+
+Beyond images, iframes, and remotely loaded content, you can incorporate custom HTML content into the lightbox.  This is achieved through the `data-html` attribute.  The value of `data-html` should contain the HTML code to be displayed.  For example:
+
+```html
+<a href="#" data-toggle="lightbox" data-html="<div><h1>My Custom Content</h1><p>This is a paragraph of text.</p></div>">Show Custom Content</a>
+```
+
+This will display a div containing a heading and a paragraph within the lightbox.  Remember to sanitize any dynamically generated HTML to prevent security vulnerabilities.
+
+
+### Responsive Design
+
+Ekko Lightbox is inherently responsive. It adapts to different screen sizes and devices without requiring specific responsive CSS adjustments.  However, you might need to fine-tune the CSS to ensure optimal appearance and behavior across various screen sizes and orientations.  Consider using media queries to apply specific styles for different screen widths. For example:
+
+
+```css
+@media (max-width: 768px) {
+  .ekko-lightbox .modal-dialog {
+    max-width: 90%; /* Adjust as needed */
+  }
+}
+```
+
+This code adjusts the maximum width of the lightbox on screens smaller than 768 pixels.
+
+
+### Accessibility Considerations
+
+To enhance the accessibility of your Ekko Lightbox implementation:
+
+* **Semantic HTML:** Use appropriate semantic HTML elements (e.g., `<button>` for close buttons, appropriate ARIA attributes for screen readers) within your lightbox content.
+* **ARIA attributes:**  Consider using ARIA attributes like `aria-label` to provide descriptive labels for interactive elements that might lack explicit text labels.
+* **Keyboard accessibility:** Ensure the lightbox is fully navigable using keyboard alone.  Ekko Lightbox provides built-in keyboard navigation; however, check that your customizations don't interfere with this functionality.
+* **Focus management:**  Properly manage focus within the lightbox to ensure users can easily navigate and interact with its elements.
+* **Color contrast:**  Ensure sufficient color contrast between text and background elements for readability.
+
+
+By following these guidelines, you can create an accessible and inclusive lightbox experience for all users.
+
+
+## Advanced Usage
+
+### Programmatic Control
+
+Beyond the basic data attributes, Ekko Lightbox offers robust programmatic control through its JavaScript API.  This allows for more complex integration and customization.  Key methods include:
+
+* **`$.ekkoLightbox()`:** Initializes the lightbox on the selected element(s).  Can be used with various options to customize behavior.
+* **`$.ekkoLightbox.open()`:** Programmatically opens a lightbox.  Requires an object specifying the content (e.g., `href`, `type`, `gallery`, etc.).
+* **`$.ekkoLightbox.close()`:** Closes the currently active lightbox.
+* **`$.ekkoLightbox.destroy()`:** Removes Ekko Lightbox functionality from an element.
+
+
+Example of programmatic opening:
+
+```javascript
+$.ekkoLightbox.open({
+    href: 'image.jpg',
+    title: 'My Image',
+    gallery: 'myGallery'
+});
+```
+
+
+### Event Handling
+
+Ekko Lightbox triggers several events throughout its lifecycle, allowing you to hook into various stages of the lightbox functionality.  These events can be listened for using jQuery's `on()` method.  Important events include:
+
+* **`shown.ekkoLightbox`:** Triggered after the lightbox is fully shown and visible.
+* **`hidden.ekkoLightbox`:** Triggered after the lightbox is closed and hidden.
+* **`loading.ekkoLightbox`:** Triggered when the lightbox starts loading content.
+* **`error.ekkoLightbox`:** Triggered if an error occurs during content loading.
+
+
+Example of handling the `shown.ekkoLightbox` event:
+
+```javascript
+$(document).on('shown.ekkoLightbox', function (e) {
+    console.log('Lightbox shown:', e.target);
+});
+```
+
+
+### Integration with Other Libraries
+
+Ekko Lightbox can be integrated with various other JavaScript libraries. However, ensure compatibility. Potential conflicts might arise, especially when dealing with other modal or overlay libraries. Thorough testing is crucial when combining Ekko Lightbox with other frameworks or plugins.  Properly managing event handling and ensuring no conflicting selectors are used is essential for successful integration.
+
+### Handling Errors
+
+Ekko Lightbox provides the `error.ekkoLightbox` event to handle errors during content loading.  This event is triggered if the lightbox fails to load the specified content (e.g., due to a 404 error or invalid URL).  You can use this event to display a user-friendly error message or take alternative actions.
+
+```javascript
+$(document).on('error.ekkoLightbox', function (e) {
+    alert('Error loading content: ' + e.message);
+});
+```
+
+Make sure to handle potential errors gracefully to provide a better user experience.
+
+
+### Performance Optimization
+
+For optimal performance, consider these points:
+
+* **Image optimization:** Optimize images (reduce file size while maintaining quality) before using them in Ekko Lightbox.  Smaller images load faster.
+* **Lazy loading:** Implement lazy loading for images to improve initial page load time.  Only load images as they become visible in the viewport.
+* **Caching:** Use browser caching effectively to reduce the number of requests to the server for frequently accessed images or content.
+* **Minimize HTTP requests:** Combine CSS and JavaScript files to reduce the number of HTTP requests.
+* **Efficient selectors:** Use efficient jQuery selectors to avoid unnecessary DOM traversals.
+* **Avoid unnecessary code:** Remove any unnecessary code or features to improve efficiency.
+
+
+By following these optimization techniques, you can improve the performance and responsiveness of Ekko Lightbox in your application.
+
+
+## API Reference
+
+### EkkoLightbox Constructor
+
+The EkkoLightbox constructor is primarily invoked implicitly through the `data-toggle="lightbox"` attribute on HTML elements or explicitly via the `$.ekkoLightbox()` method.  It does not accept arguments directly in this way.  Configuration options are provided via data attributes on the element or as an options object passed to `$.ekkoLightbox()`.  These options determine the lightbox's behavior.  Refer to the options section below for a detailed list of available settings.
+
+### Methods
+
+The EkkoLightbox plugin exposes the following methods via jQuery:
+
+* **`$.ekkoLightbox()`:** Initializes the lightbox on the selected element(s). This is the primary way to activate the lightbox functionality.  It accepts an optional options object to customize its behavior.
+
+* **`$.ekkoLightbox.open(options)`:** Programmatically opens a lightbox instance.  `options` is an object that accepts the same options as `$.ekkoLightbox()`, including `href`, `type`, `gallery`, and other settings.
+
+* **`$.ekkoLightbox.close()`:** Closes the currently active lightbox instance.
+
+* **`$.ekkoLightbox.destroy(element)`:** Removes Ekko Lightbox functionality from the specified `element` (a jQuery object or selector).  This reverses the initialization, removing event handlers and associated data.
+
+
+### Events
+
+Ekko Lightbox triggers several custom events that can be listened for using jQuery's `on()` method. These events provide hooks for extending functionality or customizing behavior:
+
+* **`shown.ekkoLightbox`:** Triggered when the lightbox has been fully displayed.  The event object contains a `target` property referencing the lightbox element.
+
+* **`hidden.ekkoLightbox`:** Triggered when the lightbox has been closed and hidden.
+
+* **`loading.ekkoLightbox`:** Triggered when the lightbox begins loading content (e.g., an image or remote content).
+
+* **`error.ekkoLightbox`:** Triggered if an error occurs during content loading.  The event object may contain an `error` property with details about the error.
+
+* **`swap.ekkoLightbox`:** Triggered when the lightbox switches to a different item within a gallery.
+
+
+To listen for these events, use:
+
+```javascript
+$(document).on('shown.ekkoLightbox', function(e) { /* your code */ });
+```
+
+
+### Properties
+
+Ekko Lightbox doesn't directly expose public properties in the traditional sense.  Its state and configuration are largely managed internally.  However, information about the currently active lightbox (if any) can be accessed indirectly through inspecting the DOM elements that are created and modified by Ekko Lightbox.  For example, you could access the current image URL by inspecting the `src` attribute of the image element within the lightbox modal.  This approach is not recommended for general use, as it relies on the internal implementation details that could change in future versions of the library.  It's best to leverage the provided events and methods for interacting with the lightbox's behavior and state.
+
+
+
+## Troubleshooting
+
+### Common Issues and Solutions
+
+* **Lightbox doesn't open:**
+    * **Problem:**  Ensure you've correctly included the necessary JavaScript and CSS files. Double-check the paths to the files.  Verify that jQuery is included and correctly loaded *before* the Ekko Lightbox script.  Make sure the element has the `data-toggle="lightbox"` attribute and a valid `href` attribute.
+    * **Solution:**  Check the browser's developer console for JavaScript errors. Inspect the HTML source to verify the correct attributes are set.  Ensure jQuery is loaded before Ekko Lightbox.
+
+* **Images don't display correctly:**
+    * **Problem:**  Incorrect image paths, incorrect `href` attributes, or server-side issues (e.g., 404 errors).
+    * **Solution:**  Verify the image paths are correct. Check the server logs for any errors.  Use your browser's developer tools to inspect network requests and check for errors.
+
+* **Lightbox doesn't close:**
+    * **Problem:**  JavaScript conflicts or issues with the closing mechanism.
+    * **Solution:**  Check for JavaScript errors in the console.  Try programmatically closing the lightbox using `$.ekkoLightbox.close()`.
+
+* **Styling issues:**
+    * **Problem:**  CSS conflicts or incorrect CSS selectors.
+    * **Solution:** Use your browser's developer tools to inspect the lightbox's CSS and identify conflicting styles. Ensure your custom CSS is included *after* the Ekko Lightbox CSS.
+
+
+### Debugging Tips
+
+* **Browser Developer Tools:** Use your browser's developer tools (usually accessed by pressing F12) to inspect the HTML, CSS, and JavaScript. Check for errors in the console and use the network tab to monitor requests.
+
+* **Console Logging:**  Add `console.log()` statements to your JavaScript code to track the execution flow and variable values.  This can help identify where problems occur.
+
+* **Simplify:**  If you have complex customizations, try simplifying your code to isolate the source of the problem. Test with a minimal setup to see if the issue persists.
+
+* **Check for Conflicts:** If using other JavaScript libraries, check for potential conflicts with Ekko Lightbox's functionality.
+
+
+### Browser Compatibility
+
+Ekko Lightbox is designed to work across modern browsers.  However, older or less common browsers might experience compatibility issues.  Thorough testing across various browsers (Chrome, Firefox, Safari, Edge) and versions is recommended.
+
+
+### Frequently Asked Questions (FAQ)
+
+* **Q:  How do I change the lightbox's theme or appearance?**
+    * **A:**  You can customize the appearance through CSS.  Override the default styles provided by Ekko Lightbox by adding your own CSS rules.  Target the appropriate classes in the Ekko Lightbox CSS to achieve the desired modifications.
+
+* **Q: How do I add captions or titles to my images?**
+    * **A:** Use the `data-title` attribute on the link element.
+
+* **Q: Can I use Ekko Lightbox with video?**
+    * **A:** Yes, use iframes and specify `data-type="iframe"`.  Make sure the `href` attribute points to the video embed code URL.
+
+* **Q:  How do I programmatically open the lightbox?**
+    * **A:**  Use `$.ekkoLightbox.open({ /* options */ })`  The `options` object should include the content to display (e.g., `href`, `type`, `gallery`).
+
+* **Q: My lightbox is not responsive. What can I do?**
+    * **A:** Ekko Lightbox is inherently responsive. Check if your custom CSS is overriding the default responsive styles. Use media queries if you need more specific control over responsiveness at different screen sizes.
+
+
+If you have further questions or encounter issues not covered here, please refer to the project's GitHub repository or community forums for additional support and information.
+
+
+## Contributing
+
+We welcome contributions to Ekko Lightbox! Whether you're fixing bugs, adding features, or improving the documentation, your help is valuable.  Please follow these guidelines to ensure a smooth and efficient contribution process.
+
+
+### Reporting Bugs
+
+When reporting bugs, please provide as much detail as possible to help us understand and reproduce the issue.  A clear and concise bug report should include:
+
+* **Ekko Lightbox version:** Specify the version of Ekko Lightbox you are using.
+* **Browser and version:** Indicate the browser and its version where the bug occurs.
+* **Operating system:** State the operating system you're using.
+* **Steps to reproduce:** Provide a detailed step-by-step guide on how to reproduce the bug.
+* **Expected behavior:** Describe what you expected to happen.
+* **Actual behavior:** Describe what actually happened.
+* **Error messages (if any):** Include any error messages displayed in the browser's console.
+* **Code snippet:**  If possible, provide a minimal code example that demonstrates the bug.  A JSFiddle or CodePen example is particularly helpful.
+
+
+### Suggesting Features
+
+Feature suggestions are always welcome!  When suggesting a new feature, please:
+
+* **Clearly describe the feature:** Explain the functionality you'd like to see added.
+* **Explain the use case:** Describe the scenarios where this feature would be beneficial.
+* **Consider alternatives:**  Explore if there are existing solutions or workarounds for the problem.
+* **Provide examples:**  Illustrate how the feature should work with examples.
+
+
+### Submitting Pull Requests
+
+1. **Fork the repository:** Create a fork of the Ekko Lightbox repository on GitHub.
+2. **Create a new branch:** Create a new branch for your changes.  Use a descriptive branch name that reflects the changes you're making (e.g., `fix-bug-123`, `feature-new-gallery`).
+3. **Make your changes:**  Implement your changes, adhering to the coding style guide (see below).
+4. **Test thoroughly:** Ensure your changes work correctly and don't introduce new bugs.
+5. **Commit your changes:** Commit your changes with clear and concise commit messages.
+6. **Push your branch:** Push your branch to your forked repository.
+7. **Create a pull request:** Create a pull request from your branch to the main repository.  Include a clear description of your changes and why they are necessary.
+
+
+### Coding Style Guide
+
+To maintain consistency and readability, please follow these coding style guidelines when contributing to Ekko Lightbox:
+
+* **Indentation:** Use 2 spaces for indentation.
+* **Line length:** Keep lines under 80 characters.
+* **Naming conventions:** Use camelCase for variable and function names.
+* **Comments:** Write clear and concise comments to explain complex logic.
+* **Semicolons:**  Use semicolons to terminate statements.
+* **Whitespace:** Use consistent whitespace around operators and keywords.
+* **JavaScript:** Adhere to standard JavaScript best practices.
+
+
+Before submitting a pull request, ensure your code passes any automated tests and adheres to these guidelines.  We appreciate your cooperation in making Ekko Lightbox a well-maintained and high-quality project.
+

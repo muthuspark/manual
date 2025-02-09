@@ -1,0 +1,470 @@
+---
+title: "YUI3 - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Getting Started with YUI3
+
+### Downloading and Installation
+
+YUI 3 is no longer actively developed or supported by Yahoo.  The official YUI 3 website and download links are defunct.  However, the source code is still available through various archives and repositories (such as GitHub).  You'll need to find a suitable archive and download the YUI 3 library.  The core library will typically be a compressed file (e.g., a `.zip` or `.tar.gz` file) containing the JavaScript files and potentially other resources.
+
+Once downloaded, extract the contents of the archive to a directory of your choice. This directory will contain the YUI library's files. You will likely find a `build` directory; this is where the compiled and ready-to-use JavaScript files reside.  The specific structure of the files might vary depending on the archive you downloaded.
+
+**Note:**  Because YUI 3 is no longer officially supported, be aware that you may encounter difficulties finding up-to-date documentation or community support.  Consider exploring more modern JavaScript frameworks if you are starting a new project.
+
+
+### Basic Project Setup
+
+To use YUI 3 in your project, you will need to include the necessary JavaScript files in your HTML. The simplest approach is to include the combined `yui-min.js` file (if available in your downloaded version).  This file contains the core YUI library.  Alternatively, you can include individual modules as needed, but this requires a more detailed understanding of the YUI module system (explained in the next section).
+
+A basic HTML file structure would look like this:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>YUI 3 Example</title>
+    <script src="path/to/your/yui/build/yui/yui-min.js"></script>  </head>
+<body>
+    <script>
+        // Your YUI 3 code goes here
+    </script>
+</body>
+</html>
+```
+
+Replace `"path/to/your/yui/build/yui/yui-min.js"` with the actual path to the `yui-min.js` file in your downloaded YUI 3 library.
+
+
+### Hello World Example
+
+This example demonstrates a simple "Hello, World!" alert using YUI 3's `YUI` global object.  This approach uses the `use()` method which loads the core YUI module.
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>YUI 3 Hello World</title>
+    <script src="path/to/your/yui/build/yui/yui-min.js"></script>
+</head>
+<body>
+    <script>
+        YUI().use('yui', function (Y) {
+            Y.log('Hello, World!', 'info', 'my-logger'); //Logs to the console.  Not strictly necessary, but illustrates YUI functionality
+            alert('Hello, World!');
+        });
+    </script>
+</body>
+</html>
+```
+
+Remember to replace `"path/to/your/yui/build/yui/yui-min.js"` with the correct path.  This code uses the `YUI().use()` method to load the core YUI module before accessing YUI functionalities.
+
+### Understanding the YUI Module System
+
+YUI 3 utilizes a modular system to organize its components.  This allows you to include only the necessary modules for your application, improving performance and reducing download size.  Modules are self-contained units of functionality.
+
+The `YUI().use()` method is the primary way to load modules.  It takes an array of module names as its first argument and a callback function as its second.  The callback function receives a `Y` object, which is the YUI instance, containing all the loaded modules.
+
+For example:
+
+```javascript
+YUI().use('node', 'event', function (Y) {
+    // 'node' module provides access to DOM manipulation functions.
+    var myNode = Y.one('#myElement'); // Selects an element with ID 'myElement'.
+
+    // 'event' module provides event handling capabilities.
+    myNode.on('click', function(e) {
+        alert('Element clicked!');
+    });
+});
+```
+
+This code loads the `node` and `event` modules.  After they are loaded, the callback function has access to their functionalities through the `Y` object.  You can find a list of available modules in the (now outdated) YUI 3 documentation, if you can locate it, or by inspecting the contents of the downloaded `build` directory.  Remember that the structure and availability of modules might vary depending on the specific YUI 3 version you downloaded.
+
+
+## Core Modules
+
+### The YUI Object
+
+The `YUI` object is the central namespace and entry point for all YUI 3 functionality.  It's the global object you interact with to use YUI's modules and utilities.  You typically obtain an instance of the `YUI` object using `YUI()`. This creates a new YUI instance, allowing you to manage module loading and configuration separately from other parts of your application.  The `use()` method is the most important method of the `YUI` object.
+
+**Example:**
+
+```javascript
+YUI().use('node', function (Y) {
+    // Y is a YUI instance with the 'node' module loaded.
+    var node = Y.one('#myElement');  // Accessing Node utility
+});
+```
+
+The `YUI` object has several useful methods beyond `use()`, including `config()` for setting global options,  `env` for accessing browser environment information, and methods for managing the lifecycle of the YUI instance (though less critical with the simpler approach shown above). Refer to the (now unavailable official) YUI 3 documentation for a complete list of methods.  Finding this documentation will be a challenge, as it's no longer actively maintained.
+
+
+
+### Event Utility
+
+YUI 3's `Event` utility provides a powerful and cross-browser compatible mechanism for handling DOM events.  It simplifies event attachment, detachment, and custom event creation.  The `Event` utility is usually loaded alongside the `node` module as it often works in tandem with DOM manipulation.
+
+**Key methods:**
+
+* **`on(type, fn, context)`:** Attaches an event listener.  `type` is the event type (e.g., 'click', 'mouseover'), `fn` is the event handler function, and `context` is the optional scope for the function.
+
+* **`once(type, fn, context)`:** Attaches an event listener that fires only once.
+
+* **`detach(type, fn, context)`:** Detaches an event listener.
+
+* **`fire(type, eventData)`:** Programmatically fires an event.
+
+**Example:**
+
+```javascript
+YUI().use('node', 'event', function (Y) {
+  var button = Y.one('#myButton');
+  button.on('click', function(e) {
+      alert('Button clicked!');
+  });
+});
+```
+
+This attaches a click event listener to an element with the ID 'myButton'.  The event handler function alerts a message when the button is clicked.
+
+### DOM Utility
+
+The `Node` utility (often accessed via `Y.one()` or `Y.all()`) provides a high-level, efficient, and cross-browser-compatible interface for manipulating the DOM. It simplifies tasks such as selecting elements, adding/removing classes, changing content, and working with attributes.  `Y.one()` selects a single element, while `Y.all()` selects multiple elements.
+
+
+**Key methods (examples using Y.one()):**
+
+* **`addClass(className)`:** Adds a CSS class.
+* **`removeClass(className)`:** Removes a CSS class.
+* **`toggleClass(className)`:** Toggles a CSS class.
+* **`setAttribute(name, value)`:** Sets an attribute.
+* **`getAttribute(name)`:** Gets an attribute.
+* **`setContent(html)`:** Sets the HTML content.
+* **`append(newNode)`:** Appends a new node.
+
+
+**Example:**
+
+```javascript
+YUI().use('node', function (Y) {
+    var element = Y.one('#myElement');
+    element.addClass('highlight');
+    element.setContent('New content');
+});
+
+```
+
+This adds the class 'highlight' and changes the content of an element with the ID 'myElement'.
+
+
+### Custom Events
+
+YUI 3 allows you to create and manage custom events. This is useful for decoupling components and creating a more modular and maintainable application.  You create a custom event using the `EventTarget` class, or more directly through the `Y.publish` method (though this method is less favored in newer YUI-influenced code).
+
+
+**Example (using EventTarget):**
+
+```javascript
+YUI().use('event', function(Y) {
+    var myCustomEvent = new Y.EventTarget();
+
+    myCustomEvent.on('myevent', function(e) {
+        console.log('Custom event fired!', e.data);
+    });
+
+    myCustomEvent.fire('myevent', { message: 'Hello from custom event!' });
+});
+```
+
+This creates a custom event named 'myevent', attaches an event listener, and then fires the event with some data.  The event listener then logs a message to the console including the event data.  Remember that direct usage of `EventTarget` is generally preferred to older `publish` methods.  This section needs to be further augmented with further explanations of how to use custom events within the `YUI` context.
+
+
+## UI Components
+
+YUI 3 provides a rich set of UI components to simplify the creation of interactive web applications.  These components are built on top of the core modules, offering pre-built functionality and styling.  Remember that YUI 3 is no longer supported, and finding comprehensive documentation for these components will be challenging.  The descriptions below provide a general overview; details might vary slightly depending on the specific YUI 3 version.
+
+
+### Button
+
+The `Button` component provides a customizable button element.  You can configure its label, icon, and event handlers.
+
+**Example (Conceptual - actual implementation might require a slightly different syntax):**
+
+```javascript
+YUI().use('button', function (Y) {
+    var button = new Y.Button({
+        label: 'Click Me',
+        onclick: function() {
+            alert('Button clicked!');
+        }
+    });
+    button.render('#myContainer'); // Render the button into a container element.
+});
+```
+
+This creates a button with the label "Click Me" and an event handler that alerts a message when clicked.  The `render()` method is crucial for displaying the component in the DOM.
+
+
+### Checkbox
+
+The `Checkbox` component renders a checkbox input element. You can configure its checked state, label, and event handlers.
+
+**Example (Conceptual):**
+
+```javascript
+YUI().use('checkbox', function (Y) {
+    var checkbox = new Y.Checkbox({
+        label: 'Agree to terms',
+        checked: false,
+        onChange: function(e) {
+            console.log('Checkbox state changed:', e.target.get('checked'));
+        }
+    });
+    checkbox.render('#myContainer');
+});
+```
+
+
+### Container
+
+The `Container` component serves as a base class for many other layout components. It provides a flexible way to organize and structure other UI elements.
+
+
+### DataGrid
+
+The `DataGrid` component displays tabular data.  It supports features like sorting, pagination, and cell editing (though the extent of these features might be limited compared to modern data grid libraries).
+
+
+### Dialog
+
+The `Dialog` component creates modal or non-modal dialog boxes.  You can customize its title, content, buttons, and other aspects.
+
+
+### Menu
+
+The `Menu` component renders a menu with items that can be selected.  It supports hierarchical menus and various styling options.
+
+
+### Panel
+
+The `Panel` component is a general-purpose container with a header, body, and optional footer.  It's often used as a building block for more complex layouts.
+
+
+### Slider
+
+The `Slider` component creates a horizontal or vertical slider control.  You can configure its range, value, and event handlers.
+
+
+### TabView
+
+The `TabView` component displays multiple panels as tabs, allowing users to switch between them.
+
+
+### Tree
+
+The `Tree` component renders a hierarchical tree structure, often used to display file systems, organizational charts, or other hierarchical data.
+
+
+**Important Note:**  The exact syntax, available options, and even the existence of certain components might vary depending on the YUI 3 version and the specific build you are using.  The examples above are conceptual and might need adjustments to work correctly in your specific setup. Because YUI 3 is obsolete, finding reliable, up-to-date documentation will prove challenging.  Consider using a more current JavaScript framework for new projects.
+
+
+## Utilities
+
+YUI 3 provides a set of utility functions to assist with common programming tasks. These utilities are designed to be cross-browser compatible and efficient.  They operate on various data types, enhancing code readability and maintainability.  Remember that YUI 3 is no longer officially supported, so detailed documentation might be scarce.
+
+
+### Array Utility
+
+The YUI `Array` utility extends JavaScript's built-in `Array` object with additional methods.  While the specifics might vary slightly between YUI versions, you'd generally access these methods through the `Y.Array` namespace (e.g., `Y.Array.some()`).  These methods often provide more concise or robust alternatives to standard array operations.
+
+**Example (Conceptual):**
+
+```javascript
+YUI().use('array-extras', function(Y) { //The module name might vary slightly.
+    var myArray = [1, 2, 3, 4, 5];
+    var evenNumbers = Y.Array.filter(myArray, function(num) {
+        return num % 2 === 0;
+    });
+    console.log(evenNumbers); // Output: [2, 4]
+});
+```
+
+This uses a `filter` method (an example; other methods like `some`, `every`, etc., are expected) to create a new array containing only the even numbers from `myArray`.  Note that you need to include the appropriate YUI module (likely named something similar to `array-extras`) to access these utility functions.
+
+
+### Lang Utility
+
+The `Lang` utility provides functions for type checking, object manipulation, and other language-related tasks.  It’s a core utility used extensively within YUI itself and should be readily accessible through `Y.Lang`.
+
+**Example (Conceptual):**
+
+```javascript
+YUI().use('yui', function(Y) { //Lang is often implicitly loaded, but this ensures it's available.
+  console.log(Y.Lang.isArray([1,2,3])); //true
+  console.log(Y.Lang.isObject({a:1}));   //true
+  var clonedObject = Y.Lang.clone({a:1, b:2}); //Creates a shallow copy
+});
+```
+
+This shows the `isArray` and `isObject` methods which check data types, and `clone` for creating a copy of an object.  Many other helper functions for type checking and manipulation are included within `Y.Lang`.
+
+
+### JSON Utility
+
+The `JSON` utility provides functions for working with JSON (JavaScript Object Notation) data.  This would likely involve `Y.JSON.parse()` to decode JSON strings and `Y.JSON.stringify()` to encode JavaScript objects into JSON strings.  These are fundamental for handling data received from servers or other sources that use JSON.
+
+**Example (Conceptual):**
+
+```javascript
+YUI().use('json', function(Y) {
+    var jsonData = '{"name": "John Doe", "age": 30}';
+    var jsonObject = Y.JSON.parse(jsonData);
+    console.log(jsonObject.name); // Output: John Doe
+});
+```
+
+This parses a JSON string into a JavaScript object and then accesses its properties.  Again, you'll need to include the relevant YUI module (usually named `json` or a similar variant).
+
+
+### Number Utility
+
+The `Number` utility offers functions for working with numbers, possibly including functions for formatting numbers, performing calculations, or handling specific number-related tasks.  The available methods might be less extensive than in more modern libraries.
+
+
+### Object Utility
+
+The `Object` utility extends the functionality of JavaScript's built-in `Object` object, adding methods for iterating, extending, or modifying objects.  These are highly useful for working with complex data structures.  These methods often mimic those found in `Y.Lang` but might focus specifically on object manipulation.
+
+
+
+### String Utility
+
+The `String` utility provides functions for manipulating strings, such as trimming whitespace, replacing substrings, or performing other common string operations.  These are essential tools for data processing and text manipulation.  For example, you might find methods similar to `trim()`, `substring()`, or more advanced ones like functions for escaping HTML or regular expression matching (though check if these are explicitly part of the `Y.String` namespace in your YUI version).
+
+
+**Important Note:**  The availability and exact names of methods within the YUI 3 utilities might vary slightly depending on the YUI version and build you are using.  Always refer to the (now unavailable official) documentation or inspect the source code if available to confirm the available methods and their precise usage.  Given the obsolescence of YUI 3, using more recent JavaScript frameworks is highly recommended for new projects.
+
+
+## Advanced Topics
+
+This section covers more advanced aspects of YUI 3 development.  Remember that YUI 3 is no longer supported, so finding detailed and up-to-date documentation for these topics will be difficult.  The information below provides a general overview; specific implementation details might vary depending on your YUI 3 version and build.
+
+
+### Customizing Components
+
+YUI 3 components are designed to be highly customizable.  You can override their default styles using CSS, modify their behavior by extending their classes, or add new features by creating custom component instances and modifying their properties and methods.  The process often involves subclassing existing component classes and overriding methods or properties as needed.  However, the lack of readily available official documentation makes this a more challenging task for YUI 3.
+
+### Creating Custom Modules
+
+Creating custom modules is essential for organizing and reusing code in larger YUI 3 applications.  This involves defining new modules that encapsulate specific functionality, and then using the `YUI().use()` mechanism to load them.   The general structure involves creating a JavaScript file with a module definition, using a module definition pattern (like AMD or YUI's own internal module mechanism), and making sure to correctly register the new module. Again, the lack of readily available updated documentation will make researching the exact process challenging.
+
+### Asynchronous Loading
+
+Asynchronous loading of YUI 3 modules is crucial for improving the initial page load time and providing a better user experience. YUI 3 supports asynchronous module loading through its module system and the `YUI().use()` method. The `use()` method inherently loads modules asynchronously.  However, you would need to pay special attention to handling the asynchronous nature of this loading within your application logic (e.g., using callbacks or promises).
+
+### Internationalization
+
+Internationalization (i18n) in YUI 3 involves adapting your application to support multiple languages and locales.  This typically requires using resource bundles to store localized text and other data, and then loading the appropriate bundle based on the user's locale.  YUI 3 likely offered some support for this, but specifics require a deep dive into potentially outdated documentation or example applications.
+
+### Accessibility
+
+Building accessible YUI 3 applications requires adhering to accessibility guidelines (like WCAG). This involves using appropriate ARIA attributes, providing alternative text for images, ensuring sufficient color contrast, and making sure your application is usable with assistive technologies.  YUI 3 components were likely designed with some accessibility considerations in mind, but you must still follow best practices for accessibility.
+
+### Performance Optimization
+
+Optimizing YUI 3 application performance involves several techniques: minimizing the number of modules loaded, using efficient DOM manipulation techniques, avoiding unnecessary calculations, and optimizing images and other resources.  Profiling tools would help identify performance bottlenecks, but remember the outdated nature of YUI 3 might limit the tools and advice available.
+
+### Debugging and Troubleshooting
+
+Debugging YUI 3 applications involves using browser developer tools (like the console and debugger) to identify and fix errors.  Logging messages at strategic points in your code is invaluable for troubleshooting.   The lack of officially supported tools or debugging aids for YUI 3 might necessitate using general browser debugging approaches.  The older nature of the framework may also mean you encounter compatibility challenges with newer browsers or development tools.
+
+
+**Important Note:** Given that YUI 3 is no longer supported, the information above offers a general conceptual overview.  Specific implementation details and the availability of certain features might vary significantly depending on the exact YUI 3 version and build you are using.  For new projects, using more modern and actively maintained JavaScript frameworks is highly recommended.
+
+
+## Migration from YUI 2
+
+Migrating from YUI 2 to YUI 3 requires careful planning and execution due to significant architectural differences between the two versions.  This section outlines key differences, strategies for conversion, and common pitfalls to avoid.  Remember that YUI 3 itself is no longer supported, so this migration path is largely of historical interest.  If undertaking a migration, thoroughly assess whether continuing with YUI 3 or migrating to a more modern framework is the optimal approach.
+
+
+### Key Differences
+
+* **Modular Architecture:** YUI 3 uses a highly modular architecture, where components and utilities are loaded individually as needed.  This contrasts with YUI 2's more monolithic structure.  This means a significant shift in how modules are included and managed.
+
+* **Namespace:**  The namespace structure changed considerably. YUI 2 used a nested namespace structure (`YAHOO.util`, `YAHOO.widget`, etc.), while YUI 3 uses a flatter structure primarily based on the `Y` object and module loading.
+
+* **DOM Manipulation:**  YUI 2 primarily used its own DOM manipulation functions, while YUI 3 uses the `Node` utility, offering a more streamlined and efficient approach built on top of standard DOM APIs.  This necessitates a translation of DOM operations.
+
+* **Events:** Event handling has been revamped.  YUI 2's event system is different from the more robust and customizable event system in YUI 3 (which leverages the `Event` utility).
+
+* **Component API:** YUI 3 components are significantly different from YUI 2 components.  Methods, properties, and the overall API are redesigned, requiring significant code changes.  Expect substantial rewriting of UI component usage.
+
+* **Utility Functions:**  Many YUI 2 utility functions have counterparts in YUI 3, but their names, parameters, and return values might differ. Careful comparison and code adjustment is necessary.
+
+### Conversion Strategies
+
+A phased approach is recommended for migrating from YUI 2 to YUI 3:
+
+1. **Assessment:** Thoroughly analyze your YUI 2 codebase to identify all dependencies and components used.
+
+2. **Modularization:** Break down your YUI 2 code into smaller, more manageable modules.  This step is vital for the transition to YUI 3's modular architecture.
+
+3. **Component Replacement:** Replace YUI 2 components with their YUI 3 equivalents.  This often requires substantial code rewriting because of the API differences.
+
+4. **Utility Function Replacement:** Update YUI 2 utility functions to their YUI 3 counterparts, considering any changes in parameters and return values.
+
+5. **Testing:** Rigorously test the migrated code to ensure functionality and compatibility across different browsers.
+
+6. **Deployment:** Deploy the migrated application in stages, starting with a small subset of features and gradually expanding.
+
+### Common Pitfalls and Solutions
+
+* **Incorrect Module Loading:**  Failure to load necessary YUI 3 modules correctly is a common problem.  Double-check module names and dependencies when using `YUI().use()`.
+
+* **Namespace Conflicts:**  The change in namespace structure can lead to conflicts.  Careful renaming and organization are crucial to avoid clashes.
+
+* **API Mismatches:**  Don't assume that YUI 2 and YUI 3 component APIs are directly interchangeable.  Consult the (now unavailable official) YUI 3 documentation for the correct methods and properties.
+
+* **Event Handling Issues:**  Differences in event handling mechanisms require careful translation. Pay close attention to event attachment, detachment, and custom event implementation.
+
+* **Testing Gaps:**  Insufficient testing can lead to unexpected behavior.  Comprehensive testing across browsers is critical.
+
+* **Lack of Documentation:**  The absence of readily available, complete documentation for YUI 3 makes the migration significantly more challenging.
+
+**Recommendation:** Before starting a migration from YUI 2 to YUI 3 (or even considering YUI 3 at all), carefully weigh the effort required against the potential benefits.  Given the lack of official support for YUI 3, migrating to a modern, actively maintained JavaScript framework might be a more efficient and sustainable long-term solution.
+
+
+## Appendix
+
+This appendix provides supplemental information to aid in your understanding and use of YUI 3.  Keep in mind that YUI 3 is no longer supported, so the resources mentioned here may be incomplete or unavailable.
+
+
+### Glossary of Terms
+
+Because YUI 3 is no longer actively maintained, a comprehensive glossary is not readily available. However, key terms include:
+
+* **Module:** A self-contained unit of functionality in YUI 3. Modules are loaded individually using `YUI().use()`.
+* **YUI Instance (Y):**  The object (`Y`) that provides access to all loaded YUI modules and utilities.
+* **Node:** The primary YUI 3 utility for DOM manipulation.
+* **Event:** A mechanism for handling user interactions and other events in the application.
+* **Component:** A pre-built UI element provided by YUI 3, such as Button, Checkbox, or DataGrid.
+* **Utility:** A helper function for common tasks, such as string manipulation, array operations, or JSON handling.
+* **Asynchronous Loading:** Loading modules in the background without blocking the main thread.
+
+For more detailed definitions of terms specific to YUI 3, you would need to search for archived documentation or potentially examine the source code of the framework itself.
+
+### API Reference
+
+Unfortunately, a complete and readily available API reference for YUI 3 is unlikely to exist due to the project's discontinuation.  The official documentation is defunct.  Your best bet for finding information about specific components or utilities would involve searching for archived versions of the documentation online (a difficult and unreliable task) or inspecting the source code directly.
+
+### Example Code Snippets
+
+Because no central repository for updated code examples exists for YUI 3, finding examples will prove challenging.  However, you might find snippets of code in outdated blog posts, forums, or archived YUI community resources.  These snippets could provide illustrations of specific tasks or usages of YUI 3 components and utilities.   Searching for "YUI 3 [specific task or component]" on relevant platforms might yield some results.
+
+### Contributors
+
+Due to the project's age and lack of official maintenance, identifying all original YUI 3 contributors is difficult.  Information on contributors is likely scattered across various sources.  However, it's safe to say that the core team at Yahoo! at the time played a significant role in its development, along with many community members who contributed code, bug fixes, and documentation.  Finding a comprehensive list of contributors will likely require extensive research across old forums, mailing lists, and code repositories associated with the project.
+
+

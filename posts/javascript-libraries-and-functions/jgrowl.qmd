@@ -1,0 +1,417 @@
+---
+title: "jGrowl - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction to jGrowl
+
+### What is jGrowl?
+
+jGrowl is a jQuery plugin that provides a simple and unobtrusive way to display non-blocking, user-friendly notifications within a web application.  These notifications, often called "growls" or "toasts," appear briefly on the screen to inform the user of events without disrupting their workflow.  They're ideal for displaying messages about successful actions, warnings, errors, or other important information.  jGrowl's lightweight nature and ease of customization make it a popular choice for enhancing user experience across a variety of web projects.
+
+
+### Key Features and Benefits
+
+* **Non-blocking notifications:** Growls appear briefly without interrupting user interaction with the main application content.
+* **Customizable appearance:**  Easily adjust the growl's appearance (styling, position, duration) using CSS and plugin options.
+* **Multiple growl instances:** Display multiple growls simultaneously, managing their order and visibility.
+* **Simple integration:**  jGrowl integrates seamlessly with jQuery and requires minimal code to implement.
+* **Variety of notification types:** Support for various notification types (success, warning, error, etc.) using distinct visual cues.
+* **Automatic closing:** Growls automatically disappear after a specified time, or can be manually closed by the user.
+* **Lightweight and efficient:**  Minimal impact on page load time and performance.
+* **Extensible functionality:**  Easily extend jGrowl's functionality through custom themes and plugins.
+
+
+### Setting up jGrowl: Installation and Dependencies
+
+jGrowl requires jQuery. Ensure you have a compatible version of jQuery included in your project before including jGrowl.  There are two primary ways to include jGrowl in your project:
+
+**1. Using a CDN:**
+
+The easiest method is to include jGrowl via a CDN.  First, include jQuery:
+
+```html
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+```
+
+Then, include jGrowl (replace with the correct CDN link if necessary – check the official jGrowl site for the most up-to-date link):
+
+```html
+<script src="https://example.com/path/to/jquery.jgrowl.min.js"></script>  <!-- Replace with actual CDN link -->
+```
+
+**2. Downloading and including locally:**
+
+Download the jGrowl library files from the official source.  Include jQuery, and then include the jGrowl JavaScript file in your project, typically within your `<head>` or just before the closing `</body>` tag:
+
+```html
+<script src="path/to/jquery.min.js"></script>
+<script src="path/to/jquery.jgrowl.min.js"></script>
+```
+
+Remember to replace `"path/to/..."` with the actual path to your jQuery and jGrowl files.  After including the necessary files, you're ready to start using the jGrowl API to display notifications in your application.  Refer to the API documentation for further details on using the plugin's various functions and options.
+
+
+## Basic Usage
+
+### Creating Simple Notifications
+
+The most basic way to use jGrowl is to call the `jGrowl()` method with a message string:
+
+```javascript
+$(document).ready(function() {
+  $.jGrowl("Hello, world!");
+});
+```
+
+This will display a default notification containing the text "Hello, world!".  The notification will automatically close after a default duration.
+
+You can also pass an object to `jGrowl()` for more control.  For example:
+
+```javascript
+$(document).ready(function() {
+  $.jGrowl("This is a success message!", {
+    theme: 'success'  //Optional theme
+  });
+});
+```
+
+This will display a success message, using a designated success theme (if defined).  To display different message types, refer to the theming section below.
+
+
+### Customization Options
+
+jGrowl offers several options to customize the appearance and behavior of notifications.  These are passed as the second argument to the `jGrowl()` method as a JavaScript object.  Some key options include:
+
+* **`message`:** (String) The text content of the notification.  This is required.
+* **`theme`:** (String)  The CSS class applied to the notification for styling.  Defaults to a standard theme.  You'll typically create your own CSS classes to style different notification types.
+* **`header`:** (String)  Optional header text for the notification.
+* **`life`:** (Integer)  The duration in milliseconds the notification remains visible before automatically closing.  `0` makes the notification sticky (manually closable only). Defaults to a preset value.
+* **`speed`:** (Integer)  The speed of the opening and closing animation in milliseconds.
+* **`position`:** (String)  The position of the notification on the screen (e.g., 'top-right', 'bottom-center').  Defaults to a preset value.  See below section for details.
+* **`close`:** (Boolean) Whether to show a close button on the notification. Defaults to true.
+* **`sticky`:** (Boolean) Whether the notification should remain until closed manually.  Overrides `life` option when set to `true`.
+* **`onShow`:** (Function)  A callback function executed when the notification is shown.
+* **`onHide`:** (Function)  A callback function executed when the notification is hidden.
+
+
+For example:
+
+
+```javascript
+$.jGrowl("This is a warning!", {
+  theme: 'warning',
+  life: 5000,  //Display for 5 seconds
+  speed: 'slow',
+  header: 'Warning!'
+});
+```
+
+
+### Positioning and Styling
+
+jGrowl notifications are positioned using CSS.  The `position` option affects where the notification appears on the screen (e.g., 'top-right', 'bottom-left').  You can also adjust the vertical and horizontal offsets.  You can use predefined positions or define your own.  Predefined positions are typically included in the jGrowl CSS, or you may have to create them yourself.
+
+Styling is primarily handled through CSS.  Each notification is assigned a class based on the `theme` option (e.g., `jGrowl-notification`, `jGrowl-notification-warning`).  You can create custom CSS styles for different notification types (success, warning, error, etc.) using these classes to define background colors, fonts, icons and overall appearance.  Custom themes should be created according to provided documentation.   Remember that you might have to adjust the CSS to fit your specific needs and layout.
+
+
+## Advanced Usage
+
+### Using Multiple Instances
+
+jGrowl allows you to manage multiple independent notification instances.  This is useful for displaying notifications in different parts of your application or with different configurations.  To create a new instance, use the `$.jGrowl.defaults` object to set global defaults, then create the instance with a selector targeting a specific container for the notifications:
+
+```javascript
+// Set global defaults (optional, these will apply to all instances unless overridden)
+$.jGrowl.defaults.position = 'bottom-right';
+$.jGrowl.defaults.theme = 'default';
+
+
+// Create an instance targeting a specific div with id "my-notifications"
+$('#my-notifications').jGrowl("This is a notification in a specific container.");
+
+// Another instance targeting a different container
+$('#other-notifications').jGrowl("This is in a different container!", {theme: 'success'});
+```
+
+Remember to create the necessary div elements (`<div id="my-notifications"></div>`, `<div id="other-notifications"></div>`) in your HTML.
+
+### Chaining and Queuing Notifications
+
+jGrowl handles notification queuing automatically.  If you call `jGrowl()` multiple times before existing notifications have closed, they'll be queued and displayed one after the other.  You can't directly chain jGrowl calls in a fluent manner (like `jGrowl().jGrowl()`),  but the queuing mechanism achieves a similar effect.  The order is determined by when you call the `jGrowl` function.
+
+
+### Handling Events
+
+jGrowl provides `onShow` and `onHide` callback functions within the options object.  These functions are executed when a notification is displayed or hidden, respectively.  This is useful for performing actions before or after a notification is shown:
+
+```javascript
+$.jGrowl("This notification has custom events!", {
+  onShow: function(e, m) {
+    console.log('Notification shown:', m.message); //'m' contains the notification data
+  },
+  onHide: function(e, m) {
+    console.log('Notification hidden:', m.message);
+  }
+});
+```
+
+The `e` parameter represents the event object, and `m` contains metadata about the notification (message, theme etc).
+
+
+### Custom Themes and Styling
+
+Creating custom themes involves adding CSS classes and styles.  The base class is usually `jGrowl-notification`.  You create additional classes for different notification types (e.g., `jGrowl-notification-success`, `jGrowl-notification-error`).   This example shows a simple custom CSS style:
+
+```css
+.jGrowl-notification-success {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.jGrowl-notification-error {
+  background-color: #f44336;
+  color: white;
+}
+```
+
+Apply these classes to your notifications using the `theme` option:
+
+```javascript
+$.jGrowl("Success!", { theme: 'success' });
+$.jGrowl("Error!", { theme: 'error' });
+```
+
+
+### Integration with other JavaScript libraries
+
+jGrowl is essentially a jQuery plugin, so integrating it with other JavaScript libraries mostly depends on how those libraries interact with jQuery.  If the other library modifies the DOM or uses jQuery events, ensure that there are no conflicts.  For instance, using jGrowl alongside other plugins that manipulate the same DOM elements might require careful consideration of event ordering and potential conflicts.  Proper event handling and potentially using namespaces for jQuery events can help mitigate these issues.  If libraries are not directly dependent on jQuery, you will have to manage their interactions carefully.
+
+
+## API Reference
+
+### jGrowl Constructor
+
+The core of jGrowl is accessed through the `$.jGrowl()` method. While it's primarily used to display notifications, it also acts as the constructor for managing notification instances (especially when used with selectors for multiple containers). The basic usage,  `$.jGrowl("Your message");`, creates a default notification instance.  More control is gained by passing a configuration object as a second argument (see Options Reference below).  When used with a selector, it creates an instance tied to that element for managing notifications within that container.
+
+
+### Methods: show, close, closeAll, update
+
+jGrowl provides several methods to control notifications after they've been created.  These methods are typically called on a specific instance (if you've created multiple instances using selectors).
+
+* **`show(message, options)`:** Displays a new notification.  `message` is the notification text, and `options` is a configuration object (same as the constructor options, see Options Reference).
+
+* **`close(index)`:** Closes a specific notification identified by its index (0-based index from top to bottom).
+
+* **`closeAll()`:** Closes all notifications within the instance.
+
+* **`update(index, message, options)`:** Updates an existing notification.  `index` identifies the notification, `message` is the new message text, and `options` allows modifying the notification's configuration.  Note that updating options might not have the same effect as setting options at creation time, some properties are simply not adjustable after creation.
+
+
+Example of using `close` and `closeAll` with an instance tied to a specific container (`#my-notifications`):
+
+```javascript
+$('#my-notifications').jGrowl("Notification 1");
+$('#my-notifications').jGrowl("Notification 2");
+$('#my-notifications').jGrowl("Notification 3");
+
+// Close the second notification
+$('#my-notifications').jGrowl('close', 1);
+
+// Close all notifications in this instance
+$('#my-notifications').jGrowl('closeAll');
+```
+
+
+### Options Reference
+
+The `options` object passed to `$.jGrowl()` (or the `show` method) controls various aspects of notification behavior and appearance.  Key options include (but aren't limited to):
+
+* **`message` (String):**  The notification text (required).
+* **`theme` (String):** The CSS class applied for styling.
+* **`header` (String):**  The notification header text.
+* **`life` (Integer):**  Duration in milliseconds before auto-closing (0 for sticky).
+* **`speed` (String or Integer):**  Animation speed ('slow', 'normal', 'fast', or milliseconds).
+* **`position` (String):**  Notification position ('top-right', 'bottom-left', etc.).
+* **`close` (Boolean):**  Whether to show a close button.
+* **`sticky` (Boolean):**  Whether the notification is sticky (overrides `life`).
+* **`onShow` (Function):** Callback for when the notification is shown.
+* **`onHide` (Function):** Callback for when the notification is hidden.
+* **`animateOpen` {Object}:**  Animation options for opening (e.g., ` { height: "show" }`).
+* **`animateClose` {Object}:** Animation options for closing.
+
+Consult the full documentation for a complete list of options and their details.
+
+
+### Events Reference
+
+jGrowl triggers several events:
+
+* **`jGrowl.beforeOpen`:** Triggered before a notification is opened.
+* **`jGrowl.afterOpen`:** Triggered after a notification is opened.
+* **`jGrowl.beforeClose`:** Triggered before a notification is closed.
+* **`jGrowl.afterClose`:** Triggered after a notification is closed.
+
+These events can be bound using jQuery's `on` method (or similar):
+
+
+```javascript
+$('#my-notifications').on('jGrowl.beforeOpen', function(e, data) {
+  console.log('Notification about to open:', data);
+});
+```
+
+The `data` parameter provides information about the notification being opened or closed (similar to the `m` parameter in `onShow` and `onHide`).  Remember that these events are triggered per notification instance, so you will need to bind to the correct element.
+
+
+## Troubleshooting
+
+### Common Errors and Solutions
+
+* **"$.jGrowl is not a function":** This usually means jGrowl's JavaScript file hasn't been included correctly in your HTML file or jQuery isn't loaded before jGrowl. Double-check your `<script>` tags to ensure the correct paths and order of inclusion.
+
+* **Notifications not appearing:** Check your CSS to make sure that your styles aren't inadvertently hiding the notifications (e.g., `display: none;`, `visibility: hidden;`, or incorrect z-index). Inspect the elements using your browser's developer tools to verify that the notification elements are present in the DOM and visible.
+
+* **Incorrect positioning:** If notifications aren't appearing in the expected location, double-check the `position` option in your `$.jGrowl()` call and ensure that the relevant CSS for positioning is correctly included and functioning.
+
+* **Animation issues:** Problems with animation might stem from CSS conflicts or incorrect animation settings in the `speed`, `animateOpen`, or `animateClose` options.  Try simplifying your animations or temporarily disabling them to see if they are the source of the problem.
+
+* **Conflicting JavaScript libraries:** If you are using other JavaScript libraries, they might interfere with jGrowl's functionality.  Try disabling other plugins or libraries temporarily to pinpoint any potential conflicts.  Ensure proper jQuery event handling and namespace usage to avoid conflicts.
+
+
+### Debugging Tips
+
+* **Use your browser's developer tools:** The browser's developer tools (usually accessed by pressing F12) are invaluable for debugging.  Check the console for JavaScript errors, use the network tab to verify that jGrowl's files are loading correctly, and inspect the elements to examine the HTML and CSS of your notifications.
+
+* **Simplify your code:** To isolate the source of a problem, try creating a minimal example with only the essential code needed to display a notification.  This helps to rule out complex interactions or configurations as the cause.
+
+* **Check the console for errors:**  JavaScript errors will often provide clues about what's going wrong.  Pay attention to error messages and line numbers to track down the problem.
+
+* **Test in different browsers:**  Browser compatibility can vary. Test your code thoroughly across different browsers (Chrome, Firefox, Safari, Edge) to identify any browser-specific issues.
+
+
+### Browser Compatibility
+
+jGrowl generally works well across modern browsers.  However, very old or outdated browsers might have limited support.   Optimal support is expected on browsers that support jQuery effectively.  While jGrowl itself doesn't depend on any cutting-edge browser features (beyond the basics required for jQuery),  problems can arise from incompatibilities with other libraries or CSS styles that you may include.  Thorough testing across target browsers is recommended to ensure compatibility.
+
+
+## Examples
+
+### Basic Notification Example
+
+This example shows the simplest way to display a notification using jGrowl:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>jGrowl Basic Example</title>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="jquery.jgrowl.min.js"></script> <script>
+$(document).ready(function() {
+  $.jGrowl("This is a basic notification!");
+});
+</script>
+</head>
+<body>
+
+</body>
+</html>
+```
+
+Remember to replace `"jquery.jgrowl.min.js"` with the correct path to your jGrowl file. This will display a standard notification with the given message.
+
+
+### Advanced Notification Example
+
+This example demonstrates using multiple options to customize the notification:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>jGrowl Advanced Example</title>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="jquery.jgrowl.min.js"></script>
+<script>
+$(document).ready(function() {
+  $.jGrowl("This is a more advanced notification!", {
+    theme: 'success',
+    header: 'Success!',
+    life: 5000,
+    speed: 'slow',
+    position: 'top-center'
+  });
+});
+</script>
+</head>
+<body>
+
+</body>
+</html>
+```
+
+This notification will have a "success" theme, a custom header, a 5-second lifespan, slow animation, and will be positioned in the top center of the screen.  You will need to have CSS rules defining `success` theme.
+
+
+### Example: Integration with a form
+
+This example shows how to display a notification after a successful form submission (simulated here):
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>jGrowl Form Example</title>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="jquery.jgrowl.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('#myForm').submit(function(e) {
+    e.preventDefault(); // Prevent actual form submission
+    $.jGrowl("Form submitted successfully!", { theme: 'success' });
+  });
+});
+</script>
+</head>
+<body>
+<form id="myForm">
+  <input type="text" name="name"><br>
+  <input type="submit" value="Submit">
+</form>
+</body>
+</html>
+```
+
+This code simulates form submission and displays a success message.  You'd replace the simulated submission with your actual form handling logic.
+
+
+### Example: Customized Themes
+
+This example requires creating custom CSS to define the themes.  The HTML remains largely the same, the key difference is applying custom CSS classes. Let's assume we have the following CSS:
+
+```css
+.jGrowl-notification-custom-success {
+  background-color: #007bff;
+  color: white;
+  border: 2px solid #0069d9;
+}
+
+.jGrowl-notification-custom-error {
+  background-color: #dc3545;
+  color: white;
+  border: 2px solid #c82333;
+}
+
+```
+
+Then, the JavaScript would be modified to utilize these custom themes:
+
+```javascript
+$(document).ready(function() {
+  $.jGrowl("Custom Success!", { theme: 'custom-success' });
+  $.jGrowl("Custom Error!", { theme: 'custom-error' });
+});
+```
+
+Remember to include the custom CSS in your HTML file.  This will display notifications using your custom `custom-success` and `custom-error` themes.  You need to have the CSS defined for this to work correctly.  Always consult the official documentation for the most accurate and up-to-date information.
+

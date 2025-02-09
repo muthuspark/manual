@@ -1,0 +1,546 @@
+---
+title: "Awesomplete - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Getting Started
+
+### Installation
+
+Awesomplete can be installed via npm or by including the script directly in your HTML.
+
+**npm:**
+
+```bash
+npm install awesomplete
+```
+
+Then, import it into your JavaScript code:
+
+```javascript
+import Awesomplete from 'awesomplete';
+```
+
+**Direct inclusion (HTML):**
+
+Download `awesomplete.js`  from the project's repository and include it in your HTML file:
+
+```html
+<script src="awesomplete.js"></script>
+```
+
+
+### Basic Usage
+
+Awesomplete is designed to work with a single input element.  You instantiate it by passing a reference to the input element as the first argument to the Awesomplete constructor. Optionally, you can pass a configuration object as a second argument to customize its behavior.  The most common options are `list` (an array of strings to autocomplete from), `minChars` (the minimum number of characters typed before showing suggestions), and `autoFirst` (whether to automatically select the first suggestion).
+
+```javascript
+const input = document.getElementById('my-input');
+new Awesomplete(input, {
+  list: ['apple', 'banana', 'cherry'],
+  minChars: 2,
+  autoFirst: true
+});
+```
+
+This will create an autocomplete dropdown for the input element with ID "my-input".  The dropdown will show suggestions only after the user has typed at least two characters. The first suggestion will be automatically selected.
+
+### First Example
+
+Let's create a simple autocomplete for a list of fruits.  First, add an input field to your HTML:
+
+```html
+<input id="my-input">
+```
+
+Then, include Awesomplete (using either the npm or direct method described above) and add this JavaScript code:
+
+```javascript
+const input = document.getElementById('my-input');
+new Awesomplete(input, {
+  list: ['Apple', 'Banana', 'Cherry', 'Date', 'Fig'],
+  maxItems: 5 // limits the number of suggestions displayed
+});
+```
+
+This will create an autocomplete that suggests fruits from the provided list.  Try typing into the input field to see it in action. Remember that you need to have included the Awesomplete library for this code to work.
+
+
+## Core Features
+
+### Input Field Configuration
+
+Awesomplete's primary interaction is through an HTML `<input>` element.  While a simple instantiation is sufficient for basic use, several attributes of the input field itself can influence Awesomplete's behavior:
+
+* **`placeholder` attribute:**  This attribute's value is displayed in the input field when it's empty and not focused.  Awesomplete will not interfere with its display.
+
+* **`autocomplete` attribute:** Setting this attribute to `"off"` is highly recommended to prevent conflicts with the browser's built-in autocomplete functionality.  This ensures Awesomplete's suggestions are displayed correctly.
+
+* **`type` attribute:**  While Awesomplete works with various input types, it's primarily designed for `text` inputs.  Other types might require additional adjustments or may not function as expected.
+
+Beyond the input's attributes, further configuration happens through options passed to the Awesomplete constructor (as detailed in the Basic Usage section).
+
+
+### Data Sources: Local vs. Remote
+
+Awesomplete supports both local and remote data sources for its suggestions.
+
+**Local Data:**  The simplest method is using the `list` option, providing an array of strings directly to the Awesomplete constructor.  This is ideal for small, static datasets.
+
+```javascript
+new Awesomplete(input, { list: ['apple', 'banana', 'cherry'] });
+```
+
+**Remote Data:** For larger or dynamic datasets, you can fetch data from a remote source using the `data` option. This option should be a function that receives the input value as an argument and returns a Promise resolving to an array of strings.  The function will be called whenever the input value changes.
+
+```javascript
+new Awesomplete(input, {
+  data: function(text, callback) {
+    fetch('/api/search?q=' + encodeURIComponent(text))
+      .then(response => response.json())
+      .then(data => callback(data.results))
+  }
+});
+```
+
+
+### List Rendering and Styling
+
+Awesomplete renders the suggestion list within a dynamically created `<ul>` element.  The default styling is minimal and unobtrusive, but it's easily customizable through CSS.  You can target the element with the class `awesomplete-list` to style the overall list, and the elements with the class `awesomplete-item` for individual suggestions.
+
+You can add custom elements within the `awesomplete-item` to create richer suggestions (e.g., icons or other data related to each suggestion).  However, ensure these additions don't break Awesomplete's internal selection mechanism.
+
+### Filtering and Matching
+
+Awesomplete uses a simple substring matching algorithm by default.  It checks if the input text is a substring of each item in the `list` or retrieved from the `data` source.  This behavior can be customized using the `filter` option, allowing developers to implement more sophisticated matching logic, such as fuzzy matching or regular expression-based filtering.
+
+### Selection and Input
+
+Users can select suggestions from the list using the keyboard (up/down arrows, Enter key) or by clicking on them with the mouse.  Once a suggestion is selected, its value is inserted into the input field.  The `autoFirst` option controls whether the first suggestion is automatically selected when the list is displayed.  The `replace` option influences how the selected item replaces existing text (e.g., replacing the entire input or only the matched part).
+
+### Event Handling
+
+Awesomplete provides several events that allow you to hook into its lifecycle:
+
+* **`awesomplete-open`:** Fired when the suggestion list is opened.
+* **`awesomplete-close`:** Fired when the suggestion list is closed.
+* **`awesomplete-select`:** Fired when an item is selected.
+* **`awesomplete-selectcomplete`:** Fired after an item has been selected and added to the input.
+* **`awesomplete-blur`:** Fired when the input loses focus.
+
+These events are dispatched on the input element. You can use standard JavaScript event listeners (like `addEventListener`) to handle them.  For instance:
+
+
+```javascript
+input.addEventListener('awesomplete-select', function(e) {
+  console.log('Selected item:', e.text);
+});
+```
+
+
+## Advanced Configuration
+
+### Custom Filtering Functions
+
+The default filtering in Awesomplete performs simple substring matching.  For more complex scenarios, you can provide a custom filtering function via the `filter` option. This function receives the input text (`text`) and an item from the data source (`input`) and should return `true` if the item matches, and `false` otherwise.
+
+```javascript
+new Awesomplete(input, {
+  filter: function(text, input) {
+    // Example: Case-insensitive fuzzy matching
+    return input.toLowerCase().includes(text.toLowerCase());
+  }
+});
+```
+
+### Async Data Loading
+
+The `data` option allows asynchronous data loading.  As demonstrated earlier, this involves a function returning a Promise.  Effective error handling and user feedback (e.g., a loading indicator) are crucial for a good user experience during asynchronous operations.  Consider using a loading indicator while waiting for the data to be fetched from the server.
+
+### Template Functions for List Items
+
+Customize how each item is rendered in the suggestion list using the `item` option. This option takes a function that receives the item's data and should return the HTML to display for that item. This enables dynamic rendering of list elements, including HTML, beyond simple text.
+
+```javascript
+new Awesomplete(input, {
+  list: [{ label: 'Apple', value: 'apple' }, { label: 'Banana', value: 'banana' }],
+  item: function(text, input) {
+    return `<span>${input.label}</span> - <small>${input.value}</small>`;
+  }
+});
+```
+
+### Minimum Characters
+
+Control how many characters a user must type before suggestions appear using the `minChars` option.  Setting it to `0` will show suggestions immediately upon focusing the input field.
+
+```javascript
+new Awesomplete(input, { minChars: 0 });
+```
+
+### Auto First
+
+The `autoFirst` option (boolean) automatically selects the first suggestion when the list is opened.  Setting it to `false` requires the user to manually select an item.
+
+```javascript
+new Awesomplete(input, { autoFirst: false });
+```
+
+### Replace Input
+
+The `replace` option dictates how the selected item replaces the text in the input field.  `true` (default) replaces the entire input; `false` replaces only the matched part.
+
+```javascript
+new Awesomplete(input, { replace: false });
+```
+
+### Debouncing
+
+Awesomplete internally debounces requests to prevent excessive calls to the `data` function (or excessive server requests if fetching remote data).  The `debounce` option allows you to customize this debounce time (in milliseconds).
+
+```javascript
+new Awesomplete(input, { debounce: 300 }); // 300ms debounce
+```
+
+### Open on Focus
+
+By default, Awesomplete opens the suggestion list only after the user types something.  Setting `openOnFocus` to `true` will open it immediately when the input field gains focus.
+
+```javascript
+new Awesomplete(input, { openOnFocus: true });
+```
+
+### Max Height
+
+Limit the height of the suggestion list using the `maxHeight` option (in pixels).  This prevents the list from overflowing the viewport.
+
+```javascript
+new Awesomplete(input, { maxHeight: 200 });
+```
+
+### Item Selection
+
+The `select` option defines how the item's value is handled after selection. You can use this to transform the data before insertion into the input field.
+
+### Sorting
+
+Customize the order of suggestions using the `sort` option. This takes a comparison function similar to `Array.prototype.sort`.
+
+```javascript
+new Awesomplete(input, {
+  sort: function(a, b) {
+    // Custom sorting logic
+    return a.toLowerCase().localeCompare(b.toLowerCase());
+  }
+});
+
+```
+
+### Item Manipulation
+
+While Awesomplete doesn't directly offer methods for *manipulating* individual list items after they're rendered,  you can achieve this indirectly by using the `item` template function to dynamically generate the items’ content, thereby influencing their appearance and behavior.  Events like `awesomplete-select` can then be used to respond to user selection of modified items.
+
+
+## Styling and Theming
+
+### CSS Customization
+
+Awesomplete's styling is primarily managed through CSS.  The library uses a minimal set of CSS classes to style the suggestion list and its items, making it easy to customize the appearance without modifying the core JavaScript code.
+
+The main CSS classes to target are:
+
+* **`awesomplete`:** This class is applied to the container element that wraps the input and the suggestion list.  You can use this to style the overall layout and positioning of the autocomplete.
+
+* **`awesomplete-input`:** This class is applied to the input element itself.  You can style the input field's appearance (e.g., border, padding, font).
+
+* **`awesomplete-list`:** This class is applied to the `<ul>` element containing the suggestion list.  Use this to style the list's background, border, padding, etc.
+
+* **`awesomplete-item`:** This class is applied to each `<li>` element representing a suggestion.  Style individual items (background on hover, text color, etc.) using this class.
+
+* **`awesomplete-selected`:** This class is added to the currently selected suggestion item.  Use this to highlight the selected item visually.
+
+By overriding these classes in your CSS stylesheet, you can fully customize Awesomplete's visual appearance to match your website's design.
+
+### Predefined Themes
+
+While Awesomplete doesn't ship with predefined theme files in the traditional sense,  the CSS customization described above enables you to easily create and apply themes.  You could create separate CSS files containing styles for different themes and switch between them as needed.
+
+
+### Customizing List Item Appearance
+
+Beyond basic styling with CSS classes, you have fine-grained control over the rendering of individual list items by using the `item` template function (as described in the Advanced Configuration section). This function allows you to dynamically generate the HTML for each suggestion, giving you complete control over the visual representation of each item, including adding icons, highlighting matched text, and incorporating other HTML elements.  This approach allows for richer and more complex list item designs.
+
+
+## Accessibility
+
+### ARIA Attributes
+
+Awesomplete incorporates several ARIA attributes to enhance accessibility for users of assistive technologies.  These attributes help screen readers and other assistive technologies understand the autocomplete's functionality and context:
+
+* **`aria-autocomplete`:**  The `awesomplete-list` element is given the value `"list"`. This informs assistive technologies that the element provides a list of suggestions.
+
+* **`aria-expanded`:** This attribute on the input element dynamically reflects whether the suggestion list is open or closed.  It changes from `"false"` to `"true"` when the list opens and vice-versa.
+
+* **`aria-activedescendant`:** This attribute on the input element points to the currently selected item in the suggestion list using its `id` attribute.  This allows screen readers to announce the selected suggestion.
+
+* **`role="listbox"`:** The `awesomplete-list` element has this role assigned to it, indicating that it's a listbox for selection.
+
+* **`role="option"`:** Each `awesomplete-item` element is assigned the role `"option"`, indicating that it is an selectable option within the listbox.
+
+
+These ARIA attributes are automatically handled by Awesomplete and do not require any additional configuration.
+
+### Keyboard Navigation
+
+Awesomplete supports standard keyboard navigation for interacting with the suggestion list:
+
+* **Down Arrow:** Moves the selection down in the list.
+* **Up Arrow:** Moves the selection up in the list.
+* **Enter:** Selects the currently highlighted suggestion and closes the list.
+* **Tab:** Selects the currently highlighted suggestion and moves focus to the next element on the page.
+* **Escape:** Closes the suggestion list without selecting any item.
+
+
+This keyboard navigation ensures users can efficiently interact with Awesomplete without relying on a mouse.
+
+### Screen Reader Compatibility
+
+Awesomplete's use of ARIA attributes contributes significantly to its compatibility with screen readers.  Screen readers should be able to announce the available suggestions, the currently selected suggestion, and the overall state (open/closed) of the autocomplete. However, the precise user experience may vary depending on the specific screen reader and its configuration.  Testing with different screen readers is recommended to ensure compatibility and a smooth user experience for users of assistive technologies.
+
+
+## Troubleshooting
+
+### Common Issues and Solutions
+
+* **No suggestions appear:**
+    * **Problem:** Ensure the `list` option (for local data) or the `data` function (for remote data) is correctly configured and provides a valid array of suggestions. Check your network requests if using remote data. Verify that `minChars` isn't set too high. Double-check that the input field's `autocomplete` attribute is set to `"off"`.
+    * **Solution:**  Carefully review the data source, network requests, and the `minChars` setting. Correct any errors in your data or configuration.
+
+
+* **Suggestions appear but are not selectable:**
+    * **Problem:** This could be caused by CSS conflicts or incorrect HTML structure.  Check for CSS rules that might be interfering with the `awesomplete-item` elements' click events or the positioning of the suggestion list.
+    * **Solution:** Inspect the rendered HTML and CSS using your browser's developer tools to identify any conflicting styles.  Ensure the suggestion list is properly positioned and visible.
+
+
+* **Unexpected behavior after updating:**
+    * **Problem:**  Make sure you've correctly updated both the Awesomplete library and any related code.  Clear your browser's cache to ensure you're not loading old versions of the JavaScript files.
+    * **Solution:**  Check your package manager's lock file (if using npm) or ensure you are serving the latest versions of the script and related files.
+
+* **Errors in the console:**
+    * **Problem:** Consult your browser's developer console for error messages and stack traces.  These will often pinpoint the exact location and cause of the issue.
+    * **Solution:** Address the reported error as indicated by the console output. This may involve fixing typos in your code, updating dependencies, or addressing data issues.
+
+
+### Debugging Tips
+
+* **Use your browser's developer tools:** These tools provide invaluable insights into the HTML structure, CSS styles, and JavaScript execution.  Use them to inspect the Awesomplete elements and identify any unexpected behavior or styling issues.
+
+* **Simplify your code:**  Temporarily remove any custom styling, filtering functions, or data sources to isolate the problem.  If the issue disappears, the problem lies within the removed component.  Gradually reintroduce components until you pinpoint the source.
+
+* **Console logging:** Strategically place `console.log` statements in your code to monitor the values of variables and track the execution flow.  This can be very helpful in identifying unexpected data or behavior.
+
+* **Check for conflicts:** Ensure there are no conflicts between Awesomplete's CSS and your website's CSS.  Use your browser's developer tools to check for style overrides or conflicting selectors.
+
+* **Test with a minimal example:** Create a simple HTML file with just the necessary code to instantiate Awesomplete.  If the issue persists in this minimal example, then the problem is likely within Awesomplete itself (check for updates or report an issue).
+
+
+### Frequently Asked Questions
+
+* **How can I use Awesomplete with a framework like React or Angular?** Awesomplete is a standalone library, and can be integrated into any JavaScript framework.  You will typically just include it via your framework's import mechanism and use it as documented, referencing the input element in your component.
+
+* **How do I customize the delay before suggestions appear?** Use the `debounce` option to adjust the debounce delay (in milliseconds).
+
+* **Can I use Awesomplete with remote data sources?** Yes, use the `data` option with a function that fetches data asynchronously (using a Promise or similar).
+
+* **How do I handle errors during asynchronous data fetching?** Use appropriate error handling within your `data` function's promise (e.g., `.catch()`). You should also inform the user of loading failures.
+
+* **Can I change the appearance of the suggestion list without modifying the core CSS?** You can completely customize the appearance using the `item` template function to render individual list items with custom HTML and CSS within those items.
+
+
+
+
+
+## API Reference
+
+### Awesomplete Class
+
+The core of Awesomplete is the `Awesomplete` class.  An instance of this class is created for each autocomplete input field.  This class manages the suggestion list, handles user input, and provides methods to interact with the autocomplete functionality.
+
+
+### Constructor Options
+
+The `Awesomplete` constructor accepts the input element and an optional configuration object as arguments. The configuration object allows you to customize various aspects of Awesomplete's behavior.  Here are the key options:
+
+* **`data` (function):** A function that asynchronously fetches the suggestion data. It receives the input text and a callback function as arguments.  The callback should be invoked with the array of suggestions.
+
+* **`list` (array):** An array of strings representing the suggestions (for local data).  Used if `data` is not provided.
+
+* **`minChars` (number):** The minimum number of characters typed before suggestions are shown (default: 1).
+
+* **`autoFirst` (boolean):**  Automatically select the first suggestion when the list opens (default: `false`).
+
+* **`filter` (function):** A custom filtering function. Receives the input text and a suggestion item; returns `true` if it matches, `false` otherwise.
+
+* **`item` (function):**  A template function to customize the rendering of each suggestion list item. Receives the suggestion data and returns the HTML to render.
+
+* **`replace` (boolean):** Whether to replace the entire input text (`true`) or only the matched part (`false`) when selecting a suggestion (default: `true`).
+
+* **`sort` (function):** A comparison function for sorting suggestions.
+
+* **`maxItems` (number):** The maximum number of suggestions to display.
+
+* **`openOnFocus` (boolean):** Open the suggestion list when the input gains focus (default: `false`).
+
+* **`maxHeight` (number):** The maximum height of the suggestion list (in pixels).
+
+* **`debounce` (number):**  Debounce time in milliseconds for asynchronous requests.
+
+* **`autoMatch` (boolean):** Automatically match the first suggestion while typing (default: `false`).
+
+
+### Methods
+
+The `Awesomplete` class provides several methods to interact with its functionality:
+
+* **`destroy()`:** Removes Awesomplete from the input field and cleans up resources.
+
+* **`open()`:** Manually opens the suggestion list.
+
+* **`close()`:** Manually closes the suggestion list.
+
+* **`setlist(list)`:** Updates the suggestion list with a new array of strings (for local data).
+
+* **`value`:**  Gets or sets the currently selected value.  Setting this updates the input element.
+
+
+### Events
+
+The `Awesomplete` instance dispatches several custom events on the associated input element.  These events allow you to hook into various stages of the autocomplete's lifecycle:
+
+* **`awesomplete-open`:** Fired when the suggestion list is opened.
+
+* **`awesomplete-close`:** Fired when the suggestion list is closed.
+
+* **`awesomplete-select`:** Fired when a suggestion is selected.  Provides the selected item's text as `event.text`.
+
+* **`awesomplete-selectcomplete`:** Fired after a suggestion is selected and the input is updated.
+
+* **`awesomplete-blur`:** Fired when the input field loses focus.
+
+You can add event listeners to the input element to handle these events.  For example:
+
+```javascript
+input.addEventListener('awesomplete-select', function(e) {
+  console.log('Selected:', e.text);
+});
+```
+
+Remember to consult the latest version of the Awesomplete documentation for the most up-to-date API reference and any changes.
+
+
+## Examples
+
+### Simple Example
+
+This example demonstrates a basic autocomplete with a local list of suggestions:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Awesomplete Simple Example</title>
+<link rel="stylesheet" href="awesomplete.css"> </head>
+<body>
+
+<input id="simple-autocomplete">
+
+<script src="awesomplete.js"></script>
+<script>
+  const input = document.getElementById('simple-autocomplete');
+  new Awesomplete(input, { list: ['apple', 'banana', 'cherry'] });
+</script>
+
+</body>
+</html>
+```
+
+Remember to replace `"awesomplete.css"` and `"awesomplete.js"` with the actual paths to your files.
+
+
+### Remote Data Source
+
+This example fetches suggestions from a remote JSON endpoint:
+
+```javascript
+const input = document.getElementById('remote-autocomplete');
+new Awesomplete(input, {
+  data: function(text, callback) {
+    fetch(`/api/suggestions?q=${encodeURIComponent(text)}`)
+      .then(response => response.json())
+      .then(data => callback(data.suggestions))
+      .catch(error => console.error('Error fetching suggestions:', error));
+  }
+});
+```
+
+Replace `/api/suggestions?q=${encodeURIComponent(text)}` with your actual API endpoint.  This example includes basic error handling.
+
+
+### Custom Filtering
+
+This example implements a case-insensitive filtering function:
+
+```javascript
+const input = document.getElementById('custom-filter');
+new Awesomplete(input, {
+  list: ['Apple', 'banana', 'Cherry'],
+  filter: function(text, input) {
+    return input.toLowerCase().includes(text.toLowerCase());
+  }
+});
+```
+
+This filter matches suggestions regardless of their case.
+
+
+### Custom Templates
+
+This example uses a template function to customize the rendering of each suggestion:
+
+```javascript
+const input = document.getElementById('custom-template');
+new Awesomplete(input, {
+  list: [{ label: 'Apple', value: 'apple' }, { label: 'Banana', value: 'banana' }],
+  item: function(text, input) {
+    return `<div><strong>${input.label}</strong> (<small>${input.value}</small>)</div>`;
+  }
+});
+```
+
+Each suggestion is rendered as a `<div>` containing a strong element for the label and a small element for the value.
+
+### Advanced Styling
+
+This example demonstrates advanced styling using custom CSS:
+
+```css
+#advanced-autocomplete .awesomplete-list {
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+}
+
+#advanced-autocomplete .awesomplete-item {
+  padding: 8px;
+  cursor: pointer;
+}
+
+#advanced-autocomplete .awesomplete-item:hover {
+  background-color: #ddd;
+}
+
+#advanced-autocomplete .awesomplete-selected {
+  background-color: #ccf;
+}
+```
+
+This CSS targets the Awesomplete classes to customize the appearance of the suggestion list and items.  Remember to include this CSS in your HTML file and apply the `advanced-autocomplete` ID to your input.  These examples provide a starting point; you can combine and adapt them to build more complex autocomplete implementations.  Remember to include the Awesomplete library in your HTML file for all examples.
+

@@ -1,0 +1,426 @@
+---
+title: "TinySort - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction
+
+### What is TinySort?
+
+TinySort is a lightweight JavaScript library designed for sorting HTML elements based on their text content or custom data attributes.  It offers a simple and flexible API for sorting lists and other collections of elements, handling various data types and sorting orders with ease. Unlike more comprehensive JavaScript libraries, TinySort focuses solely on sorting, making it incredibly fast and efficient, especially for large datasets.
+
+### Why use TinySort?
+
+TinySort is ideal when you need a quick and efficient way to sort HTML elements without the overhead of a larger, more feature-rich library. Its key advantages include:
+
+* **Lightweight:** TinySort has a small file size, minimizing loading times and improving page performance.
+* **Fast:** It's optimized for speed, making it suitable for sorting even extensive lists of elements.
+* **Flexible:**  Supports various sorting options, including ascending/descending order, case-insensitive sorting, and sorting by custom data attributes.
+* **Easy to use:**  The API is simple and intuitive, requiring minimal code to integrate into your projects.
+* **No dependencies:** TinySort doesn't require any other libraries, making it easy to include in your projects.
+
+
+### Installation
+
+TinySort can be easily installed via several methods:
+
+
+* **Download:** Download the `tinysort.js` file from the project's website and include it in your HTML file using a `<script>` tag:
+
+```html
+<script src="tinysort.js"></script>
+```
+
+* **CDN:** Use a CDN like jsDelivr:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/tinysort@3.0.0/tinysort.min.js"></script>
+```  (Note: Always check the latest version number on jsDelivr or another CDN)
+
+* **npm:** If you're using npm, install it with:
+
+```bash
+npm install tinysort
+```
+Then require it in your code.
+
+
+### Basic Usage
+
+The core function of TinySort is simply `tinysort()`.  To sort a list of elements,  select them using a CSS selector and pass it as the argument:
+
+```javascript
+tinysort('ul li'); // Sorts list items in an unordered list.
+```
+
+This will sort the list items alphabetically in ascending order based on their text content.  For descending order, add the `order` option:
+
+
+```javascript
+tinysort('ul li', {order:'desc'}); //Sorts in descending order
+```
+
+To sort by a data attribute, use the `data` option:
+
+
+```javascript
+tinysort('div.item', {data:'sortvalue'}); //Sorts divs with class 'item' by the 'sortvalue' attribute.
+```
+
+TinySort offers several other options for more fine-grained control over the sorting process. These options are detailed in the [Options] section (this section would appear later in a full manual).  Refer to the full documentation for a complete list of available options and examples.
+
+
+## Core Functionality
+
+### Sorting Arrays
+
+While TinySort primarily targets DOM elements, it can also sort JavaScript arrays.  The `tinysort` function accepts arrays as input, provided you specify the `selector` option to `null`.  The array elements should be strings or numbers suitable for comparison.
+
+```javascript
+let myArray = ['banana', 'apple', 'cherry'];
+tinysort(myArray, { selector: null });
+console.log(myArray); // Output: ['apple', 'banana', 'cherry']
+```
+
+Note that sorting an array directly modifies the original array.
+
+
+### Sorting Objects
+
+TinySort can sort arrays of objects.  In this case, you must specify the property of each object to use for sorting via the `data` option.
+
+
+```javascript
+let myObjects = [
+  { name: 'banana', value: 3 },
+  { name: 'apple', value: 1 },
+  { name: 'cherry', value: 2 }
+];
+
+tinysort(myObjects, { selector: null, data: 'value' });
+console.log(myObjects); // Output: [{ name: 'apple', value: 1 }, { name: 'cherry', value: 2 }, { name: 'banana', value: 3 }]
+
+
+tinysort(myObjects, { selector: null, data: 'name' });
+console.log(myObjects); // Output: [{ name: 'apple', value: 1 }, { name: 'banana', value: 3 }, { name: 'cherry', value: 2 }]
+```
+
+Again, the original array is modified.
+
+### Sorting by Multiple Attributes
+
+TinySort allows for sorting by multiple attributes. Specify these attributes as an array in the `data` option.  TinySort will prioritize the first attribute; if elements are equal based on the first attribute, it will then use the second, and so on.
+
+```javascript
+let myObjects = [
+    { category: 'Fruit', name: 'Banana', value: 3 },
+    { category: 'Fruit', name: 'Apple', value: 1 },
+    { category: 'Vegetable', name: 'Carrot', value: 2 },
+    { category: 'Fruit', name: 'Apple', value: 5 },
+];
+
+tinysort(myObjects, { selector: null, data: ['category', 'name', 'value'] });
+console.log(myObjects);
+// Output will be sorted first by category, then by name, then by value within each category.
+```
+
+
+### Data Types
+
+TinySort handles a variety of data types. While it primarily sorts strings, it can also handle numbers effectively when sorting by data attributes containing numeric values or when sorting arrays of numbers.  For other data types, ensure they can be converted to strings for comparison purposes. Note that for consistent sorting, it is recommended to use consistent data types within a single sort operation.
+
+
+### Case Sensitivity
+
+By default, TinySort performs case-sensitive sorting. To perform a case-insensitive sort, use the `ignoreCase` option:
+
+```javascript
+tinysort('ul li', { ignoreCase: true }); // Case-insensitive sort
+```
+
+This applies to both text content and data attribute values.  For number-based sorts, case sensitivity is irrelevant.
+
+
+## Advanced Options
+
+### Custom Sort Functions
+
+For more complex sorting logic beyond simple alphabetical or numerical order, TinySort allows you to provide a custom comparison function using the `cmp` option.  The `cmp` option should be a function that accepts two arguments (a and b), representing the values being compared, and returns:
+
+*   `-1`: if `a` should come before `b`
+*   `0`: if `a` and `b` are equal
+*   `1`: if `a` should come after `b`
+
+
+```javascript
+tinysort('ul li', {
+    cmp: function(a, b) {
+        //Custom comparison logic here. Example: Reverse alphabetical order.
+        a = a.textContent.toLowerCase();
+        b = b.textContent.toLowerCase();
+        if (a < b) return 1;
+        if (a > b) return -1;
+        return 0;
+    }
+});
+```
+
+This example reverses the default alphabetical order.  Remember that `a` and `b` will be the values extracted from your elements (textContent by default, or the data attribute specified with the `data` option).
+
+
+### Order Specification
+
+The `order` option controls the sorting direction.  Its value can be:
+
+*   `"asc"` (ascending, the default): Sorts from A to Z or smallest to largest.
+*   `"desc"` (descending): Sorts from Z to A or largest to smallest.
+
+
+You can specify this directly in the `tinysort()` call:
+
+```javascript
+tinysort('ul li', {order: 'desc'});
+```
+
+
+### Handling Null and Undefined Values
+
+TinySort handles `null` and `undefined` values gracefully. By default, these values are treated as less than any other value.  This means `null` and `undefined` elements will typically appear at the beginning of an ascending sort and the end of a descending sort.  You can customize this behavior with a custom `cmp` function if needed.
+
+
+### Nested Objects
+
+When sorting arrays of nested objects, you can access nested properties using dot notation within the `data` option.
+
+```javascript
+let myObjects = [
+  { person: { name: 'Alice', age: 30 } },
+  { person: { name: 'Bob', age: 25 } },
+  { person: { name: 'Charlie', age: 35 } }
+];
+
+tinysort(myObjects, { selector: null, data: 'person.age' });
+console.log(myObjects); // Sorted by age
+```
+
+This will sort the objects based on the `age` property within the nested `person` object.
+
+
+### Mixed Data Types
+
+While TinySort strives to handle mixed data types reasonably, it’s best to maintain consistent data types within a single sorting operation for predictable results.  Inconsistencies (e.g., mixing numbers and strings) might lead to unexpected sorting orders.  If you have mixed data types, consider preprocessing your data or using a custom `cmp` function to handle comparisons appropriately.
+
+
+### Performance Considerations
+
+For very large datasets, consider the following for optimal performance:
+
+*   **Minimize DOM manipulation:** If possible, sort data in a JavaScript array before updating the DOM.  Directly manipulating the DOM for large numbers of elements is generally slower.
+*   **Use efficient selectors:**  Use highly specific CSS selectors to minimize the number of elements TinySort needs to process.
+*   **Optimize custom `cmp` functions:** Keep custom comparison functions as concise and efficient as possible to avoid performance bottlenecks.
+*   **Consider plugins:**  For extremely large datasets or particularly complex sorting requirements, you might want to explore other optimized libraries specialized in large-scale data sorting.
+
+
+
+
+## Selectors and Filters
+
+### Using CSS Selectors
+
+TinySort uses standard CSS selectors to target the elements to be sorted.  You can select elements by their tag name, class, ID, or any valid CSS selector combination.
+
+```javascript
+tinysort('ul li');          // Sorts all list items within unordered lists.
+tinysort('.my-class');      // Sorts all elements with the class 'my-class'.
+tinysort('#my-id');         // Sorts the element with the ID 'my-id' (though this is usually not what you want to sort).
+tinysort('div.item p');    // Sorts all paragraph elements within divs with class 'item'.
+```
+
+Ensure your selector accurately targets the elements you intend to sort.  If the selector doesn't match any elements, TinySort won't throw an error but simply won't perform any sorting.
+
+
+### Filtering Elements
+
+TinySort allows filtering of elements before sorting using the `filter` option.  The `filter` option accepts a function that takes an element as input and returns `true` if the element should be included in the sort, and `false` otherwise.
+
+```javascript
+tinysort('li', {
+    filter: function(element) {
+        return element.textContent.length > 5; //Filter elements with text longer than 5 characters.
+    }
+});
+```
+
+This example will only sort list items with text content longer than five characters.  The filtering happens *before* the sorting process, so only the filtered elements will be included in the sorted output.
+
+
+### Chaining Selectors and Filters
+
+You can combine CSS selectors and filters to precisely target and sort specific sets of elements.
+
+```javascript
+tinysort('ul.my-list li.item', {
+    filter: function(element) {
+        return parseInt(element.dataset.value, 10) > 10; //Filter items with data-value > 10
+    }
+});
+```
+
+This sorts list items with the class `item` within unordered lists with the class `my-list`, but only includes items where the `data-value` attribute is greater than 10.  The selector narrows down the initial set of elements, and the filter further refines the set *before* sorting.
+
+
+### Examples of Complex Filtering
+
+More complex filtering scenarios can be achieved by combining multiple conditions within the filter function.
+
+```javascript
+tinysort('div.product', {
+    filter: function(element) {
+        const price = parseFloat(element.dataset.price);
+        const category = element.dataset.category;
+        return price > 50 && category === 'Electronics'; //Filter products with price > 50 AND category 'Electronics'
+    }
+});
+```
+
+This example filters product divs to include only those with a price greater than 50 and belonging to the "Electronics" category before sorting them. You can extend this to include any number of conditions using logical AND (`&&`) and OR (`||`) operators within the filter function.  Remember to handle potential errors such as `NaN` (Not a Number) from parsing if your data might contain non-numeric values.
+
+
+## Common Use Cases
+
+### Sorting Lists
+
+One of the most common uses for TinySort is sorting unordered lists (`<ul>`) or ordered lists (`<ol>`).  This is straightforward:
+
+```javascript
+tinysort('ul li'); // Sorts list items alphabetically in ascending order.
+tinysort('ol li', { order: 'desc' }); // Sorts ordered list items in descending order.
+```
+
+You can easily extend this to sort lists based on data attributes within list items, for example, sorting by price or date.
+
+
+### Sorting Tables
+
+While TinySort doesn't directly sort table rows, you can achieve this by targeting the table rows (`<tr>`) and specifying the column to sort by using the `data` option.  If the sorting data is within a specific cell type within a row, then specify that cell type within the data selector.  For example, to sort a table by the second column (index 1):
+
+```javascript
+tinysort('table tr', { data: 'td:nth-child(2)' }); // Sorts table rows by the second column's text content.
+```
+
+This assumes the sorting data is in the second `<td>` element within each row.  For more complex table structures or data attributes, adjust the selector appropriately. Remember that this sorts based on text content; for numerical sorting, ensure your data is numeric.
+
+```javascript
+tinysort('table tr', { data: 'td:nth-child(2)', dataTypes: 'number' }); //Sorts table rows by the second column numerically.
+```
+
+
+### Sorting Data in a Web Application
+
+TinySort is valuable when dynamically updating content in a web application. For example, if you fetch data from an API and display it in a list, you can use TinySort to keep the list sorted as new data arrives or existing data changes.
+
+```javascript
+// ... fetch data from API and update the list ...
+tinysort('#my-list li', { data: 'data-value' }); //Sort list based on a data attribute after updating.
+```
+
+This snippet sorts a list with the id `my-list` after the data has been dynamically updated, ensuring it remains sorted according to the `data-value` attribute.
+
+
+### Real-World Examples
+
+*   **E-commerce product listings:** Sort products by price, rating, or popularity.
+*   **Blog post listings:** Sort posts by date, title, or author.
+*   **User profiles:** Sort users by name, registration date, or activity level.
+*   **Task management applications:** Sort tasks by priority, due date, or completion status.
+*   **Dynamically updated dashboards:** Keep data visualizations sorted as new data is added.
+
+
+In all these examples, TinySort's simplicity and efficiency make it a practical choice for managing dynamically updating sorted lists and tables within web applications. Remember to always select the elements you wish to sort and provide a suitable `data` attribute or rely on the default `textContent` comparison if you are not using the `data` option.
+
+
+## Troubleshooting
+
+### Common Errors and Solutions
+
+* **`tinysort is not defined`:** This error means TinySort hasn't been included in your HTML file correctly. Double-check that the `<script>` tag linking to `tinysort.js` is present and has the correct path.  Also, ensure it's placed after the elements you're trying to sort.
+
+* **No elements are sorted:** Verify your CSS selector accurately targets the elements you intend to sort. Use your browser's developer tools to inspect the elements and ensure they match your selector.  If you are using a filter, make sure the filter function is correctly allowing elements to pass through to be sorted.
+
+* **Elements are sorted incorrectly:**  If the sort order is unexpected, double-check your `data` option (if used).  Ensure the data attribute values you're sorting by are consistent in type (all numbers or all strings). If using a custom `cmp` function, carefully review its logic to ensure it's returning the correct comparison values (-1, 0, 1).  For numerical sorting, explicitly set `dataTypes: 'number'` to prevent lexicographical (string-based) sorting.
+
+
+* **Unexpected behavior with mixed data types:** Mixing data types (e.g., numbers and strings) within a single sort operation can lead to inconsistent results.  Ensure your data is consistently typed or use a custom `cmp` function for proper type handling.
+
+* **Performance issues with large datasets:** For very large datasets, consider the performance considerations mentioned in the Advanced Options section.  Optimize your selectors, minimize DOM manipulations, and consider alternative approaches for extremely large datasets.
+
+
+### Debugging Tips
+
+* **Use your browser's developer tools:** Inspect the elements you're trying to sort to verify your selector is working as expected and to examine the data attributes (if used).  Use the console to log values and debug your filter and `cmp` functions.
+
+* **Simplify your code:**  If you're encountering unexpected behavior, start with a minimal example to isolate the problem.  Gradually add complexity back in to identify the source of the issue.
+
+* **Test with smaller datasets:** Testing with a smaller, manageable set of data can help you identify problems more quickly before scaling to a larger dataset.
+
+
+* **Check the TinySort source code:** If you suspect a bug in TinySort itself, examine the source code to understand its internal workings. However, this should be a last resort, as most problems arise from selector or configuration issues.
+
+
+### FAQ
+
+* **Q: Can TinySort handle nested lists?** A: Yes, TinySort works recursively.  It will sort elements within nested lists based on your provided selector and options.
+
+* **Q:  Can I sort by multiple attributes simultaneously?** A: Yes, use an array in the `data` option to specify multiple attributes in the desired order of priority.
+
+* **Q: What happens if the selector doesn't match any elements?** A: No error is thrown; TinySort simply does nothing.
+
+* **Q:  Does TinySort modify the original DOM structure or create copies?** A:  TinySort reorders existing DOM elements; it does not create copies.
+
+* **Q: How can I get support or report bugs?** A: Refer to the TinySort project's repository or website for information on reporting issues and getting support.  (This should link to the actual project resources)
+
+* **Q: Is TinySort suitable for extremely large datasets?** A:  For very large datasets, consider the performance recommendations in the manual and potentially explore alternative, more highly optimized solutions.  TinySort is optimized for speed but has limitations like any other library.
+
+
+## API Reference
+
+### TinySort Function Parameters
+
+The core `tinysort()` function accepts two parameters:
+
+1.  **`selector` (string or array):** This is the primary parameter. It specifies the elements to be sorted.  It can be:
+
+    *   A CSS selector string (e.g., `'ul li'`, `'.my-class'`, `'#my-id'`) targeting elements in the DOM.
+    *   A JavaScript array of strings or objects to be sorted directly (in which case you *must* set `selector: null`).
+
+2.  **`options` (object, optional):** This parameter is an object containing various options to customize the sorting behavior.  The available options are detailed below.  If omitted, TinySort uses default settings (ascending order, sorting by text content, case-sensitive).  Many options are described in the earlier sections of this manual.  The key options include:
+
+    *   `order`: `"asc"` (ascending, default) or `"desc"` (descending).
+    *   `data`:  Specifies the attribute or property to sort by (e.g., `'data-sort'`, `'name'`).  Can be a string for a single attribute or an array of strings for multiple attributes.
+    *   `ignoreCase`: `true` for case-insensitive sorting (default: `false`).
+    *   `place`: Controls where unsortable items (those failing filters or comparisons) should be placed within the sorted result. See the documentation for further details.
+    *   `useFlexbox`: `true` to use flexbox for reordering (use with caution).
+    *   `cmp`: A custom comparison function (see "Custom Sort Functions").
+    *   `selector`:  `null` when using arrays as input (required for array sorting)
+    *   `filter`: A function to filter elements before sorting.
+    *   `returns`:  How to treat the return value. See the documentation for further details.
+    *   `dataTypes`: Specify data types (e.g., `'number'`, `'date'`, `'string'`, an array of these, or a function). See the documentation for further details.
+
+
+
+### Return Values
+
+The `tinysort()` function returns different values depending on the `returns` option:
+
+*   **Default (or `returns: 'array'`):** Returns an array of the sorted elements (DOM nodes or array elements). This default can be useful for further post-processing after sorting.
+
+*   **`returns: 'this'` (or omitted):** Returns the original `tinysort()` function itself, allowing for method chaining.   Note that this does *not* return the sorted elements directly.  It returns the function for chaining. This is mainly for convenience when using in conjunction with other libraries.
+
+*   **`returns: null`:** Returns null.  This option is useful when you only care about the side effect of sorting (the DOM elements being reordered), and don't need a return value.
+
+
+### Error Handling
+
+TinySort is designed to be robust and handle errors gracefully.  It doesn't throw JavaScript errors in most cases.  If there's a problem, such as an invalid selector or option, the function will either silently fail (no sorting occurs) or possibly produce unexpected results.  
+
+It is crucial to use your browser's developer tools (console) to inspect the elements, check the values of your data attributes, and debug your custom functions to understand any unexpected behavior.  The lack of explicit error throwing is a design choice emphasizing the library's lightweight and non-intrusive nature. However, this also means careful debugging is essential to diagnose problems.
+

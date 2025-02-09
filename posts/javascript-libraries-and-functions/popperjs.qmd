@@ -1,0 +1,699 @@
+---
+title: "Popper.js - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+
+### What is Popper.js?
+
+Popper.js is a lightweight JavaScript library that provides a robust solution for positioning tooltips, dropdowns, popovers, and other similar elements relative to a reference element.  It handles various scenarios gracefully, including those involving complex layouts, scrolling, and viewport boundaries.  Unlike many simpler positioning libraries, Popper.js accounts for many edge cases and offers fine-grained control over placement adjustments.  At its core, it's a sophisticated positioning engine designed for flexibility and accuracy.
+
+### Why use Popper.js?
+
+You should use Popper.js when you need reliable and predictable positioning of elements relative to a reference element, especially in dynamic contexts.  Here's why it excels:
+
+* **Accuracy:**  Popper.js calculates the optimal placement, considering element sizes, viewport boundaries, and potential overlaps.  It avoids many common positioning pitfalls found in simpler approaches.
+* **Flexibility:**  It offers a wide range of configuration options, allowing you to customize placement behavior (top, bottom, left, right, etc.), offsets, and even custom placement strategies.
+* **Responsiveness:**  Popper.js automatically adapts to screen resizes and scrolling, ensuring consistent positioning across different viewports and user interactions.
+* **Efficiency:**  It's a lightweight library, minimizing the impact on your application's performance.
+* **Well-documented and actively maintained:**  The library has extensive documentation and a supportive community.
+
+
+### Setting up Popper.js
+
+Popper.js can be included in your project in several ways:
+
+* **CDN:** The easiest method is using a CDN link in your HTML `<head>`:
+
+```html
+<script src="https://unpkg.com/@popperjs/core@2/dist/umd/popper.min.js"></script>
+```
+
+* **npm:**  If you are using npm or yarn, install it via:
+
+```bash
+npm install @popperjs/core
+# or
+yarn add @popperjs/core
+```
+
+Then, you can import it in your JavaScript code (using a module bundler like Webpack or Parcel):
+
+```javascript
+import { createPopper } from '@popperjs/core';
+```
+
+
+* **Direct Download:**  Download the minified `.js` file from the official repository and include it via a `<script>` tag in your HTML.
+
+
+Remember to include Popper.js *before* your code that uses it.
+
+
+### Basic Usage Example
+
+This example shows how to position a tooltip (`#tooltip`) relative to a button (`#reference`).
+
+```html
+<button id="reference">Click me</button>
+<div id="tooltip">This is a tooltip</div>
+
+<script>
+  import { createPopper } from '@popperjs/core';
+
+  const reference = document.getElementById('reference');
+  const tooltip = document.getElementById('tooltip');
+
+  createPopper(reference, tooltip, {
+    placement: 'top', // other options: bottom, left, right, top-start, etc.
+  });
+</script>
+```
+
+This code creates a Popper instance, linking the `#tooltip` to the `#reference`.  The `placement` option specifies that the tooltip should appear above the button.  More advanced configurations and options are detailed in subsequent sections of this manual.  Remember to adjust CSS to appropriately style your tooltip and reference elements.  For example, ensure the `#tooltip` is initially hidden with `display: none;` and styled to your liking.
+
+
+## Core Concepts
+
+### The Popper Instance
+
+The core of Popper.js is the `Popper` instance, created using the `createPopper` function.  This instance manages the positioning logic and updates the positioned element's position whenever necessary (e.g., on window resize, scroll, or reference element movement).  The `createPopper` function takes two main arguments: the *reference element* (the element to which the positioned element is relative) and the *popper element* (the element being positioned).  It returns an object representing the Popper instance, allowing you to access methods and properties for controlling its behavior.  This instance should be stored to allow for later cleanup (using `destroy()`).
+
+
+```javascript
+import { createPopper } from '@popperjs/core';
+
+const reference = document.getElementById('reference');
+const popper = document.getElementById('popper');
+
+const popperInstance = createPopper(reference, popper, { /* options */ });
+
+// ... later, when you no longer need the Popper instance ...
+popperInstance.destroy();
+```
+
+### Data Attributes
+
+While not strictly required, Popper.js supports several data attributes that can simplify configuration and customize behavior without needing JavaScript. These attributes are prefixed with `data-popper-`. For example:
+
+* `data-popper-placement`: Specifies the initial placement.  Overrides the `placement` option if both are provided.
+* `data-popper-modifiers`: Allows for the concise specification of modifiers as a JSON string.  This is a more advanced usage and should be explored after understanding modifiers.
+* `data-popper-reference-hidden`:  Allows you to add custom logic for when the reference element is hidden.
+
+
+Example using `data-popper-placement`:
+
+```html
+<button id="reference">Reference</button>
+<div id="popper" data-popper-placement="bottom-end">Popper</div>
+```
+
+
+### Modifiers
+
+Modifiers are plugins that extend Popper.js's core functionality. They allow you to add custom logic or modify the default positioning behavior.  Modifiers are added to the `modifiers` option within the `createPopper` function's options object.  Each modifier is an object with specific properties, most importantly `name` and `fn`. The `fn` property is the function which alters the position. Modifiers are executed sequentially in the order they appear in the array.
+
+
+```javascript
+createPopper(reference, popper, {
+  modifiers: [
+    {
+      name: 'offset',
+      options: {
+        offset: [0, 8] // Example offset modifier
+      }
+    },
+    {
+      name: 'preventOverflow', // Example preventOverflow modifier
+      options: {
+        padding: 10 // example padding
+      }
+    }
+  ]
+});
+```
+
+Popper.js includes many built-in modifiers (like `offset`, `preventOverflow`, `flip`, `hide`, `arrow`, `computeStyles` and `applyStyles`).  Refer to the API documentation for details on each modifier.
+
+
+### Placement
+
+The `placement` option determines the position of the popper relative to the reference element.  Valid values include: `top`, `bottom`, `left`, `right`, and their variations with `-start` and `-end` suffixes (e.g., `top-start`, `bottom-end`).  These suffixes specify alignment along the axis perpendicular to the primary placement.  `top-start` means the popper is placed above and aligned to the beginning (left) of the reference, while `top-end` aligns it to the end (right).
+
+
+### Offsets
+
+The `offset` modifier allows you to apply an offset to the popper's position.  The offset is specified as an array `[x, y]`, where `x` is the horizontal offset and `y` is the vertical offset.  Positive values move the popper in the positive direction of the respective axis.
+
+
+```javascript
+// Moves the popper 10px to the right and 5px down.
+{ name: 'offset', options: { offset: [10, 5] } }
+```
+
+### Boundaries
+
+The `preventOverflow` modifier prevents the popper from overflowing the boundaries of its container.  By default, it uses the viewport as the container. You can specify a different element using the `boundary` option.  The `padding` option adds extra space between the popper and its boundaries.
+
+
+```javascript
+{
+  name: 'preventOverflow',
+  options: {
+    boundary: 'clippingParents', // or 'scrollParent', 'viewport'
+    padding: 10
+  }
+}
+```
+
+
+### Arrow Element
+
+For tooltips and similar elements, an arrow element visually connects the popper to the reference element. To use it, you need an element with the class `popper-arrow` inside your popper element.  The `arrow` modifier will automatically position this arrow element.  You can control the arrow's element via the `element` option.
+
+
+```html
+<div id="popper">
+  <div class="popper-arrow"></div>
+  <div>Tooltip content</div>
+</div>
+
+//In the createPopper options
+{name: 'arrow', options: { element: '.popper-arrow' } }
+
+```
+Remember to style the `.popper-arrow` class appropriately.
+
+
+## Modifiers in Detail
+
+This section details the built-in modifiers provided by Popper.js.  Remember that you can combine these modifiers to achieve complex positioning behaviors.  The order in which modifiers are listed in the `modifiers` array affects their execution order.
+
+### `offset`
+
+Applies an offset to the final calculated position of the popper.
+
+* **`name`**: `offset`
+* **`options`**:
+    * **`offset`**:  An array `[x, y]` representing the horizontal and vertical offsets in pixels.  Positive values shift the popper in the positive direction of the respective axis.  Can also be a function receiving the `state` object and returning an offset array. This allows dynamic offset calculations based on the popper's position.
+    * **`fn`**:  A custom function to replace default offset calculation. This would be used for highly specialized offset logic.
+
+```javascript
+{
+  name: 'offset',
+  options: {
+    offset: [10, 5] // 10px right, 5px down
+  }
+}
+
+//Example with function
+{
+  name: 'offset',
+  options: {
+    offset: ({ state, rect }) => [state.placement.startsWith('top') ? -rect.height : 0, 0],
+  }
+}
+```
+
+### `preventOverflow`
+
+Prevents the popper from overflowing its boundaries.
+
+* **`name`**: `preventOverflow`
+* **`options`**:
+    * **`boundary`**:  Defines the boundary element.  Options include: `'clippingParents'`, `'scrollParent'`, `'viewport'`, or a DOM element.  `'clippingParents'` considers the closest scrollable ancestor elements; `'scrollParent'` considers only scrollable ancestors; `'viewport'` uses the browser viewport.
+    * **`padding`**:  Adds padding (in pixels) around the boundary.  Useful to prevent the popper from sticking to the edges.  Can be a single number or an object specifying padding for top, right, bottom, and left.
+    * **`tether`**: Boolean that determines whether to tether the popper to the reference element when the popper is going out of boundaries, preventing it from completely leaving the screen. Defaults to true.
+    * **`tetherOffset`**:  When using `tether`, specify the offset for the tether as an array `[x,y]`. Defaults to 0.
+    * **`mainAxis`**: Whether to prevent overflow on the main axis (the axis of primary placement, e.g., vertical for `top`/`bottom` placement). Defaults to true.
+    * **`altAxis`**: Whether to prevent overflow on the alternative axis (horizontal for `top`/`bottom` placement). Defaults to false.
+    * **`altBoundary`**:  Option to specify an alternate boundary element for the alternative axis.
+
+```javascript
+{
+  name: 'preventOverflow',
+  options: {
+    boundary: 'clippingParents',
+    padding: 10,
+    tether: true,
+    tetherOffset: [0, 10],
+  }
+}
+```
+
+
+### `flip`
+
+Flips the popper's placement to an alternative side if it overflows its boundaries.
+
+* **`name`**: `flip`
+* **`options`**:
+    * **`boundary`**:  Same as `preventOverflow`.  Defines where the flip check is performed against.
+    * **`padding`**: Same as `preventOverflow`.
+    * **`fallbackPlacements`**: An array of alternative placements to try if the initial placement is overflowing. Defaults to all placements in reverse of primary placements (e.g. ['bottom', 'top', 'right', 'left']).
+    * **`flipVariations`**: (Boolean) Determines whether to check variations of placements (start/end). Defaults to true.
+    * **`allowedAutoPlacements`**: Array of allowed placements when auto placement is used. Defaults to an empty array which means auto placement will not be affected.
+
+```javascript
+{
+  name: 'flip',
+  options: {
+    fallbackPlacements: ['bottom', 'right'],
+    padding: 5,
+  }
+}
+```
+
+### `hide`
+
+Hides the popper if it overflows its boundaries and no flip is possible.
+
+* **`name`**: `hide`
+* **`options`**:
+    * **`boundary`**: Same as `preventOverflow`.
+    * **`padding`**: Same as `preventOverflow`.
+    * **`strategy`**:  Strategy to use to hide the element, either `'referenceHidden'` or `'escaped'`. Defaults to `'referenceHidden'`.
+
+```javascript
+{ name: 'hide' }
+```
+
+### `shift`
+
+Shifts the popper slightly to ensure it remains within its boundaries.
+
+* **`name`**: `shift`
+* **`options`**:
+    * **`maxShift`**: Maximum shift allowed. Default to infinity.
+    * **`padding`**: Additional padding in pixels. Defaults to 0.
+    * **`mainAxis`**: Shift only along the main axis. Defaults to true.
+    * **`altAxis`**: Shift only along the alt axis. Defaults to true.
+    * **`boundary`**: Boundary to consider for shift (similar to other modifiers). Defaults to 'clippingParents'.
+
+
+```javascript
+{
+  name: 'shift',
+  options: {
+    maxShift: 10,
+  }
+}
+```
+
+### `arrow`
+
+Positions the arrow element to visually connect the popper and reference.
+
+* **`name`**: `arrow`
+* **`options`**:
+    * **`element`**:  CSS selector or DOM element for the arrow element.  Must be a child of the popper element.
+    * **`padding`**: Padding to add to the arrow position calculations.
+
+```javascript
+{
+  name: 'arrow',
+  options: {
+    element: '.popper-arrow'
+  }
+}
+```
+
+### `computeStyles`
+
+Computes the styles for positioning the popper.  This modifier is essential and usually should not be modified or removed.
+
+* **`name`**: `computeStyles`
+* **`options`**:  No options are used in this modifier.
+
+```javascript
+{ name: 'computeStyles' } //Usually included by default
+```
+
+### `inner`
+
+Positions the popper within the reference element. This is useful for tooltips that have to be fully contained inside a parent container.
+
+* **`name`**: `inner`
+* **`options`**:
+    * **`padding`**:  Padding around the popper inside its parent (the reference). Defaults to 0.
+
+```javascript
+{ name: 'inner' }
+```
+
+### `popperOffsets`
+
+This modifier doesn't modify the popper's position; instead, it adds the calculated popper offsets (x and y) to the `state.modifiersData` object. This information can be used by other modifiers or custom logic.
+
+* **`name`**: `popperOffsets`
+* **`options`**:  No options are used in this modifier.
+
+```javascript
+{ name: 'popperOffsets' } // Usually included by default
+```
+
+Remember to consult the official Popper.js documentation for the most up-to-date information and advanced usage details.  The examples provided here are simplified for clarity.
+
+
+## Advanced Usage
+
+This section covers more advanced scenarios and techniques when using Popper.js.
+
+### Customizing Placement
+
+Beyond the standard placements (top, bottom, left, right, and their variations), you can achieve highly customized placement using a combination of modifiers and the `placement` option.
+
+* **Using `flip` creatively:** By carefully selecting `fallbackPlacements`, you can control the order in which alternative placements are attempted.  Combine this with `preventOverflow` to fine-tune the placement based on available space.
+
+* **Custom `offset` function:**  Use a custom function for the `offset` modifier to calculate offsets dynamically based on the context (e.g., the reference element's dimensions, scroll position).
+
+* **Custom Modifiers:**  For truly unique placement logic, create a custom modifier. This gives you complete control over the positioning algorithm.  See the Popper.js documentation for details on creating custom modifiers.
+
+
+### Working with Different DOM Structures
+
+Popper.js adapts to various DOM structures, but understanding how it interacts with different elements is crucial.
+
+* **Handling Scrolling:** Popper.js correctly accounts for scrolling parents.  However, be aware that the `boundary` option in `preventOverflow` and `flip` affects how scrolling impacts positioning. Using `'scrollParent'` as the boundary will consider only the scrollable ancestors, while `'clippingParents'` considers all clipping ancestors.
+
+* **Fixed Positioning:** If your reference or popper element is positioned `fixed`, ensure you understand how this impacts the positioning calculations. You might need to adjust boundary settings accordingly.
+
+* **Complex Nesting:**  For deeply nested elements, ensure that the reference and popper elements have the correct context for positioning. You may need to experiment with boundary options.
+
+
+
+### Handling Complex Layouts
+
+Popper.js handles complex layouts reasonably well, but certain situations may require special attention.
+
+* **Overlapping Elements:** Use the `flip` and `preventOverflow` modifiers to handle overlapping elements.  You might need to adjust the `padding` option for better control.
+
+* **Dynamic Content:**  If the content of your popper element changes dynamically (e.g., text input), ensure that you trigger a repositioning update using the Popper instance's `update()` method after the content changes.
+
+* **Animations:**  When using animations, ensure they don't interfere with Popper.js's positioning calculations.  It's often best to update the Popper instance's position after the animation completes to avoid positioning conflicts.
+
+
+### Integrating with other Libraries
+
+Integrating Popper.js with other libraries often requires careful consideration.
+
+* **Frameworks (React, Vue, Angular):**  Many frameworks have dedicated integration packages or guides for using Popper.js.  These often handle lifecycle management and updates more seamlessly.
+
+* **Other Positioning Libraries:** Avoid using multiple positioning libraries concurrently, as this can lead to conflicts.  If you need to use multiple positioning libraries, ensure they don't interfere with each other.
+
+* **CSS Frameworks:**  Popper.js works well with most CSS frameworks, but ensure that your CSS doesn't unintentionally affect the position calculations (e.g., through absolute or fixed positioning).
+
+
+
+### Performance Optimization
+
+For optimal performance, especially with many Popper instances, consider these strategies:
+
+* **Minimize Updates:** Avoid unnecessary calls to `update()`.  Only call it when the position truly needs to be recalculated (e.g., after a resize or significant content change).
+
+* **Efficient Modifiers:**  Use modifiers judiciously.  Overusing modifiers or complex modifiers can negatively impact performance.
+
+* **Batch Updates:** If you are updating multiple Popper instances at once, consider grouping the updates using `Promise.all`.
+
+
+### Accessibility Considerations
+
+Accessibility is crucial.  Consider the following points:
+
+* **Focus Management:**  Ensure that the popper element receives appropriate focus management (e.g., keyboard navigation).
+
+* **ARIA Attributes:**  Use appropriate ARIA attributes to describe the relationship between the reference and popper elements (e.g., `aria-describedby`).
+
+* **Screen Reader Compatibility:**  Ensure that screen readers can properly interpret the popper's content and its relationship to the reference element.  Avoid overly complex or dynamic positioning behaviors that could confuse screen readers.
+
+* **Sufficient Contrast:** Ensure adequate contrast between the popper element and its background.
+
+
+By carefully considering these advanced usage scenarios and best practices, you can leverage Popper.js's full potential to create robust and accessible user interfaces.  Remember that the official documentation is an invaluable resource for further details and advanced examples.
+
+
+## API Reference
+
+This section details the Popper.js API, providing a comprehensive guide to its functions and options.
+
+### `createPopper()`
+
+The primary function to create a Popper instance.
+
+**Signature:**
+
+```javascript
+createPopper(reference, popper, options?)
+```
+
+* **`reference`**:  The reference element (DOM element).  The popper will be positioned relative to this element.
+
+* **`popper`**: The popper element (DOM element). The element to be positioned.
+
+* **`options`**: (Optional) An object containing configuration options.  See the following sections for details on available options.  This object is passed directly to the `createPopper` function. It accepts a `modifiers` array, a `placement` string, and other configurable options.
+
+**Return Value:**
+
+A Popper instance object. This object contains methods for managing the Popper instance (see "Instance Methods" below).
+
+**Example:**
+
+```javascript
+import { createPopper } from '@popperjs/core';
+
+const reference = document.getElementById('reference');
+const popperElement = document.getElementById('popper');
+
+const popperInstance = createPopper(reference, popperElement, {
+  placement: 'top',
+  modifiers: [
+    { name: 'offset', options: { offset: [0, 8] } }
+  ]
+});
+```
+
+
+### Instance Methods
+
+The Popper instance object provides the following methods:
+
+* **`update()`**:  Manually updates the popper's position. Useful after dynamic content changes or window resizes.
+
+* **`destroy()`**:  Destroys the Popper instance, removing event listeners and cleaning up resources.  **Crucial** to call this when the popper is no longer needed to prevent memory leaks.
+
+* **`state`**:  Read-only property containing current positioning state data including position, offsets, and modifier data.  Useful for debugging or custom logic.
+
+* **`forceUpdate()`**: Forces a full recalculation of the popper’s position, bypassing any caching mechanisms.  Use sparingly, as it’s less efficient than `update()`.
+
+**Example:**
+
+```javascript
+popperInstance.update(); // Update position
+popperInstance.destroy(); // Clean up
+console.log(popperInstance.state); // Access positioning data
+
+```
+
+### Modifier Options
+
+Modifiers are configurable objects within the `options` parameter of `createPopper()`. Each modifier has specific options (detailed in the "Modifiers in Detail" section of this manual).  The general structure is:
+
+```javascript
+{
+  name: 'modifierName', //Name of the modifier
+  options: {
+    // Modifier-specific options
+    option1: value1,
+    option2: value2
+  },
+  fn: functionName //optional custom function to replace the default function of the modifier.
+}
+```
+
+Modifiers are executed in the order they are specified in the `modifiers` array within the `options` object. The order is significant; some modifiers depend on the output of others.
+
+
+### Data Attributes API
+
+Popper.js supports setting options via HTML data attributes.  These attributes are prefixed with `data-popper-`.  While less flexible than using JavaScript, data attributes can simplify basic configurations.
+
+* **`data-popper-placement`**: Specifies the initial placement (`top`, `bottom`, etc.). Overrides the `placement` option in the `options` object if both are present.
+
+* **`data-popper-modifiers`**:  Specifies modifiers as a JSON string. This is a concise way to define modifiers, but less readable for complex configurations.
+
+* **`data-popper-reference-hidden`**:  A boolean value that instructs Popper.js on how to handle positioning when the reference element is hidden.  Defaults to false. This attribute can be use for custom logic based on when the reference element is hidden.
+
+**Example:**
+
+```html
+<button id="reference">Reference</button>
+<div id="popper" data-popper-placement="bottom-end" data-popper-modifiers='[{"name": "offset", "options": {"offset": [10, 10]}}]'></div>
+```
+
+This example uses `data-popper-placement` and `data-popper-modifiers` to specify the placement and an offset without needing JavaScript configuration (except for initializing the `createPopper` function).  However, complex configurations should generally be handled using the JavaScript API for better readability and maintainability.  The `data-popper-reference-hidden` is helpful when dealing with visibility changes of the reference element.
+
+
+
+Remember to consult the official Popper.js documentation for the most up-to-date and comprehensive API reference.  The information provided here is a summary intended to aid in understanding the core functionalities.
+
+
+## Troubleshooting
+
+This section provides guidance on resolving common issues and debugging techniques when using Popper.js.
+
+### Common Issues and Solutions
+
+* **Popper not appearing:**
+    * **Problem:** The popper element might be hidden by CSS (`display: none;`, `visibility: hidden;`, or a similar style).
+    * **Solution:**  Ensure the popper element has a visible display style. Check your CSS for conflicting styles.  Inspect the element in your browser's developer tools to verify its visibility.
+
+* **Popper positioned incorrectly:**
+    * **Problem:** Incorrect placement settings, conflicting CSS, or missing/incorrect modifiers.
+    * **Solution:**  Double-check the `placement` option.  Verify that there are no conflicting styles affecting the element's position.  Carefully review your modifier configurations, paying attention to `offset`, `preventOverflow`, and `flip`.  Inspect the `state` object of your Popper instance to examine the calculated positions.
+
+* **Popper overlapping other elements:**
+    * **Problem:**  The `preventOverflow` and `flip` modifiers haven't been used correctly, or there are elements that are not accounted for.
+    * **Solution:** Adjust the `padding` option in `preventOverflow` to create more space around the popper.  Use the `fallbackPlacements` option in `flip` to explore alternative placements. You may need to adjust your HTML structure or CSS to account for overlapping elements.
+
+* **Popper not updating after content changes:**
+    * **Problem:** You've modified the popper's content, but haven't called the `update()` method on the Popper instance.
+    * **Solution:**  Call `popperInstance.update()` after the popper's content changes to force a recalculation of the position.
+
+* **Popper disappearing on scroll:**
+    * **Problem:**  Incorrect boundary settings in `preventOverflow`.
+    * **Solution:** Ensure the `boundary` option is appropriately set (`'viewport'`, `'clippingParents'`, `'scrollParent'`, or a specific element).  Experiment to determine the best boundary for your application.
+
+
+### Debugging Tips
+
+* **Inspect the `state` object:** The `popperInstance.state` object contains valuable information about the calculated position, offsets, and modifier data.  This is extremely helpful for debugging positioning issues.  Inspect it in your browser's console.
+
+* **Simplify your setup:**  Temporarily remove or disable modifiers to isolate the source of the problem.  This helps to determine which modifier is causing the issue.
+
+* **Use your browser's developer tools:** Utilize your browser's developer tools to inspect the CSS styles and element positions to identify conflicts or unexpected behavior.
+
+* **Console logging:** Use `console.log()` statements to track the values of variables and the state of the Popper instance during execution.  Log the `state` object at various stages to see how the positioning calculations evolve.
+
+* **Check for conflicting CSS:** Make sure no CSS rules are accidentally overriding Popper.js's positioning styles.
+
+
+### Error Messages and Handling
+
+Popper.js generally throws errors when it encounters critical problems (e.g., invalid options, missing elements).  These errors typically include informative messages explaining the cause.
+
+* **Handle errors gracefully:** Wrap your `createPopper` call in a `try...catch` block to handle potential errors.
+
+
+```javascript
+try {
+  const popperInstance = createPopper(reference, popperElement, options);
+} catch (error) {
+  console.error("Popper.js error:", error);
+  // Add your error handling logic here (e.g., display a user-friendly message).
+}
+
+```
+
+By following these troubleshooting steps and utilizing debugging techniques, you can effectively resolve most issues encountered while using Popper.js.  Remember to consult the official documentation for more detailed explanations and examples.
+
+
+## Examples and Use Cases
+
+This section presents examples and best practices for using Popper.js with various UI components.
+
+### Tooltips
+
+Tooltips provide brief information when hovering over an element.  Popper.js excels at positioning tooltips accurately, even when dealing with scrolling or complex layouts.
+
+**Implementation:**
+
+1.  **HTML:** Create a reference element (e.g., a button) and a tooltip element.  The tooltip should initially be hidden (e.g., `display: none;`).  Include an arrow element (optional) with the class `popper-arrow`.
+
+    ```html
+    <button id="tooltip-reference">Hover over me</button>
+    <div id="tooltip" class="tooltip">This is a tooltip</div>
+    ```
+
+2.  **CSS:** Style the tooltip to your liking.  Add styling for the arrow (optional).
+
+    ```css
+    .tooltip {
+      background-color: #333;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 4px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      display: none; /* Initially hidden */
+      position: absolute; /* Required for Popper.js */
+    }
+
+    .tooltip.popper-arrow::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        transform: translate(-50%, -50%) rotate(45deg);
+        width: 10px;
+        height: 10px;
+        background-color: inherit;
+    }
+
+    #tooltip-reference:hover + .tooltip {
+      display: block; /* Show on hover */
+    }
+    ```
+
+3.  **JavaScript:** Use `createPopper` to position the tooltip relative to the reference.  Add event listeners to show and hide the tooltip.
+
+
+    ```javascript
+    import { createPopper } from '@popperjs/core';
+
+    const reference = document.getElementById('tooltip-reference');
+    const tooltip = document.getElementById('tooltip');
+
+    const popperInstance = createPopper(reference, tooltip, {
+      placement: 'top',
+      modifiers: [{ name: 'arrow', options: { element: '.popper-arrow' }}]
+    });
+
+    reference.addEventListener('mouseenter', () => {
+      tooltip.style.display = 'block';
+    });
+    reference.addEventListener('mouseleave', () => {
+      tooltip.style.display = 'none';
+    });
+    ```
+
+
+### Dropdowns
+
+Dropdowns present a list of options when a button is clicked.  Popper.js ensures the dropdown remains within the viewport.
+
+**Implementation:**  Similar to tooltips, but use a click event to show/hide the dropdown, and consider adding functionality to close the dropdown when clicking outside of it.
+
+
+### Menus
+
+Menus are similar to dropdowns but can have more complex structures (nested items, multiple levels).  Popper.js helps maintain accurate positioning for nested menu items.  Consider using the `flip` modifier to handle scenarios where the menu overflows the viewport.
+
+**Implementation:** Recursive approach needed, recursively creating popper instances for submenus.  Event listeners are key for managing the opening and closing of the submenus on different mouse events.
+
+
+### Popovers
+
+Popovers are similar to tooltips but often contain more content.  Popper.js handles the positioning and overflow gracefully, preventing the popover from being cut off or overlapping elements.
+
+**Implementation:**  Similar to tooltips, but with more elaborate styling and potentially more complex content within the popover element.  You may want to add functionality to automatically close the popover after a certain delay.
+
+
+### Custom Components
+
+Popper.js is highly versatile and can be integrated into any custom component requiring precise positioning relative to a reference.  Utilize modifiers to customize positioning based on component-specific needs.  Ensure that you handle events correctly, particularly if dynamic content updates might require a repositioning.
+
+**Implementation:**  Design your custom component in HTML and CSS.  Use `createPopper` to position the component correctly, adding custom modifiers as required to fulfill the custom logic and behavior.
+
+
+
+
+These examples illustrate the core usage.  Advanced scenarios might require more sophisticated strategies, including custom modifiers or advanced modifier options.  Remember to always consult the official Popper.js documentation for the most up-to-date information and detailed examples.
+

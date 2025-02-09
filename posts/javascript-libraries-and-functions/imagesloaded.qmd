@@ -1,0 +1,349 @@
+---
+title: "imagesLoaded - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+
+
+### Introduction
+
+#### What is imagesLoaded?
+
+imagesLoaded is a small, fast, and robust JavaScript library that provides a callback mechanism once all images within a given container have fully loaded.  This is particularly useful for situations where you need to perform actions (like resizing a layout, revealing hidden content, or triggering animations) that depend on image dimensions being available.  Unlike simply checking for `onload` on each image, imagesLoaded accounts for images that fail to load and handles image caching effectively.
+
+#### Why use imagesLoaded?
+
+Using imagesLoaded offers several key advantages:
+
+* **Reliability:**  It accurately detects when *all* images, including those loaded from cache, are ready.  Simple `onload` event listeners can be unreliable, particularly with cached images.
+* **Efficiency:**  It's lightweight and performs its work efficiently without significantly impacting page performance.
+* **Error Handling:** It gracefully handles images that fail to load, preventing your application from hanging or producing unexpected results.
+* **Simplicity:**  The API is easy to understand and use, requiring minimal code to integrate into your project.
+* **Flexibility:**  It provides options for handling individual image load events and progress tracking.
+
+
+#### Installation and Setup
+
+imagesLoaded is available via npm and yarn.  You can also include it directly via a CDN.
+
+**Using npm or yarn:**
+
+```bash
+npm install imagesloaded
+# or
+yarn add imagesloaded
+```
+
+Then, import it into your JavaScript file:
+
+```javascript
+import imagesLoaded from 'imagesloaded';
+```
+
+**Using a CDN (e.g., jsDelivr):**
+
+Include the following `<script>` tag in the `<head>` of your HTML file:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/imagesloaded@5/imagesloaded.pkgd.min.js"></script>
+```
+
+#### Basic Usage Example
+
+This example shows how to use imagesLoaded to wait for all images within a container with the ID "my-images" to load before displaying a message.
+
+```javascript
+import imagesLoaded from 'imagesloaded';
+
+const imageContainer = document.getElementById('my-images');
+
+imagesLoaded(imageContainer, function() {
+  console.log('All images loaded!');
+  // Perform actions that depend on image dimensions here, e.g.,
+  document.getElementById('loading-message').style.display = 'none';
+});
+```
+
+Remember to include the `imagesloaded.js` file (either via npm/yarn or CDN) *before* this JavaScript code in your HTML.  This example utilizes an element with the ID "loading-message" that will be hidden after all images have loaded.  Replace this with your own logic as needed.  The `imageContainer` can be any DOM element containing images.  It doesn't have to be a `<div>`.  It could even be the `<body>` element itself if you want to wait for all images on the page to load.
+
+
+
+
+## Core Functionality
+
+### Loading Images
+
+The core functionality of imagesLoaded centers around the `imagesLoaded` function.  This function takes a DOM element as its first argument (the container element containing images) and a callback function as its second. The callback function is executed only after all images within the container have fully loaded.
+
+The `imagesLoaded` function intelligently handles various scenarios:
+
+* **Cached Images:**  imagesLoaded correctly identifies images already present in the browser's cache and avoids unnecessary re-downloads.  The callback will still fire once these cached images are considered "loaded".
+* **Failed Images:** If an image fails to load (e.g., due to a broken link), imagesLoaded will still trigger its callback after a reasonable timeout. You can handle failed images using the `fail` event (detailed below).
+* **Different Image Types:** The library automatically handles various image types (JPEG, PNG, GIF, SVG, etc.) without requiring special configuration.
+
+
+### Event Handling (`progress`, `done`, `fail`)
+
+The `imagesLoaded` function, while primarily using a callback, also offers a more flexible approach using events. This allows for finer-grained control over the loading process.
+
+Instead of directly passing a callback function to `imagesLoaded`, you can create an instance of the `imagesLoaded` class and then listen for events. This provides more sophisticated control over event handling.  The events emitted are:
+
+* **`progress`:** This event is fired for each image as it loads. The event object contains information about the loaded image, including its `img` element and its `isLoaded` status. This allows you to track the progress of the image loading process.
+
+
+* **`done`:** This event is triggered only after *all* images within the specified container have successfully loaded.
+
+
+* **`fail`:** This event is triggered if one or more images fail to load.  The event data provides information about which images failed.
+
+Here's an example using the event-based approach:
+
+```javascript
+import imagesLoaded from 'imagesloaded';
+
+const imageContainer = document.getElementById('my-images');
+
+const instance = imagesLoaded(imageContainer);
+
+instance.on( 'progress', function( instance, image ) {
+  console.log( 'image loaded:', image.img );
+});
+
+instance.on( 'done', function() {
+  console.log( 'All images loaded!' );
+});
+
+instance.on( 'fail', function( instance, image ) {
+  console.log( 'Image failed to load:', image.img.src);
+});
+```
+
+
+### Handling Different Image Types
+
+imagesLoaded inherently supports various image formats without any additional configuration.  It correctly identifies and handles the loading of JPEG, PNG, GIF, SVG, and other common image types.  You don't need to perform any special checks or pre-processing for different image formats.
+
+
+### Debugging and Troubleshooting
+
+* **Check your image paths:** Ensure all image URLs are correct and accessible.  Broken links are a common cause of issues.
+* **Inspect the console:** Use your browser's developer tools (usually accessed by pressing F12) to check the console for error messages.  imagesLoaded will generally log errors to the console if images fail to load.
+* **Verify DOM element:** Confirm that the DOM element you are passing to `imagesLoaded` actually exists and contains the images you expect.  Inspect it in your browser's developer tools to ensure it's properly structured.
+* **Check for conflicts:** Ensure that there are no conflicts with other JavaScript libraries that might interfere with imagesLoaded's functionality.
+* **Check the network tab:** Use your browser's developer tools' Network tab to check if the images are being requested and their loading status. This helps to pinpoint whether the problem is with the image itself or the network connection.
+* **Simplify your code:**  If you are using a complex setup, try simplifying your code to isolate the problem.  A minimal test case can help to quickly diagnose the issue.
+
+If you are still experiencing issues, please provide details including your code, the browser you are using, and the specific error message (if any) for more targeted assistance.
+
+
+
+
+## Advanced Usage
+
+### Using imagesLoaded with Frameworks (React, Angular, Vue)
+
+While imagesLoaded is a vanilla JavaScript library, integrating it into popular frameworks like React, Angular, and Vue is straightforward.  The core principle remains the same:  you need to select the container element and then use the `imagesLoaded` function or event system.  However, the specifics of how you select the element and handle the callback will depend on the framework.
+
+
+**React:**
+
+```jsx
+import React, { useEffect, useState } from 'react';
+import imagesLoaded from 'imagesloaded';
+
+function MyComponent() {
+  const [imagesLoadedStatus, setImagesLoadedStatus] = useState(false);
+  const imageContainerRef = useRef(null);
+
+  useEffect(() => {
+    if (imageContainerRef.current) {
+      imagesLoaded(imageContainerRef.current).on('done', () => {
+        setImagesLoadedStatus(true);
+      });
+    }
+  }, []);
+
+  return (
+    <div ref={imageContainerRef}>
+      {/* Your images here */}
+      {imagesLoadedStatus && <p>All images loaded!</p>}
+    </div>
+  );
+}
+```
+
+**Angular:**
+
+You can use `ViewChild` or `ElementRef` to access the container element within your Angular component, and then call `imagesLoaded` within `ngOnInit` or a similar lifecycle hook.
+
+**Vue:**
+
+You can use a `ref` to access the container element in your Vue template and then call `imagesLoaded` within a `mounted` lifecycle hook or a watcher.
+
+
+In all these framework examples, the crucial part is ensuring that the `imagesLoaded` call is made *after* the DOM element containing the images has been rendered.  Framework-specific lifecycle hooks or asynchronous operations (like `useEffect` in React) are essential for proper timing.
+
+
+### Customizing the Loading Process
+
+While imagesLoaded automatically handles most scenarios, you can customize certain aspects:
+
+* **Timeout:**  If you need to adjust the timeout period for images that fail to load, you can do so in newer versions (although the default should suffice in most cases). Refer to the updated documentation for details on adjusting the timeout.
+
+* **Debugging:**  Enabling debugging can provide more verbose logging for troubleshooting purposes, again this functionality might depend on version and isn't always available.  Check the latest documentation for any debugging flags or options.
+
+
+### Working with Background Images
+
+imagesLoaded primarily focuses on images that are directly part of the DOM (`<img>` tags). To handle background images, you'll need a different approach, as imagesLoaded does not directly detect the loading of background images.  Consider using the `onload` event listener on a hidden `<img>` tag that points to the background image URL to track when the background image has fully loaded.
+
+
+### Handling Large Numbers of Images
+
+For exceptionally large numbers of images, optimizing the loading process becomes crucial. Consider these strategies:
+
+* **Lazy Loading:**  Only load images that are currently visible in the viewport.  Libraries or techniques that support lazy loading images can improve performance significantly.
+* **Image Optimization:** Compress images to reduce their file sizes.  Tools are available online to compress images without significantly impacting visual quality.
+* **Prioritization:** Load higher-priority images first.  This might mean showing smaller thumbnails initially and then loading larger versions when needed.
+
+
+### Performance Optimization
+
+Beyond the strategies already mentioned for large numbers of images, other general performance improvements apply to imagesLoaded usage:
+
+* **Minimize DOM Manipulation:**  Avoid unnecessary DOM modifications during the image loading process.  Group your actions that depend on image loading to occur all at once when the `done` event fires.
+* **Use the Event API:** Using the `progress`, `done`, and `fail` events instead of a simple callback function allows more efficient control and minimizes potential overhead.
+* **Avoid unnecessary calls:** Ensure that you are not calling imagesLoaded more often than necessary. Use caching mechanisms in your application logic to prevent duplicate calls if possible.
+
+
+Remember to profile your application to identify specific performance bottlenecks.  Using browser developer tools is key to pinpointing areas for optimization.
+
+
+
+
+## API Reference
+
+### `imagesLoaded(elements, options)`
+
+The core function of the imagesLoaded library. It takes two arguments:
+
+* **`elements`:**  This is the first and required argument. It can be one of the following:
+    * **A DOM element:** A single element containing images (e.g., a `<div>`).  imagesLoaded will then check for all images within that element.
+    * **An array of DOM elements:** An array of elements, each of which may contain images.
+    * **A selector string:** A CSS selector string (e.g., `'.my-images'`) to select multiple elements containing images.  This uses `document.querySelectorAll` under the hood.
+
+* **`options` (optional):** An object containing optional settings to customize the behavior of imagesLoaded.  Details on the `options` object are provided in the next section.  If omitted, imagesLoaded uses its default settings.
+
+**Return Value:**
+
+The function returns an `imagesLoaded` instance. This object allows you to listen for events (`progress`, `done`, `fail`) using the `.on()` method.  In older versions a simple callback was provided as the second argument.  The newer event system provides more flexibility.
+
+**Example:**
+
+```javascript
+import imagesLoaded from 'imagesloaded';
+
+const myContainer = document.querySelector('.my-image-container');
+const imgArray = [document.getElementById('image1'), document.getElementById('image2')];
+
+// Using a single element
+const instance1 = imagesLoaded( myContainer );
+instance1.on('done', () => console.log('All images in myContainer loaded!') );
+
+// Using an array of elements
+const instance2 = imagesLoaded( imgArray );
+instance2.on('done', () => console.log('All images in the array loaded!') );
+
+// Using a selector string
+const instance3 = imagesLoaded( '.my-other-images' );
+instance3.on('done', () => console.log('All images in elements with the class my-other-images loaded!') );
+```
+
+
+### Event Handlers
+
+The `imagesLoaded` instance returned by the `imagesLoaded()` function exposes the `.on()` method to attach event listeners.  Available events are:
+
+* **`progress`:** Fired for each image as it loads. The callback function receives two arguments: `instance` (the `imagesLoaded` instance itself) and `image` (an object containing information about the loaded image, such as its `img` element and its `isLoaded` status (true/false)).
+
+* **`done`:** Fired after all images within the specified elements have loaded successfully. The callback function receives one argument: `instance` (the `imagesLoaded` instance).
+
+* **`fail`:** Fired if one or more images fail to load. The callback function receives two arguments: `instance` and `image` (an object containing information about the failed image, similar to the `progress` event).
+
+**Example using `.on()`:**
+
+```javascript
+const instance = imagesLoaded(myContainer);
+
+instance.on( 'progress', (instance, image) => {
+  console.log(`Image loaded: ${image.img.src}`);
+} );
+
+instance.on( 'done', () => {
+  console.log('All images loaded!');
+} );
+
+instance.on( 'fail', (instance, image) => {
+  console.log(`Image failed to load: ${image.img.src}`);
+} );
+```
+
+
+### Options Object
+
+The `options` object (second argument to `imagesLoaded()`) allows for fine-grained control over the loading process.  While not all options are available in all versions,  and newer options might have replaced older ones, the following are representative:
+
+
+* **`background` (boolean):** (Potentially deprecated or version dependent)  This may have been used in older versions to specifically handle background images.  Check current documentation for newer background image handling strategies.  Currently, background images are not directly supported.
+
+* **`timeout` (number, milliseconds):** (May have limited or no effect in recent versions)  Specifies a timeout in milliseconds after which images that haven't loaded will be considered failed.  Check if this setting is even relevant in the version you use.  Modern implementations likely handle timeouts more intelligently.  This option might not exist in newer versions.
+
+
+
+It's crucial to consult the most up-to-date documentation for the specific version of imagesLoaded you are using, as the API and available options may have changed over time.  The options listed here are illustrative examples and may not represent all options available in all versions.
+
+
+
+
+## Contributing
+
+We welcome contributions to imagesLoaded!  Whether you're reporting a bug, suggesting a feature, or submitting a pull request, your involvement is valuable.
+
+### Reporting Issues
+
+Before creating a new issue, please search existing issues to see if the problem has already been reported.  If you can't find a matching issue, please create a new one providing the following information:
+
+* **Clear and concise title:** Briefly describe the issue.
+* **Detailed description:** Explain the problem you encountered, including steps to reproduce it.
+* **Version of imagesLoaded:** Specify the version you are using.
+* **Browser and operating system:**  Include the browser(s) and operating system(s) where the issue occurs.
+* **Relevant code snippets:**  Provide minimal, reproducible code examples that demonstrate the issue.
+* **Expected behavior:** Describe what you expected to happen.
+* **Actual behavior:** Describe what actually happened.
+
+
+### Submitting Pull Requests
+
+If you'd like to contribute code, follow these steps:
+
+1. **Fork the repository:** Create a fork of the official imagesLoaded repository on GitHub.
+2. **Create a new branch:**  Create a new branch for your changes.  Use descriptive branch names (e.g., `fix-bug-123`, `feature-new-option`).
+3. **Make your changes:** Implement your changes, following the coding style guide (described below).
+4. **Test your changes thoroughly:**  Ensure your changes work correctly and don't introduce new bugs.
+5. **Commit your changes:** Commit your changes with clear and concise commit messages.
+6. **Push your branch:** Push your branch to your forked repository.
+7. **Create a pull request:**  Create a pull request on the original imagesLoaded repository, clearly describing your changes and their purpose.
+
+
+### Coding Style Guide
+
+To maintain consistency and readability, please adhere to the following coding style guidelines when contributing to imagesLoaded:
+
+* **Indentation:** Use 2 spaces for indentation.
+* **Line Length:** Keep lines under 80 characters.
+* **Semicolons:** Use semicolons at the end of statements.
+* **Variable Naming:** Use camelCase for variable names.
+* **Comments:** Write clear and concise comments to explain complex logic.
+* **Testing:**  Write unit tests to cover your changes.  Use the existing testing framework to ensure proper coverage.
+
+We use ESLint to enforce code style.  It's recommended to install ESLint and configure it according to the project's `.eslintrc` file before submitting a pull request.  This will help you identify and fix style issues before they are submitted.  The project maintainers might reject pull requests that do not follow the styling guide.
+

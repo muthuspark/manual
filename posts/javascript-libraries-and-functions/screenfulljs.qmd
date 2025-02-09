@@ -1,0 +1,488 @@
+---
+title: "Screenfull.js - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction to Screenfull.js
+
+### What is Screenfull.js?
+
+Screenfull.js is a lightweight and robust JavaScript library that provides a simple, cross-browser API for managing the fullscreen state of an element.  It abstracts away the complexities of browser-specific fullscreen APIs, allowing you to easily toggle fullscreen mode on and off with minimal code.  It handles the nuances of different browsers' implementations, ensuring consistent behavior across various platforms and devices.
+
+### Why Use Screenfull.js?
+
+Using Screenfull.js offers several advantages:
+
+* **Cross-browser compatibility:**  It works seamlessly across major browsers, saving you the time and effort of writing browser-specific code for fullscreen functionality.
+* **Simplicity:** The API is incredibly straightforward, making it easy to integrate into your projects.
+* **Lightweight:** The library is small in size, minimizing the impact on your application's performance.
+* **Reliable:** It handles potential errors and edge cases gracefully, ensuring a stable and predictable user experience.
+* **Focus on the element:** You can request fullscreen for a specific element, rather than the entire browser window, offering more granular control.
+
+
+### Browser Compatibility
+
+Screenfull.js strives for broad browser compatibility.  While it aims for universal support, optimal functionality depends on the browser's native fullscreen capabilities.  Generally, modern browsers (Chrome, Firefox, Safari, Edge) are well-supported.  For older or less common browsers, you may encounter limited or no fullscreen functionality. Consult the official website and test thoroughly for your target browsers.
+
+### Setting up Screenfull.js
+
+Including Screenfull.js in your project is easy:
+
+**1. Download:** Download the `screenfull.js` file from the project's repository or use a CDN.
+
+**2. Include in your HTML:**  Add the script tag to your HTML file, preferably before the closing `</body>` tag:
+
+```html
+<script src="screenfull.js"></script> </body>
+```
+
+**or via a CDN (e.g., jsDelivr):**
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/screenfull@5.1.0/dist/screenfull.min.js"></script> </body>
+```
+
+**3. Usage (Basic Example):**  Once included, you can use the Screenfull API:
+
+```javascript
+if (screenfull.isEnabled) {
+  screenfull.request(); // Enter fullscreen
+  // ... other code ...
+  screenfull.exit(); // Exit fullscreen
+} else {
+  console.warn('Fullscreen is not supported by this browser.');
+}
+```
+
+This example checks if fullscreen is supported before attempting to use it.  Further API details are available in the API documentation section of this manual.
+
+
+## Core Functionality
+
+### Enabling Fullscreen Mode: `screenfull.request()`
+
+The `screenfull.request()` method initiates the fullscreen request for the currently active element or, if no element is specified, defaults to the document's `<html>` element.  This method returns a `Promise` which resolves if the fullscreen mode is successfully entered and rejects if it fails.
+
+```javascript
+screenfull.request().then(() => {
+  console.log('Fullscreen entered successfully!');
+}).catch(error => {
+  console.error('Error entering fullscreen:', error);
+});
+
+//Requesting fullscreen for a specific element
+const myElement = document.getElementById('myElement');
+screenfull.request(myElement).then(() => {
+    console.log('Element entered fullscreen');
+}).catch(error => {
+    console.error('Error entering fullscreen for element:', error);
+});
+```
+
+
+### Exiting Fullscreen Mode: `screenfull.exit()`
+
+The `screenfull.exit()` method exits fullscreen mode. It also returns a `Promise` that resolves when fullscreen is exited successfully, and rejects if there's an error.
+
+```javascript
+screenfull.exit().then(() => {
+  console.log('Fullscreen exited successfully!');
+}).catch(error => {
+  console.error('Error exiting fullscreen:', error);
+});
+
+```
+
+### Checking Fullscreen Status: `screenfull.isFullscreen`
+
+The `screenfull.isFullscreen` property is a boolean value indicating whether the browser is currently in fullscreen mode.  It's a simple and efficient way to check the current fullscreen state.
+
+```javascript
+if (screenfull.isFullscreen) {
+  console.log('Fullscreen is active.');
+  // ... perform actions ...
+} else {
+  console.log('Fullscreen is not active.');
+  // ... perform other actions ...
+}
+```
+
+### Event Handling: `screenfull.on` and `screenfull.off`
+
+Screenfull.js provides event handling through the `screenfull.on()` and `screenfull.off()` methods.  These allow you to listen for and react to fullscreen change events.  The events are:
+
+* **`change`:** Fired whenever the fullscreen state changes (entering or exiting fullscreen).  The event object does not contain additional data.
+
+```javascript
+screenfull.on('change', () => {
+  console.log('Fullscreen state changed!');
+  if (screenfull.isFullscreen) {
+    // Handle fullscreen entry
+  } else {
+    // Handle fullscreen exit
+  }
+});
+
+//Remove event listener
+screenfull.off('change');
+
+```
+
+### Handling Errors: `screenfull.onerror`
+
+The `screenfull.onerror` property allows assignment of an error handler function. This function will be called if any error occurs during fullscreen operations (e.g., permission denied by the user).
+
+```javascript
+screenfull.onerror = (error) => {
+    console.error("Fullscreen error:", error);
+    // Handle the error appropriately, for example display a user-friendly message
+};
+```
+  Note that the promise rejection in  `screenfull.request()` and `screenfull.exit()`  provide a more robust way to handle errors for those specific actions.  `screenfull.onerror` serves as a more general error handler covering less-specific circumstances.
+
+
+## Advanced Usage
+
+### Working with Different Elements
+
+While `screenfull.request()` defaults to the `<html>` element, you can target specific elements for fullscreen mode.  This is useful when you want to fullscreen a particular video, game canvas, or other element within your page, rather than the entire browser window.  Simply pass the element as an argument to `screenfull.request()`:
+
+
+```javascript
+const myVideo = document.getElementById('myVideo');
+screenfull.request(myVideo);
+```
+
+Remember that the browser might impose restrictions on which elements can be put into fullscreen mode (e.g., it might not allow an `<img>` element to go fullscreen).
+
+
+### Programmatic Control of Fullscreen
+
+You can combine the `screenfull.isFullscreen` property with `screenfull.request()` and `screenfull.exit()` to create more complex fullscreen control logic.  For example, you could create a toggle button:
+
+```javascript
+const fullscreenButton = document.getElementById('fullscreenButton');
+fullscreenButton.addEventListener('click', () => {
+  if (screenfull.isFullscreen) {
+    screenfull.exit();
+  } else {
+    screenfull.request();
+  }
+});
+```
+
+This allows users to easily enter and exit fullscreen mode by clicking a button.  You can extend this further by incorporating more sophisticated state management based on your application's needs.
+
+
+### Integration with Other Libraries
+
+Screenfull.js is designed to be compatible with other JavaScript libraries.  Its simple API makes it easy to integrate into existing projects.  For instance, you might use it in conjunction with a video player library to provide fullscreen video playback, or with a game engine to enable fullscreen game mode.  Ensure that any potential conflicts with other libraries' event handling mechanisms are resolved appropriately.
+
+
+### Customizing the Fullscreen Experience
+
+While Screenfull.js primarily focuses on providing a consistent cross-browser fullscreen API, certain aspects of the fullscreen experience are handled by the browser itself.  You cannot directly customize elements like the browser's fullscreen controls or the appearance of the browser's UI in fullscreen mode through Screenfull.js. These are controlled by the browser's settings and implementation.  However, you *can* customize the content *within* the fullscreened element using standard CSS and JavaScript techniques to create a tailored user experience *inside* the fullscreen area.
+
+
+## Troubleshooting
+
+### Common Issues and Solutions
+
+* **Fullscreen not working at all:**  First, ensure Screenfull.js is correctly included in your HTML and that your code is calling the API methods (`screenfull.request()`, `screenfull.exit()`) correctly. Check your browser's console for any JavaScript errors.  Confirm that fullscreen is supported by your browser (see Browser Compatibility section).
+
+* **Fullscreen request is rejected:** This commonly happens if the user has denied fullscreen permissions or if the browser is preventing fullscreen due to security restrictions (e.g., fullscreen is disabled in the browser settings or by a browser extension).  Handle promise rejections appropriately (see `screenfull.onerror` and the `catch` blocks in the API examples).
+
+* **Fullscreen mode not exiting cleanly:** This is less common but can occur due to browser bugs or conflicts with other JavaScript libraries. Try simplifying your code and testing in isolation to identify conflicts.  Handle promise rejections during `screenfull.exit()` to gracefully handle any failures.
+
+
+* **Incorrect Element Target:**  Make sure that you're targeting the correct element with `screenfull.request(element)`.  A typo or using the wrong selector might prevent fullscreen from working correctly.
+
+* **`screenfull.isEnabled` is false:** If `screenfull.isEnabled` is `false`, fullscreen is not supported in the current browser or environment. Your code should handle this condition gracefully (for example, by providing an alternative user experience or informing the user that fullscreen is not available).
+
+
+### Debugging Tips
+
+* **Use your browser's developer console:** The console is invaluable for identifying errors, viewing network requests, and tracking the values of variables related to your fullscreen implementation.
+
+* **Simplify your code:** Isolate the relevant code dealing with Screenfull.js to help pinpoint problems. Create a minimal, reproducible example to simplify debugging.
+
+* **Test in different browsers:** Ensure consistency across multiple browsers (Chrome, Firefox, Safari, Edge) to see if the issue is browser-specific.
+
+* **Check your browser's fullscreen settings:** Make sure fullscreen mode is not disabled in your browser's settings or by a browser extension.
+
+
+### Browser-Specific Problems
+
+While Screenfull.js aims for broad compatibility, minor quirks might exist in certain browsers.  If you encounter a problem that seems specific to a particular browser, consult the browser's documentation regarding its fullscreen implementation, and consider reporting the issue as a bug on the Screenfull.js issue tracker, including detailed steps to reproduce the problem.  This aids in improving the library’s cross-browser support.
+
+
+### Troubleshooting Fullscreen Permissions
+
+If fullscreen requests are consistently denied, check these:
+
+* **User Permissions:** The user might have explicitly denied fullscreen permissions for your website. The browser typically prompts the user for permission.  Ensure you handle promise rejections to inform the user of the permission issue.
+
+* **Browser Security:** The browser might be blocking fullscreen requests due to security measures, possibly triggered by extensions or browser settings.  In such cases, you will see error messages related to permission denial, typically reflected in the promise rejection.
+
+* **HTTPS:** Fullscreen often requires an HTTPS connection.  If you're using HTTP, switching to HTTPS might resolve permission issues.
+
+* **Autoplay restrictions:** Some browsers have restrictions on autoplaying videos or media in fullscreen mode, which can prevent fullscreen from working as expected if the fullscreen request is directly tied to media autoplay.
+
+
+
+
+## API Reference
+
+### `screenfull.request([element])`
+
+Initiates a fullscreen request.
+
+* **`element` (optional):**  An HTML element to enter fullscreen mode. If omitted, the request defaults to the `<html>` element.
+
+* **Returns:** A `Promise` that resolves if the fullscreen request is successful and rejects if it fails. The resolved value is `undefined`. The rejected value is an `Error` object containing details about the failure.
+
+```javascript
+screenfull.request(myElement).then(() => {
+    console.log('Fullscreen entered successfully!');
+}).catch(error => {
+    console.error('Error entering fullscreen:', error);
+});
+```
+
+
+### `screenfull.exit()`
+
+Exits fullscreen mode.
+
+* **Returns:** A `Promise` that resolves if exiting fullscreen is successful and rejects if it fails. The resolved value is `undefined`.  The rejected value is an `Error` object.
+
+```javascript
+screenfull.exit().then(() => {
+  console.log('Fullscreen exited successfully!');
+}).catch(error => {
+  console.error('Error exiting fullscreen:', error);
+});
+```
+
+### `screenfull.isFullscreen`
+
+A boolean property indicating whether the browser is currently in fullscreen mode.  `true` if fullscreen, `false` otherwise.
+
+
+### `screenfull.on(eventType, listener)`
+
+Adds an event listener for fullscreen events.
+
+* **`eventType`:** The type of event to listen for (currently only `'change'` is supported).
+* **`listener`:** The function to call when the event occurs. This function receives no arguments.
+
+```javascript
+screenfull.on('change', () => {
+  console.log('Fullscreen state changed!');
+});
+```
+
+### `screenfull.off(eventType, listener)`
+
+Removes an event listener that was previously added using `screenfull.on()`.
+
+* **`eventType`:** The type of event (must match the `eventType` used in `screenfull.on()`).
+* **`listener`:** The listener function to remove.
+
+```javascript
+const myListener = () => { /* ... */ };
+screenfull.on('change', myListener);
+// ... later ...
+screenfull.off('change', myListener);
+```
+
+### `screenfull.onerror`
+
+A property that can be assigned a function to handle fullscreen errors. This function will receive an `Error` object as an argument. Note that individual `screenfull.request()` and `screenfull.exit()` calls also return promises which will reject upon failure; this property provides a secondary fallback for global error handling.
+
+```javascript
+screenfull.onerror = (error) => {
+  console.error('Fullscreen error:', error);
+};
+```
+
+### `screenfull.element`
+
+A property that returns the currently fullscreened element, or `null` if no element is in fullscreen mode.  Useful for determining which element is currently displayed fullscreen.
+
+
+### `screenfull.raw`
+
+This property provides direct access to the underlying browser's fullscreen API.  This is generally not needed for most use cases, as Screenfull.js handles the cross-browser complexities. It's primarily useful for advanced scenarios or debugging purposes.  The contents of `screenfull.raw` vary based on the browser and its fullscreen API implementation.
+
+
+### Event Types
+
+Currently, only one event type is supported:
+
+* **`change`:** This event is fired whenever the fullscreen state changes (entering or exiting fullscreen mode).  The listener function receives no arguments.
+
+
+## Examples
+
+### Basic Fullscreen Toggle
+
+This example demonstrates a simple fullscreen toggle button:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Screenfull.js Example</title>
+<script src="https://cdn.jsdelivr.net/npm/screenfull@5.1.0/dist/screenfull.min.js"></script>
+</head>
+<body>
+
+<button id="fullscreenButton">Toggle Fullscreen</button>
+
+<script>
+const button = document.getElementById('fullscreenButton');
+button.addEventListener('click', () => {
+  if (screenfull.isEnabled) {
+    if (screenfull.isFullscreen) {
+      screenfull.exit();
+    } else {
+      screenfull.request();
+    }
+  } else {
+    alert('Fullscreen is not supported by this browser.');
+  }
+});
+</script>
+
+</body>
+</html>
+```
+
+This code creates a button. Clicking the button toggles fullscreen mode for the entire page.  Error handling is included to inform the user if fullscreen isn't supported.
+
+
+### Fullscreen Video Player
+
+This example shows how to integrate Screenfull.js with a video player:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fullscreen Video Player</title>
+<script src="https://cdn.jsdelivr.net/npm/screenfull@5.1.0/dist/screenfull.min.js"></script>
+</head>
+<body>
+
+<video id="myVideo" controls width="640" height="360">
+  <source src="myvideo.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+<button id="fullscreenButton">Fullscreen</button>
+
+<script>
+const video = document.getElementById('myVideo');
+const button = document.getElementById('fullscreenButton');
+button.addEventListener('click', () => {
+  if (screenfull.isEnabled) {
+    screenfull.request(video);
+  } else {
+    alert('Fullscreen is not supported by this browser.');
+  }
+});
+</script>
+
+</body>
+</html>
+```
+
+Here, the fullscreen button targets the video element specifically, allowing users to view the video in fullscreen.  Remember to replace `"myvideo.mp4"` with the actual path to your video file.
+
+
+### Fullscreen Image Gallery
+
+This example demonstrates basic fullscreen for an image gallery:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fullscreen Image Gallery</title>
+<script src="https://cdn.jsdelivr.net/npm/screenfull@5.1.0/dist/screenfull.min.js"></script>
+</head>
+<body>
+
+<img id="myImage" src="image1.jpg" alt="Image 1" width="640">
+<button id="fullscreenButton">Fullscreen</button>
+
+<script>
+const image = document.getElementById('myImage');
+const button = document.getElementById('fullscreenButton');
+button.addEventListener('click', () => {
+  if (screenfull.isEnabled) {
+    screenfull.request(image);
+  } else {
+    alert('Fullscreen is not supported by this browser.');
+  }
+});
+</script>
+
+</body>
+</html>
+```
+
+Replace `"image1.jpg"` with your image path.  This provides a simple fullscreen view for a single image.  For a true gallery, you'd need additional image switching functionality.
+
+
+### Advanced Fullscreen Controls
+
+This example provides more robust fullscreen control with error handling and a status indicator:
+
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Advanced Fullscreen Controls</title>
+<script src="https://cdn.jsdelivr.net/npm/screenfull@5.1.0/dist/screenfull.min.js"></script>
+</head>
+<body>
+
+<button id="fullscreenButton">Fullscreen</button>
+<span id="fullscreenStatus">Fullscreen: Off</span>
+
+<script>
+const button = document.getElementById('fullscreenButton');
+const status = document.getElementById('fullscreenStatus');
+button.addEventListener('click', () => {
+  if (screenfull.isEnabled) {
+    if (screenfull.isFullscreen) {
+      screenfull.exit().then(() => {
+        status.textContent = 'Fullscreen: Off';
+      }).catch(error => {
+        console.error('Error exiting fullscreen:', error);
+        status.textContent = 'Fullscreen Error: ' + error.message;
+      });
+    } else {
+      screenfull.request().then(() => {
+        status.textContent = 'Fullscreen: On';
+      }).catch(error => {
+        console.error('Error entering fullscreen:', error);
+        status.textContent = 'Fullscreen Error: ' + error.message;
+      });
+    }
+  } else {
+    status.textContent = 'Fullscreen not supported.';
+  }
+});
+screenfull.on('change', () => {
+    status.textContent = `Fullscreen: ${screenfull.isFullscreen ? 'On' : 'Off'}`;
+});
+</script>
+
+</body>
+</html>
+```
+
+This example shows how to handle promises, display feedback to the user, and use the `change` event to dynamically update the fullscreen status.  Remember to replace placeholder image and video paths with your actual media files.
+

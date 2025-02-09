@@ -1,0 +1,502 @@
+---
+title: "FitVids.JS - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction
+
+### What is FitVids.js?
+
+FitVids.js is a lightweight, easy-to-use JavaScript library that responsively scales embedded video content within its container.  It ensures that videos, regardless of their aspect ratio, always fit perfectly within their parent element without distortion or letterboxing.  This is crucial for maintaining a clean and professional look on websites with varying screen sizes and devices.  Instead of relying on fixed dimensions, FitVids.js dynamically adjusts the video's dimensions to match its container, resulting in a seamless user experience.
+
+### Why use FitVids.js?
+
+Using FitVids.js offers several key advantages:
+
+* **Responsiveness:**  Videos automatically adapt to different screen sizes and orientations, preventing distortion and ensuring optimal viewing on all devices.
+* **Simplicity:**  The library is incredibly simple to implement, requiring minimal code and configuration.
+* **Lightweight:**  FitVids.js has a small file size, minimizing the impact on page load times.
+* **Cross-browser compatibility:**  It works consistently across a wide range of browsers.
+* **No dependencies:**  FitVids.js doesn't require any other JavaScript libraries.
+
+
+### Browser Compatibility
+
+FitVids.js is designed to work across a wide array of modern browsers, including but not limited to:
+
+* Chrome
+* Firefox
+* Safari
+* Edge
+* Internet Explorer 9+ (with some caveats; for optimal results, target modern browsers)
+
+
+### Installation
+
+FitVids.js can be integrated into your project in several ways:
+
+1. **Download and include:** Download the `fitvids.js` file from the official repository (link to be provided in a real manual) and include it in your HTML file using a `<script>` tag.  Place the `<script>` tag just before the closing `</body>` tag for optimal performance.  For example:
+
+   ```html
+   <script src="path/to/fitvids.js"></script>
+   ```
+
+2. **Use a CDN:**  Include FitVids.js via a Content Delivery Network (CDN). This avoids the need to download and host the file yourself.  (A CDN link would be provided in a real manual).  For example (using a hypothetical CDN):
+
+   ```html
+   <script src="https://example-cdn.com/fitvids.js"></script>
+   ```
+
+3. **NPM (for Node.js projects):** If you're using npm, you can install it via:
+
+   ```bash
+   npm install fitvids
+   ```
+
+   Then, require it in your JavaScript file.
+
+
+After installation, you'll need to initialize FitVids.js (see the next section of this manual for usage instructions).
+
+
+## Basic Usage
+
+### Including FitVids.js
+
+As detailed in the previous section, include the `fitvids.js` file in your HTML document.  Ensure it's placed before the closing `</body>` tag to allow the DOM to fully load before FitVids.js attempts to initialize.  This is crucial for correct functionality.
+
+
+### Applying FitVids.js to elements
+
+Once included, you need to initialize FitVids.js and apply it to the container elements holding your videos.  This is typically done using jQuery (though vanilla JS options exist – see advanced usage):
+
+```javascript
+$(document).ready(function(){
+  // Target the container(s) holding your video(s).  You can use any valid jQuery selector.
+  $(".container").fitVids(); 
+});
+```
+
+Replace `$(".container")` with the appropriate jQuery selector that targets the parent elements of your embedded videos.  This could be a class, ID, or any other valid selector.  FitVids.js will then automatically find and adjust the videos within those containers.
+
+### Default Options
+
+FitVids.js has several configurable options, but it works perfectly well with its default settings.  These defaults are:
+
+* **customSelector:**  `null` (This option allows you to customize which elements within the container are considered videos.  By default it uses a sophisticated selector to find most video embed types, so usually this option is not needed).
+* **ignore:** `null` (This option allows you to specify selectors for elements that should be ignored when searching for videos. Useful if your containers have other elements you don't want FitVids.js to process.)
+
+
+### Example
+
+Let's say you have the following HTML structure:
+
+```html
+<div class="video-container">
+  <iframe src="https://www.youtube.com/embed/your_video_id" frameborder="0" allowfullscreen></iframe>
+</div>
+
+<div class="video-container">
+  <video width="640" height="360" controls>
+    <source src="your_video.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+</div>
+```
+
+To make the videos responsive, include FitVids.js and add the following JavaScript:
+
+```javascript
+$(document).ready(function(){
+  $(".video-container").fitVids();
+});
+```
+
+This will ensure both the iframe and the video tag within the elements with the class `video-container` are responsively scaled.  Remember to replace `"https://www.youtube.com/embed/your_video_id"` and `"your_video.mp4"` with your actual video URLs.
+
+
+## Configuration Options
+
+FitVids.js provides several configuration options to fine-tune its behavior.  These options are passed as a single object to the `fitVids()` function.
+
+### Customizing the selector
+
+By default, FitVids.js uses a robust selector to automatically find various video embed types (iframes, video tags, etc.). However, you might need more control, especially if your page uses unusual or custom embedding methods. While the default selector generally handles most cases,  you can override it using the `customSelector` option.  This is particularly useful when dealing with less common video players or custom embedding solutions.
+
+```javascript
+$(".container").fitVids({
+  customSelector: "article video" //this will only resize videos inside <article> tags.
+});
+```
+
+This example will only apply FitVids to video elements (`<video>`) found within elements with the `article` tag.
+
+### Controlling the custom selectors
+
+The `customSelector` option lets you target specific elements for resizing. However, you can achieve even finer control by combining this with the `videoSelector` option.  It allows more direct control over which HTML elements within the `customSelector` are considered videos and thus resized.
+
+```javascript
+$(".container").fitVids({
+    customSelector: '.my-custom-video-wrapper',
+    videoSelector: '.my-video-element'
+});
+```
+
+This will only resize elements with the class `my-video-element` found inside elements with class `my-custom-video-wrapper`.
+
+### Using the `videoWidth` option
+
+The `videoWidth` option allows you to set a specific width (in pixels) for the videos.  This is useful for maintaining consistent dimensions across different videos or if you have specific layout requirements.  
+
+```javascript
+$(".container").fitVids({
+  videoWidth: 640
+});
+```
+
+This will set the width of all videos to 640 pixels.
+
+### Using the `videoHeight` option
+
+Similar to `videoWidth`, `videoHeight` lets you specify a fixed height (in pixels) for your videos.
+
+```javascript
+$(".container").fitVids({
+  videoHeight: 360
+});
+```
+
+This sets the height of all videos to 360 pixels.  Note that setting both `videoWidth` and `videoHeight` will fix the aspect ratio; using only one will maintain the aspect ratio of the video based on the provided dimension.
+
+### Using the `videoSelector` option
+
+This option allows you to specify a more precise selector to target the video element itself within the container.  Useful when your videos have complex wrappers or when the default selector doesn't accurately pinpoint the video element.  This works in conjunction with `customSelector`.  If `customSelector` is used, `videoSelector` will filter the matched elements.
+
+```javascript
+$(".container").fitVids({
+  customSelector: '.my-video-wrapper',
+  videoSelector: 'iframe'
+});
+```
+
+This only processes iframes inside elements with class `my-video-wrapper`.
+
+
+### Using the `fallbackWidth` option
+
+If FitVids.js cannot determine the video's dimensions, it uses this value as a fallback width (in pixels).  This prevents issues in edge cases where video dimensions aren't readily available.
+
+```javascript
+$(".container").fitVids({
+  fallbackWidth: 480
+});
+```
+
+This sets the fallback width to 480 pixels.
+
+### Using the `customClass` option
+
+This option allows you to add a custom CSS class to the video container after FitVids.js has resized the video. This is helpful for applying specific styles to the resized video container.
+
+```javascript
+$(".container").fitVids({
+  customClass: 'fitvids-custom'
+});
+```
+
+This will add the class `fitvids-custom` to the parent container of the resized videos.
+
+
+### Using the `ignore` option
+
+The `ignore` option lets you specify CSS selectors for elements within the container that should be ignored by FitVids.js. This is useful if you have elements within your video containers that you don't want FitVids.js to consider or process.
+
+```javascript
+$(".container").fitVids({
+  ignore: '.ignore-me'
+});
+```
+
+This will ignore elements with the class `ignore-me` during the resizing process.  This is useful if your containers have elements unrelated to videos that you wish to exclude.
+
+
+## Advanced Usage
+
+### Using FitVids.js with frameworks
+
+FitVids.js is generally compatible with most JavaScript frameworks.  However, the specific implementation might vary slightly depending on the framework's lifecycle and how it handles DOM manipulation.
+
+* **React:**  You can use FitVids.js within a `useEffect` hook, ensuring it runs after the component mounts and the DOM is ready.  Remember to use a ref to target the correct container element.
+
+* **Angular:**  Similar to React,  you can integrate FitVids.js within the `ngAfterViewInit` lifecycle hook, after the component's view has been initialized.
+
+* **Vue.js:**  Use the `mounted` lifecycle hook to initialize FitVids.js after the Vue component has been rendered.  Use a ref to access the DOM element.
+
+In all these cases, ensure that the jQuery library is included (if using the jQuery version of FitVids) and that FitVids.js is loaded correctly.  Remember that using vanilla JavaScript versions bypasses the jQuery dependency.
+
+### Troubleshooting common issues
+
+* **Videos not resizing:**  Double-check your jQuery selector to ensure it's correctly targeting the parent containers of your videos.  Make sure FitVids.js is loaded *after* the jQuery library and *before* the closing `</body>` tag.
+
+* **Conflicts with other plugins:**  If FitVids.js conflicts with another plugin manipulating the same elements, try adjusting the order of script inclusion or using more specific selectors.  Check the browser's developer console for JavaScript errors.
+
+* **Videos not appearing:**  Verify that your video embed codes are correctly implemented and that the video sources are valid and accessible.
+
+* **Unexpected behavior:**  Inspect the rendered HTML and CSS to rule out styling issues that might be interfering with FitVids.js's functionality.
+
+
+### Handling responsive design
+
+FitVids.js is inherently designed for responsive design; it automatically adjusts video dimensions based on the container's size.  However,  ensure your CSS is also responsive.  Using percentage-based widths and heights for your video containers is crucial for seamless adaptation to different screen sizes.
+
+Avoid using fixed pixel dimensions in your CSS for the video containers unless you intend to override FitVids's behavior completely.
+
+
+### Customizing styles
+
+You can customize the appearance of the videos and their containers using CSS.  Target the container elements directly or the classes applied by FitVids.js (if using the `customClass` option).  You can control aspects like padding, borders, background color, etc., without directly modifying FitVids.js.
+
+
+### Integration with other plugins
+
+FitVids.js generally integrates well with other plugins, but conflicts can arise if other plugins manipulate the same DOM elements or events.  Ensure proper sequencing of script inclusion, and use specific selectors to prevent overlapping modifications. If conflicts do occur, you might need to debug the interaction between the plugins to find a solution.  Carefully examine the documentation of both FitVids.js and the other plugin(s) for compatibility information and best practices.
+
+
+## API Reference
+
+### FitVids() method
+
+The core of FitVids.js is the `fitVids()` method. This method is applied to a jQuery collection of elements (or a single element). It analyzes the elements, identifies videos within them, and adjusts their dimensions to fit their containers responsively.
+
+**Syntax:**
+
+```javascript
+$(selector).fitVids([options]);
+```
+
+* **`selector`:**  A jQuery selector string targeting the parent container(s) of your embedded videos.  This can be any valid jQuery selector (e.g., `#myContainer`, `.video-wrapper`, `div.container video`).
+
+* **`options` (optional):** An object containing configuration options (described below).  If omitted, FitVids.js will use its default settings.
+
+**Return Value:**
+
+The `fitVids()` method returns the original jQuery collection.  This allows for method chaining.
+
+**Example:**
+
+```javascript
+$(".video-container").fitVids(); //Applies FitVids with default settings.
+$("#myVideo").fitVids({ customSelector: "video", videoWidth: 800 }); //Applies FitVids with custom options.
+
+```
+
+### Options Object
+
+The `options` object allows you to customize the behavior of FitVids.js.  The following options are available:
+
+
+* **`customSelector` (string, optional):**  A custom jQuery selector to target specific elements within the container. Defaults to `null`. If provided, this selector overrides the default video detection mechanism.
+
+* **`ignore` (string, optional):** A jQuery selector for elements within the container that should be ignored.  Defaults to `null`. This is useful to exclude certain elements from FitVids.js processing.
+
+* **`videoWidth` (number, optional):** A fixed width (in pixels) for the videos. Defaults to `null` (automatic calculation).
+
+* **`videoHeight` (number, optional):** A fixed height (in pixels) for the videos. Defaults to `null` (automatic calculation).
+
+* **`videoSelector` (string, optional):** A jQuery selector to precisely target the video element within the `customSelector` (If `customSelector` is used). Defaults to a comprehensive selector that finds most common video embed types.
+
+* **`fallbackWidth` (number, optional):**  A fallback width (in pixels) used if FitVids.js cannot determine the video's dimensions. Defaults to `null`.
+
+* **`customClass` (string, optional):** A CSS class to add to the video container after resizing.  Defaults to `null`.
+
+All options are optional; if omitted, FitVids.js will use its default behavior.  The options are passed as key-value pairs within the object.  For example:
+
+
+```javascript
+$(".video-container").fitVids({
+  customSelector: ".my-video-wrapper video",
+  videoWidth: 640,
+  customClass: "my-custom-video"
+});
+```
+
+This example uses a custom selector, sets a fixed width for the videos, and adds a custom CSS class to the containers.  Remember to define the corresponding CSS rules for `.my-custom-video`.
+
+
+## Examples
+
+### Basic Example
+
+This example demonstrates the simplest usage of FitVids.js.  It assumes you have already included the library and jQuery in your HTML file.
+
+**HTML:**
+
+```html
+<div class="video-container">
+  <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen></iframe>
+</div>
+```
+
+**JavaScript:**
+
+```javascript
+$(document).ready(function(){
+  $(".video-container").fitVids();
+});
+```
+
+This code will find the `iframe` within the element with the class `video-container` and make it responsive.
+
+
+### Advanced Example with custom options
+
+This example showcases the use of custom options to fine-tune FitVids.js's behavior.
+
+**HTML:**
+
+```html
+<div class="video-wrapper">
+  <div class="video-inner">
+    <video width="640" height="360" controls>
+      <source src="your-video.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+  </div>
+</div>
+```
+
+**JavaScript:**
+
+```javascript
+$(document).ready(function(){
+  $(".video-wrapper").fitVids({
+    customSelector: ".video-inner video",
+    videoWidth: 800,
+    customClass: "responsive-video"
+  });
+});
+```
+
+This example targets videos nested within `.video-inner` elements and sets a specific width and a custom class.  Remember to include the corresponding CSS for `.responsive-video`.
+
+### Example with multiple video players
+
+FitVids.js can handle various video players within the same container or different containers.
+
+**HTML:**
+
+```html
+<div class="video-container">
+  <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen></iframe>
+  <video width="640" height="360" controls>
+    <source src="your-video.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+</div>
+```
+
+**JavaScript:**
+
+```javascript
+$(document).ready(function(){
+  $(".video-container").fitVids();
+});
+```
+
+FitVids.js automatically detects and handles both the `iframe` and the `<video>` element within the `.video-container`.
+
+### Example with responsive design
+
+This example highlights the responsive nature of FitVids.js. The CSS ensures the container adapts to different screen sizes, and FitVids.js ensures the video scales accordingly.
+
+
+**HTML:**
+
+```html
+<div class="responsive-video-container">
+  <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen></iframe>
+</div>
+```
+
+**CSS:**
+
+```css
+.responsive-video-container {
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  position: relative;
+}
+
+.responsive-video-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+```
+
+**JavaScript:**
+
+```javascript
+$(document).ready(function(){
+  $(".responsive-video-container").fitVids();
+});
+```
+
+This example uses a percentage-based `padding-bottom` to maintain the aspect ratio while ensuring the container takes up the full width.  FitVids.js then perfectly scales the video within this container.  Remember to adjust the `padding-bottom` percentage to match your desired aspect ratio.
+
+
+## Contributing
+
+We welcome contributions to FitVids.js!  Whether it's reporting bugs, submitting improvements, or enhancing the documentation, your help is valuable.
+
+### Reporting Bugs
+
+If you encounter a bug or unexpected behavior, please follow these steps:
+
+1. **Search for existing issues:** Check if a similar issue has already been reported.  Use the search functionality on the issue tracker (link to be provided in a real manual).
+
+2. **Provide a clear description:**  When reporting a new issue, be as detailed as possible.  Include:
+    * **Version of FitVids.js:** Specify the version number you're using.
+    * **Browser and version:** Indicate the browser(s) where the issue occurs, along with their versions.
+    * **Operating system:**  Mention your operating system.
+    * **Steps to reproduce:** Provide a clear, concise set of steps to reproduce the bug.
+    * **Expected behavior:** Describe what you expected to happen.
+    * **Actual behavior:** Describe what actually happened.
+    * **Code snippets:** Include relevant HTML, CSS, and JavaScript code snippets.  Use code blocks for readability (````javascript ... ````).
+    * **Screenshots or screen recordings:** If visual evidence is helpful, include screenshots or screen recordings.
+
+3. **Create a new issue:**  Submit a new issue on the issue tracker (link to be provided in a real manual), providing all the necessary information.
+
+### Submitting Pull Requests
+
+Pull requests (PRs) are the preferred method for submitting code changes.  Please adhere to the following guidelines:
+
+1. **Fork the repository:** Fork the official FitVids.js repository on GitHub (link to be provided in a real manual).
+
+2. **Create a new branch:** Create a new branch from the `main` branch for your changes.  Use a descriptive branch name reflecting your changes (e.g., `fix-bug-123`, `feature-custom-option`).
+
+3. **Make your changes:** Implement your changes, ensuring they follow the coding style guide (see below).
+
+4. **Test thoroughly:**  Thoroughly test your changes before submitting a PR.
+
+5. **Write a clear commit message:**  Write concise and informative commit messages that explain your changes.
+
+6. **Submit a pull request:** Create a pull request on GitHub, linking it to the relevant issue if applicable.  Describe your changes clearly in the PR description.
+
+7. **Address feedback:**  Be prepared to address feedback from reviewers and make necessary changes.
+
+### Coding Style Guide
+
+To maintain consistency across the codebase, please adhere to the following style guidelines:
+
+* **JavaScript:** Follow standard JavaScript conventions for variable naming, indentation, and code formatting.  Use semicolons consistently.
+
+* **CSS:** Use a consistent indentation style and follow best practices for CSS organization.
+
+* **Comments:** Write clear and concise comments to explain complex logic or non-obvious code sections.
+
+* **Testing:**  Write unit tests for any new features or bug fixes.
+
+Before submitting a PR, ensure your code passes all existing tests and conforms to the style guide.  Use a linter (if one is specified in the project) to check for style violations.  Consistency and readability are important for maintaining the project's quality.
+

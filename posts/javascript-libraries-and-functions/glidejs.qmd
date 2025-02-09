@@ -1,0 +1,612 @@
+---
+title: "GlideJS - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Getting Started
+
+### Installation
+
+Glide.js can be installed in several ways:
+
+**1. Using npm or yarn:**
+
+   This is recommended for managing dependencies in larger projects.
+
+   ```bash
+   npm install glidejs
+   ```
+
+   or
+
+   ```bash
+   yarn add glidejs
+   ```
+
+**2. Downloading the files directly:**
+
+   You can download the minified JavaScript file (glide.min.js) and CSS file (glide.core.min.css) from the [Glide.js releases page](link-to-releases-page-here).  Include these files in your project's HTML `<head>` or `<body>`, making sure to place the CSS file before the JavaScript file:
+
+   ```html
+   <link rel="stylesheet" href="glide.core.min.css">
+   <script src="glide.min.js"></script>
+   ```
+
+
+**3. Using a CDN:**
+
+   For quick prototyping or small projects, you can use a CDN:
+
+   ```html
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@glidejs/glide@3/dist/css/glide.core.min.css">
+   <script src="https://cdn.jsdelivr.net/npm/@glidejs/glide@3/dist/js/glide.min.js"></script>
+   ```
+   (Remember to replace with the appropriate version if needed).
+
+
+### Basic Usage
+
+After installation, you need to create the HTML structure for your slider and then initialize Glide.js.  The basic HTML structure requires a track element containing slides:
+
+```html
+<div class="glide">
+  <div class="glide__track" data-glide-el="track">
+    <ul class="glide__slides">
+      <li class="glide__slide">
+        <img src="image1.jpg" alt="Image 1">
+      </li>
+      <li class="glide__slide">
+        <img src="image2.jpg" alt="Image 2">
+      </li>
+      <li class="glide__slide">
+        <img src="image3.jpg" alt="Image 3">
+      </li>
+    </ul>
+  </div>
+  <div class="glide__arrows" data-glide-el="controls[nav]">
+    <button class="glide__arrow glide__arrow--prev" data-glide-dir="<">prev</button>
+    <button class="glide__arrow glide__arrow--next" data-glide-dir=">">next</button>
+  </div>
+</div>
+
+```
+
+Then, initialize Glide with a single line of JavaScript:
+
+```javascript
+new Glide('.glide').mount();
+```
+
+This will create a basic slider with navigation arrows.  More advanced options are available through configuration, described in other sections of this manual.
+
+
+### First Example
+
+Let's combine the installation and basic usage steps to create a working example.
+
+First, include the necessary CSS and JavaScript files (using the CDN method for simplicity):
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Glide.js Example</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@glidejs/glide@3/dist/css/glide.core.min.css">
+</head>
+<body>
+
+<div class="glide">
+  <div class="glide__track" data-glide-el="track">
+    <ul class="glide__slides">
+      <li class="glide__slide"><img src="image1.jpg" alt="Image 1"></li>
+      <li class="glide__slide"><img src="image2.jpg" alt="Image 2"></li>
+      <li class="glide__slide"><img src="image3.jpg" alt="Image 3"></li>
+    </ul>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@glidejs/glide@3/dist/js/glide.min.js"></script>
+<script>
+  new Glide('.glide').mount();
+</script>
+</body>
+</html>
+```
+
+Remember to replace `"image1.jpg"`, `"image2.jpg"`, and `"image3.jpg"` with the actual paths to your images. This will create a simple slider.  You can then expand this example using the various configuration options detailed elsewhere in this manual.
+
+
+## Core Concepts
+
+### Understanding Glide
+
+Glide.js is a lightweight, dependency-free JavaScript library designed to build flexible and performant carousels and sliders.  It employs a simple yet powerful API built around a core set of components that work together to create the slider functionality.  These components are easily configurable allowing for extensive customization. Glide prioritizes performance and is designed to handle large numbers of slides efficiently.  Its modular design enables developers to selectively include only the features needed, further optimizing the size and performance of their projects.
+
+### Components Overview
+
+Glide's functionality is organized around several key components:
+
+* **`Glide` (Instance):** The main object representing the slider instance.  All interactions and configurations are handled through this object.
+
+* **`Track`:** The container element holding all the slides. It manages the positioning and movement of slides.
+
+* **`Slides`:** Individual items displayed within the slider.
+
+* **`Controls`:** These are UI elements (arrows, bullets, etc.) that allow users to interact with the slider.  Glide supports multiple control types, and they are configurable through options.
+
+* **`Run`:** The internal mechanism responsible for animating the movement of the track.
+
+
+### The Glide Instance
+
+The Glide instance is the central point of interaction with the library. It's created using the `new Glide(selector, config)` constructor.
+
+* **`selector`:** This is a CSS selector string targeting the root element of your slider (e.g., '.glide'). This element must contain the necessary HTML structure for the slider (track and slides).
+
+* **`config`:** (Optional) An object containing various configuration options (e.g., `type`, `perView`, `autoplay`).  Detailed explanations of the available configuration options are found in a dedicated section of this manual.
+
+The instance provides methods to control the slider's behavior:
+
+* **`mount()`:** Initializes the slider and renders it.
+
+* **`go(slide)`:** Moves the slider to a specific slide (index).
+
+* **`destroy()`:** Removes Glide from the DOM and destroys the instance.
+
+* **`update()`:** Re-renders the slider based on changes to the structure or configuration.
+
+* **`start()`:** Starts autoplay (if enabled).
+
+* **`pause()`:** Pauses autoplay.
+
+
+### Events
+
+Glide triggers several custom events throughout its lifecycle, allowing for integration with other JavaScript code and fine-grained control over the slider's behavior. These events are dispatched on the Glide instance.  You can listen for these events using the standard JavaScript `addEventListener` method:
+
+* **`mounted`:** Fired after the slider has been successfully mounted.
+
+* **`run`:** Fired when the slider starts moving.
+
+* **`move`:** Fired during the transition between slides.
+
+* **`destroy`:** Fired when the slider is destroyed.
+
+* **`update`:** Fired after the slider is updated.
+
+* **`change`:** Fired after the active slide has changed.
+
+
+Example of listening for an event:
+
+```javascript
+const glide = new Glide('.glide').mount();
+
+glide.on('mounted', () => {
+  console.log('Glide mounted!');
+});
+
+glide.on('change', () => {
+    console.log('Slide changed!');
+});
+```
+
+The specific events and their arguments are detailed in the API Reference section of this manual.
+
+
+## Configuration Options
+
+Glide.js offers a wide range of configuration options to customize the slider's behavior. These options are passed as an object to the `Glide` constructor.  All options are optional, and Glide will use default values if they're not specified.
+
+### Type
+
+Defines the type of slider.
+
+* **`type: 'slider'` (default):**  Standard slider with single slide visibility.
+* **`type: 'carousel'`:**  Multiple slides visible at once.
+
+### Direction
+
+Specifies the direction of the slider's movement.
+
+* **`direction: 'ltr'` (default):** Left-to-right (or top-to-bottom in vertical mode).
+* **`direction: 'rtl'`:** Right-to-left (or bottom-to-top in vertical mode).
+
+
+### PerView
+
+Determines the number of slides visible at a time in carousel mode.
+
+* **`perView: 1` (default for `type: 'slider'`, recommended default for `type: 'carousel'`):** Shows only one slide at a time (in `type: 'carousel'`, this behaves similarly to `type: 'slider'`).
+* **`perView: 3`:** Shows three slides at a time.  This value can be any positive integer.
+
+
+### FocusAt
+
+Specifies the alignment of the visible slides.  Only applicable for `type: 'carousel'`.
+
+* **`focusAt: 0` (default):** Centers the visible slides.
+* **`focusAt: 'center'`:**  Alias for `0`.
+* **`focusAt: 'beginning'`:** Aligns visible slides to the beginning.
+* **`focusAt: 'end'`:** Aligns visible slides to the end.
+* **`focusAt: 1`:** Shifts the focus one slide to the right.  Any positive or negative integer can be used to offset from the center.
+
+
+### Gap
+
+Sets the spacing between slides in pixels.
+
+* **`gap: 10`:** Adds a 10-pixel gap between slides.
+
+
+### Bound
+
+Controls whether the slider should stop at the first and last slides.
+
+* **`bound: true` (default):** Prevents going beyond the first and last slides.
+* **`bound: false`:** Allows infinite looping.
+
+
+### Hoverpause
+
+Pauses autoplay when the mouse hovers over the slider.
+
+* **`hoverpause: true` (default):** Autoplay pauses on hover, resumes on mouseout.
+* **`hoverpause: false`:** Autoplay continues even when hovering.
+
+
+### Autoplay
+
+Enables autoplay functionality.
+
+* **`autoplay: false` (default):** Autoplay is disabled.
+* **`autoplay: 3000`:** Autoplay with a 3-second interval (in milliseconds).
+
+
+### AnimationDuration
+
+Sets the duration of the animation (in milliseconds).
+
+* **`animationDuration: 300` (default):** 300ms transition.
+
+
+### Easing
+
+Specifies the easing function for the animation.
+
+* **`easing: 'linear'` (default):**  Linear easing.
+* **`easing: 'cubic-bezier(.17,.67,.83,.67)'`:** Custom cubic-bezier easing function.  See CSS easing functions for more options.
+
+
+### Keyboard
+
+Enables keyboard navigation.
+
+* **`keyboard: true` (default):** Left and right arrow keys control the slider.
+* **`keyboard: false`:** Keyboard navigation is disabled.
+
+
+### SwipeThreshold
+
+Sets the minimum distance (in pixels) that the user needs to swipe before the slider moves.
+
+* **`swipeThreshold: 50` (default):**  A swipe of at least 50 pixels will trigger a slide change.
+
+
+### DragThreshold
+
+Sets the minimum distance (in pixels) that the user needs to drag before the slider starts dragging.
+
+* **`dragThreshold: 0` (default):** Any drag distance will initiate dragging.
+
+
+### Peek
+
+Controls how much of the adjacent slides is visible when using `type: 'carousel'`.  It takes either a numerical value for pixels or a percentage string.
+
+* **`peek: 0` (default):** No adjacent slides are visible.
+* **`peek: 10`:** Shows 10 pixels of the next slide(s).
+* **`peek: '20%'`:** Shows 20% of the next slide(s).
+
+
+### Breakpoints
+
+Allows responsive configurations by defining different settings for various screen sizes.  This option takes an object where keys are breakpoints (in pixels) and values are configuration objects.
+
+* **`breakpoints: { 600: { perView: 1, gap: 5 }, 1000: { perView: 3 } }`:** Sets `perView` to 1 and `gap` to 5 for screens smaller than 600px, and `perView` to 3 for screens larger than or equal to 1000px.
+
+
+### Rewind
+
+Enables rewinding (looping back to the beginning) at the end of the slider.
+
+* **`rewind: true`:**  Slider loops back to the beginning after reaching the last slide.
+* **`rewind: false` (default):**  Slider stops at the last slide.
+
+
+### Throttle
+
+Sets the time in milliseconds to limit the frequency of events such as `move`. This helps to improve performance in scenarios with rapid changes.
+* **`throttle: 100` (default):** Events are throttled to at most 100ms intervals
+
+### StartAt
+
+Specifies the index of the slide to start on.
+
+* **`startAt: 0` (default):** Starts on the first slide (index 0).
+* **`startAt: 2`:** Starts on the third slide (index 2).
+
+
+
+## Navigation & Controls
+
+Glide.js provides several ways to navigate through the slides, ranging from automatically generated controls to programmatic manipulation.
+
+### Navigation Arrows
+
+Glide automatically generates navigation arrows if you include the appropriate HTML structure in your slider's markup.  This requires the addition of `<button>` elements within a container with the class `glide__arrows`.
+
+```html
+<div class="glide">
+  <div class="glide__track" data-glide-el="track">
+    <ul class="glide__slides">
+      <!-- Slides -->
+    </ul>
+  </div>
+  <div class="glide__arrows" data-glide-el="controls[nav]">
+    <button class="glide__arrow glide__arrow--prev" data-glide-dir="<">prev</button>
+    <button class="glide__arrow glide__arrow--next" data-glide-dir=">">next</button>
+  </div>
+</div>
+```
+
+The `data-glide-el="controls[nav]"` attribute associates the arrows with Glide.js's navigation controls.  The `data-glide-dir="<"` and `data-glide-dir=">"` attributes are essential for the correct functioning of the buttons, indicating the direction of movement.  The text content ("prev" and "next" in this example) is only for visual representation.
+
+
+### Navigation Bullets
+
+Similar to arrows,  navigation bullets (pagination) can be added.  Again, specific HTML structure is needed:
+
+```html
+<div class="glide">
+  <div class="glide__track" data-glide-el="track">
+    <ul class="glide__slides">
+      <!-- Slides -->
+    </ul>
+  </div>
+  <div class="glide__bullets" data-glide-el="controls[nav]">
+    <button class="glide__bullet" data-glide-dir="=1"></button>
+    <button class="glide__bullet" data-glide-dir="=2"></button>
+    <button class="glide__bullet" data-glide-dir="=3"></button>
+    <!-- Add more bullets as needed -->
+  </div>
+</div>
+```
+
+Glide.js will automatically generate the correct number of bullets based on the number of slides.   Each bullet's `data-glide-dir` attribute should be set to `"=n"` where `n` represents the slide's index (starting from 1).  Note that  `data-glide-el="controls[nav]"` is again used to associate these controls with Glide.  The CSS for styling bullets is not included in core Glide CSS. You'll need to add your own custom styles.
+
+### Go to Specific Slide
+
+You can programmatically move to a specific slide using the `go()` method of the Glide instance.  The argument is the slide index (0-based).
+
+```javascript
+const glide = new Glide('.glide').mount();
+glide.go(2); // Goes to the third slide (index 2)
+```
+
+### Previous & Next Slides
+
+The `prev()` and `next()` methods allow moving to the previous and next slides respectively.
+
+```javascript
+const glide = new Glide('.glide').mount();
+glide.prev(); // Goes to the previous slide
+glide.next(); // Goes to the next slide
+```
+
+### Programmatic Control
+
+In addition to `go()`, `prev()`, and `next()`, the Glide instance offers other methods for programmatic control:
+
+* **`start()`:** Starts autoplay (if enabled).
+* **`pause()`:** Pauses autoplay.
+* **`update()`:**  Re-renders the slider, useful after dynamically adding or removing slides.
+* **`destroy()`:**  Completely removes Glide from the DOM and destroys the instance.  This is useful for cleaning up when the slider is no longer needed.
+
+
+These methods provide complete control over the slider's behavior from your JavaScript code, allowing for seamless integration with other parts of your application.  Remember to always check for the existence of a Glide instance before calling its methods.
+
+
+## Advanced Techniques
+
+This section covers more complex usage scenarios and techniques for extending Glide.js's functionality.
+
+
+### Customizing the Appearance
+
+Glide.js provides a minimal set of CSS classes for styling. To achieve a unique look and feel, you'll likely need to extensively customize the CSS.  Target the relevant classes (e.g., `.glide`, `.glide__track`, `.glide__slide`, `.glide__arrow`, `.glide__bullet`)  to modify colors, fonts, spacing, and other visual elements.  Remember that the structure of the HTML is crucial for Glide's functionality; avoid modifying the core HTML structure of the slider unless absolutely necessary.  You can also leverage CSS frameworks (like Bootstrap or Tailwind CSS) to integrate Glide.js more seamlessly into your design system.
+
+
+### Working with Multiple Instances
+
+Glide.js easily supports multiple instances on a single page.  Simply create separate Glide instances for each slider element, each with its own unique selector and configuration:
+
+```javascript
+const glide1 = new Glide('.glide1', { type: 'carousel', perView: 3 }).mount();
+const glide2 = new Glide('.glide2', { autoplay: 2000 }).mount();
+```
+
+Each slider needs its own unique container element (e.g., `.glide1`, `.glide2`).  This approach allows for independent control and configuration of multiple sliders on the same page.
+
+
+### Integrating with Other Libraries
+
+Glide.js is designed to be lightweight and non-intrusive. It can typically be integrated with other JavaScript libraries without conflicts.  However, be mindful of potential naming collisions or conflicting event handlers.  If necessary, namespace your Glide code or carefully check for potential overlaps with other libraries' functionalities.  For example, integrating with a parallax library might require adjusting the timing or event handling to coordinate the animations correctly.
+
+
+### Handling Events
+
+Glide.js dispatches several custom events during its operation.   These events allow for dynamic updates and interactions based on slider state changes (e.g., slide change, mounting, destroying). Utilize the `on()` method to register event listeners:
+
+```javascript
+const glide = new Glide('.glide').mount();
+
+glide.on('mounted', () => {
+  console.log('Glide is mounted!');
+});
+
+glide.on('run', () => {
+  console.log('Slider is running!');
+});
+
+glide.on('change', () => {
+  console.log('Active slide changed!');
+});
+
+glide.on('destroy', () => {
+  console.log('Glide is destroyed!');
+});
+```
+
+This provides a mechanism to trigger other actions or update other parts of your application in response to slider events.
+
+
+### Extending Glide with Plugins
+
+While Glide.js is highly configurable, you can extend its capabilities by creating custom plugins.  Glide's architecture allows for adding new features without modifying the core library.  A plugin would typically consist of additional methods or functionality that integrate with the Glide instance.  The plugin would be registered with the Glide instance using the `addPlugin()` method. The detailed implementation of plugin creation is beyond the scope of this section but is further described in the advanced documentation (link to advanced documentation).  This powerful mechanism allows extending Glide to handle custom behaviors, animations, and UI interactions.
+
+
+## Troubleshooting
+
+This section provides guidance on resolving common issues and debugging Glide.js implementations.
+
+
+### Common Issues
+
+* **Slider not appearing or functioning:** Double-check that the necessary HTML structure is correctly implemented,  the Glide.js files (CSS and JavaScript) are correctly included, and the JavaScript initialization code is executed after the DOM is fully loaded.  Inspect the browser's developer console for JavaScript errors.  Ensure that there are no conflicts with other JavaScript libraries.
+
+
+* **Slides not showing correctly:** Verify the `perView` and `focusAt` settings if using carousel mode.  Examine the CSS for any conflicts that might be affecting slide visibility or positioning. Inspect the HTML to confirm that the slides are correctly nested within the `glide__slides` element.
+
+
+* **Navigation not working:** Check that the navigation elements (arrows and bullets) are correctly associated with Glide using the `data-glide-el` attribute.  Ensure that the `data-glide-dir` attributes are correctly set on the navigation buttons.  Inspect the browser's console for any errors related to the navigation functionality.
+
+
+* **Autoplay not working:**  Ensure that `autoplay` is enabled in the configuration, and that `hoverpause` is correctly configured if hover pausing is desired.
+
+
+* **Unexpected behavior after updates:**  If the slider behaves unexpectedly after updating the DOM or data, always call the `update()` method on the Glide instance to re-render the slider based on the new structure or content.
+
+
+* **Performance issues:**  For a large number of slides, consider optimizing images (reducing file size) and applying techniques to improve performance like throttling event listeners.
+
+
+### Debugging Tips
+
+* **Browser Developer Tools:** Utilize your browser's developer tools (typically accessed by pressing F12) to inspect the HTML structure, CSS styles, and JavaScript console for errors or warnings.  The console will often provide valuable clues about what went wrong.
+
+
+* **Simplify:** If you're facing complex issues, try simplifying your setup.  Create a minimal example with only the essential elements to isolate the problem.  Gradually add more features and complexity until you pinpoint the cause of the error.
+
+
+* **Check the Console:** Carefully review the JavaScript console for errors. Many errors and warnings will point directly to the problem.
+
+
+* **Inspect the Network Tab:** The Network tab in the browser's developer tools can help identify any issues related to loading CSS or JavaScript files.
+
+
+* **Test with a different browser:** Sometimes, issues are browser-specific. Test your implementation in multiple browsers to rule out browser compatibility problems.
+
+
+### Error Handling
+
+Glide.js itself doesn't throw many explicit errors.  Most problems manifest as the slider not behaving as expected (e.g., not showing slides, navigation not working). Therefore, focus on the debugging tips mentioned above.  The browser's JavaScript console is your primary tool for identifying the root cause of unexpected behavior.  If the console provides insufficient information, try creating more verbose logging statements in your JavaScript code to track the values of variables and the execution flow to help track down the source of the problem.
+
+
+## API Reference
+
+This section provides a detailed reference for the Glide.js API, including instance methods, properties, and events.
+
+
+### Glide Instance Methods
+
+The Glide instance exposes several methods to control the slider's behavior.  These methods are called on the instance object created by `new Glide(selector, config).mount()`.
+
+* **`mount()`:** Initializes and renders the slider.  Must be called after creating the Glide instance. Returns the Glide instance.
+
+* **`go(slide, duration)`:** Moves to a specific slide.  `slide` is the 0-based index of the target slide. `duration` (optional) specifies the animation duration (in milliseconds). Returns the Glide instance.
+
+* **`prev(duration)`:** Moves to the previous slide. `duration` (optional) specifies the animation duration (in milliseconds). Returns the Glide instance.
+
+* **`next(duration)`:** Moves to the next slide. `duration` (optional) specifies the animation duration (in milliseconds). Returns the Glide instance.
+
+* **`start()`:** Starts autoplay (if enabled). Returns the Glide instance.
+
+* **`pause()`:** Pauses autoplay. Returns the Glide instance.
+
+* **`update()`:** Re-renders the slider after changes to its structure or content. Returns the Glide instance.
+
+* **`destroy()`:** Removes Glide from the DOM and cleans up event listeners. Returns the Glide instance.
+
+* **`on(event, handler)`:** Attaches an event listener. `event` is the event name (string), and `handler` is the callback function. Returns the Glide instance.
+
+* **`off(event, handler)`:** Removes an event listener. `event` is the event name (string), and `handler` is the callback function. Returns the Glide instance.
+
+* **`removePlugin(pluginName)`:** Removes a plugin by name.
+
+* **`disable()`:** Disables interactions with the slider (e.g. swiping, keyboard). Returns the Glide instance
+
+* **`enable()`:** Enables interactions with the slider
+
+
+### Glide Instance Properties
+
+The Glide instance exposes some properties for accessing slider information. These properties should be considered read-only; modifying them directly may lead to unexpected behavior.
+
+* **`settings`:**  Returns the current settings object, including all configuration options and defaults.  Read-only.
+
+* **`index`:** Returns the index (0-based) of the currently active slide. Read-only.
+
+* **`slides`:** Returns an array-like object representing all slides in the slider.  Provides access to individual slide elements. Read-only.
+
+* **`track`:** Returns the track element. Read-only.
+
+* **`isAutoplaying`:** Returns `true` if autoplay is currently running, otherwise `false`. Read-only.
+
+* **`isDragging`:** Returns `true` if the slider is currently being dragged by the user, otherwise `false`. Read-only.
+
+
+
+### Event API
+
+Glide.js dispatches custom events on the Glide instance. You can listen for these events using the `on()` method.  The event object passed to the handler function may contain additional data depending on the event.
+
+* **`mounted`:** Fired when the slider is successfully mounted.
+
+* **`run`:** Fired when the slider starts animating.
+
+* **`move`:** Fired during the animation between slides.
+
+* **`destroy`:** Fired when the slider is destroyed using `destroy()`.
+
+* **`update`:** Fired when `update()` method is called.
+
+* **`change`:** Fired when the active slide changes.  The event object contains `previous` and `current` properties which represent the index of the previous and current active slides.
+
+* **`autoplay.start`:** Fired when autoplay starts.
+
+* **`autoplay.stop`:** Fired when autoplay stops.
+
+* **`swipe.start`:** Fired when a swipe gesture starts.
+
+* **`swipe.end`:** Fired when a swipe gesture ends.
+
+* **`drag.start`:** Fired when a drag gesture starts.
+
+* **`drag.end`:** Fired when a drag gesture ends.
+
+* **`resize`:** Fired when the window is resized.
+
+
+
+Remember to consult the latest Glide.js documentation for the most up-to-date API reference and any potential changes.  The specific details and availability of methods and properties may vary depending on the Glide.js version.
+

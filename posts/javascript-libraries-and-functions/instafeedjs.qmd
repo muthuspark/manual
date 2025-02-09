@@ -1,0 +1,541 @@
+---
+title: "Instafeed.js - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Getting Started
+
+### Installation
+
+Instafeed.js can be installed via several methods:
+
+* **Direct Download:** Download the latest version of `instafeed.min.js` from the project's GitHub repository or website and place it in your project's `js` directory (or a similarly appropriate location).
+
+* **npm:** If you're using npm, install it via:  `npm install instafeed`  Then include it in your project using a `<script>` tag (see "Including the Library").
+
+* **CDN:** Use a CDN like jsDelivr to include the library directly in your HTML (see "Including the Library").  For example:  `<script src="https://cdn.jsdelivr.net/npm/instafeed@1.x.x/instafeed.min.js"></script>` (replace `1.x.x` with the desired version number).
+
+
+### Basic Usage
+
+Instafeed.js simplifies the process of fetching and displaying Instagram content on your website.  It requires an Instagram Access Token (see the project's documentation for obtaining one;  Note:  Instagram's API access policies may have changed, requiring specific app registration).  The core functionality revolves around creating an `Instafeed` object, configuring it with your access token and other parameters, and then running it to populate your HTML element.  Error handling is crucial; check for API issues and handle them gracefully.
+
+
+### Including the Library
+
+Once you've installed Instafeed.js, include it in your HTML file using a `<script>` tag.  Place this tag just before the closing `</body>` tag or within a `<script>` block at the end of the body to ensure the DOM is fully loaded:
+
+```html
+<script src="path/to/instafeed.min.js"></script> 
+```
+Replace `"path/to/instafeed.min.js"` with the actual path to the library file on your server.
+
+
+### First Example
+
+This example demonstrates a basic implementation. Remember to replace `YOUR_ACCESS_TOKEN` with your actual Instagram Access Token.  This example assumes you have a `div` with the ID `instafeed`.
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Instafeed.js Example</title>
+</head>
+<body>
+  <div id="instafeed"></div>
+  <script src="path/to/instafeed.min.js"></script>
+  <script>
+    var userFeed = new Instafeed({
+      get: 'user',
+      userId: 'YOUR_USER_ID', // Or use 'clientId' instead if you're using a client ID.
+      accessToken: 'YOUR_ACCESS_TOKEN',
+      target: 'instafeed'
+    });
+    userFeed.run();
+  </script>
+</body>
+</html>
+```
+
+This code creates an `Instafeed` object configured to fetch posts from a specific user ID and displays them within the `div` with the ID `instafeed`.  Handle potential errors using `.error()` callback method provided by the library for a more robust solution. Remember to consult the official documentation for advanced options and customization.
+
+
+## Core Functionality
+
+### Understanding the `feed` Object
+
+The core of Instafeed.js is the `Instafeed` object.  This object is instantiated with various options to configure how the feed is fetched and displayed.  These options control aspects such as the data source (user, tag, location), the number of images to retrieve, the access token, and the target element for rendering.  The primary methods of the `Instafeed` object are:
+
+* **`run()`:**  Initiates the process of fetching and displaying the Instagram data.  This method makes the API request and updates the target element.
+
+* **`next()`:** Used for pagination.  Fetches and appends the next set of images to the existing feed (if pagination is enabled).
+
+* **`before()`:** Executes a function *before* the `run()` method.  This is useful for pre-processing or setting up elements.
+
+* **`error()`:** Executes a function if an error occurs during the API request (e.g., invalid access token, network issues).  Proper error handling is crucial for a robust application.
+
+* **`success()`:** Executes a function when the API request is successful.
+
+
+### Target Element Selection
+
+The `target` option in the `Instafeed` constructor specifies the HTML element where the Instagram feed will be rendered.  This can be either the ID of an element (e.g., `'#instafeed'`) or a DOM element directly. The library will inject the images into this element. Ensure the target element exists in your HTML before running the `Instafeed` object; otherwise, the library will likely throw an error.  Using a CSS selector is not directly supported; you must use either an ID or a DOM element reference.
+
+
+### Data Attributes
+
+While Instafeed.js doesn't directly utilize custom data attributes on the target element to control its behavior, you can use data attributes within the *generated* HTML to store or access information related to each individual image within the feed (e.g., image ID, caption, etc.).  This allows you to manipulate or access image-specific data after the feed has been rendered without needing to parse the response.  You would need to access this data within your custom event handlers or through DOM manipulation techniques.
+
+
+### Event Handlers
+
+Instafeed.js offers the `before()` and `success()` callbacks (mentioned earlier) to handle events related to the feed's rendering process.  These are essential for implementing custom logic before and after data is fetched and displayed:
+
+* **`before()`:** This callback function executes before the feed is generated, enabling preparation work, such as showing a loading indicator.
+
+* **`success()`:** This callback is executed after a successful API call and rendering of the feed, allowing you to perform post-rendering actions like adding event listeners to newly added elements.
+
+* **`error()`:** This callback function handles errors during the API request.  Implement robust error handling to inform users of issues or display alternative content.  Check for common error codes from the Instagram API (e.g., invalid token, rate limiting).
+
+These callbacks provide a mechanism to add customized functionality to extend the basic behavior of Instafeed.js and create a more interactive and user-friendly experience.  They let developers customize what happens before, during, and after the feed is loaded.
+
+
+## Configuration Options
+
+Instafeed.js offers a wide array of configuration options to customize the appearance and behavior of your Instagram feed.  These options are passed as a JavaScript object to the `Instafeed` constructor.
+
+### General Options
+
+These options control the overall behavior and data source of the feed:
+
+* **`accessToken` (required):** Your Instagram access token.  This is crucial for authenticating your requests to the Instagram API.  Obtain this through the appropriate Instagram developer processes (note: Instagram's API access policies are subject to change).
+
+* **`get`:** Specifies the type of feed to retrieve. Common values include:
+    * `'user'`:  Retrieves posts from a specific user.  Requires `userId` or `clientId`.
+    * `'tagged'`: Retrieves posts tagged with a specific hashtag. Requires `tagName`.
+    * `'location'`: Retrieves posts from a specific location. Requires `locationId`.
+    * `'popular'`:  Retrieves popular media for a given location (requires locationId)
+
+
+* **`userId`:**  The Instagram user ID (used when `get` is 'user').
+
+* **`clientId`:**  The Instagram Client ID (used when `get` is 'user').  An alternative to userId.
+
+* **`tagName`:** The hashtag to retrieve posts for (used when `get` is 'tagged').
+
+* **`locationId`:** The Instagram location ID (used when `get` is 'location' or 'popular').
+
+* **`limit`:** The maximum number of posts to retrieve (default is 20).
+
+* **`resolution`:** Specifies the image resolution to fetch (e.g., 'thumbnail', 'low_resolution', 'standard_resolution', 'high_resolution').
+
+* **`sortBy`:** Sort order of the images to be fetched, usually using `'most-recent'`
+
+
+### Target Element Options
+
+These options control where the feed is rendered:
+
+* **`target` (required):** The ID of the HTML element (e.g., `'#instafeed'`) or the DOM element itself where the feed will be rendered.
+
+
+### Image Options
+
+These options affect the appearance of individual images in the feed:
+
+* **`template`:**  A custom HTML template string to use for each image.  This allows for significant customization of the output.  Placeholders like `{image}` and other data placeholders are typically used within the template.
+
+* **`imageDisplay`:** Determines how images will be displayed (`'all'` (default) shows all images in the response, `'thumbnails'` only shows thumbnails)
+
+
+### Advanced Options
+
+These options provide more fine-grained control:
+
+* **`after`:** Retrieves posts after this timestamp (in seconds since epoch). Used to implement pagination.
+
+* **`before`:** Retrieves posts before this timestamp (in seconds since epoch). Used to implement pagination.
+
+* **`clientId`:**  Your Instagram client ID (can be used as an alternative to `accessToken` in some scenarios).
+
+
+### Customizing the Feed Output
+
+The `template` option offers the most significant control over the feed's appearance.  By providing a custom HTML string, you can include additional elements, styling, and data associated with each image.  Placeholders within the template (like `{image}`, `{link}`, `{caption}`, etc.) are replaced with the corresponding data from the Instagram API response. This lets you create highly customized layouts. Refer to the Instafeed.js documentation for a complete list of available placeholders.  Careful use of CSS can further enhance the visual style of the output.
+
+
+## Advanced Usage
+
+### Handling Errors
+
+Robust error handling is crucial for any application using external APIs. Instafeed.js provides the `error` callback function to handle potential issues during the API request.  This callback receives an error object as an argument, allowing you to identify the cause of the failure (e.g., invalid access token, network error, API rate limiting).  Within the `error` callback, implement appropriate actions:
+
+* **Display an error message to the user:**  Inform the user that something went wrong and provide helpful information.
+
+* **Display alternative content:** Show a fallback message or a placeholder image.
+
+* **Log the error for debugging:** Use the browser's developer console or a dedicated logging service to record the error details.
+
+Example:
+
+```javascript
+var feed = new Instafeed({
+  // ... other options ...
+  error: function(error) {
+    console.error("Instafeed error:", error);
+    document.getElementById('instafeed').innerHTML = '<p>Failed to load Instagram feed. Please try again later.</p>';
+  }
+});
+feed.run();
+```
+
+### Pagination
+
+Pagination allows you to load Instagram posts in batches, improving performance and user experience.  Instafeed.js doesn't directly handle pagination with a single function call, but you can use the `after` and `before` options to fetch data from specific timestamps.  This requires you to track the last fetched timestamp and use it for subsequent calls to the `run()` method.   You will typically fetch a batch of images using a limit and the `after` (or `before`) option to get the next set of results.  This approach needs manual management of the timestamps.
+
+
+### Infinite Scrolling
+
+Infinite scrolling enhances user experience by automatically loading more posts as the user scrolls down the page. This is implemented by combining pagination and event listeners.  Use a scroll event listener to detect when the user nears the bottom of the feed.   When detected, call the pagination mechanism (using `after` or `before`) to load and append the next set of images. This creates a seamless experience where new posts load dynamically without requiring explicit user action.
+
+
+### Caching
+
+While Instafeed.js doesn't have built-in caching, you can implement caching on the client-side using browser storage (localStorage or sessionStorage) or on the server-side to reduce API calls and improve performance. Store the fetched data (e.g., JSON response) in the cache, and check for the cached data before making an API call. If the cached data is available and relatively fresh, use it instead. If not, fetch new data, update the cache, and then display the feed.
+
+
+### Multiple Feeds
+
+You can easily create multiple Instagram feeds on a single page by instantiating multiple `Instafeed` objects.  Each object should have its unique configuration options (e.g., different `target` elements, `userIds`, or `tagNames`).  This allows you to display feeds for different users, hashtags, or locations within the same page.
+
+
+### Integration with Other Libraries
+
+Instafeed.js can be seamlessly integrated with other JavaScript libraries. For example:
+
+* **jQuery:**  jQuery's DOM manipulation capabilities can be used to enhance the feed's interactivity (e.g., adding animations, lightboxes, or other user interface elements).
+
+* **Lazy loading libraries:** To improve performance for large feeds, integrate lazy loading libraries to load images only when they are visible in the viewport.
+
+* **Image carousels/sliders:** Integrate with libraries that create image carousels or sliders to display the Instagram images in a visually appealing manner.
+
+
+Remember to consult the documentation of other libraries to understand their integration methods and potential compatibility considerations with Instafeed.js.
+
+
+## Social Media Platform Integration
+
+### Instagram Integration
+
+Instafeed.js is primarily designed for integrating Instagram content into your website.  The core functionality relies on the Instagram Graph API (note: Instagram's API access policies change, so always consult their documentation).  To use it, you'll need an Instagram Access Token, which requires registering an application with Instagram and obtaining the necessary permissions.  The `accessToken` option is crucial for authorizing requests to the Instagram API.  Different `get` options allow fetching content from users, tags, or locations.  Error handling is critical; ensure you properly handle API request errors (e.g., invalid tokens, rate limits).  The `userId`, `clientId`, `tagName`, and `locationId` options are used to specify the data source depending on the `get` option.
+
+
+### Troubleshooting Instagram Feeds
+
+Several issues can prevent your Instafeed from working correctly:
+
+* **Invalid Access Token:** Double-check that your `accessToken` is valid, hasn't expired, and has the necessary permissions.  Incorrectly configured access tokens are the most common cause of errors.  Refer to the Instagram Developer documentation for proper token management.
+
+* **API Rate Limits:** Instagram's API has rate limits. Exceeding these limits will result in errors.  Implement caching to reduce API calls.  If you hit rate limits, your requests will fail, and your feed might not display correctly.
+
+* **Network Issues:**  Verify that your website can connect to the Instagram API endpoints.  Network problems can prevent data from being fetched.
+
+* **Incorrect User IDs, Tag Names, or Location IDs:**  Double-check that you're using the correct IDs and names for users, tags, and locations.  These values are case-sensitive.
+
+* **Incorrect `get` option:** Ensure the `get` option matches the type of data you are trying to retrieve (`user`, `tagged`, `location`, `popular`).
+
+* **Missing or Incorrect Template Placeholders:** Verify that the placeholders used in your `template` option are correct and match the data provided by the Instagram API.
+
+
+Use the browser's developer console to inspect network requests and responses.  Inspect the error messages received from the Instagram API for clues about the problem.
+
+
+### Other Supported Platforms (if any)
+
+As of the current version, Instafeed.js primarily focuses on Instagram integration and does not directly support other social media platforms.  To integrate content from other platforms, you'll need to use their respective APIs and adapt the code to fetch and display their data.  Consider using a library or service tailored for the specific platform if available, as it might provide more features and easier integration.
+
+
+### Platform-Specific Options
+
+Currently, Instafeed.js’s platform-specific options are primarily focused on Instagram. Options like `userId`, `tagName`, `locationId`, and `get` are specific to Instagram's API structure.  For other platforms, you would need to adjust your code to fetch data using the correct API endpoints, response parsing, and potentially to utilize custom template options that adapt to the data structures provided by the new API.  There aren't pre-built options in Instafeed.js for other platforms.
+
+
+## Customization and Styling
+
+### CSS Styling
+
+Instafeed.js provides a basic structure for displaying the Instagram feed, but its visual appearance is highly customizable using CSS.  You can style the elements generated by Instafeed.js using CSS selectors targeting classes and IDs within the generated HTML. Inspect the generated HTML to identify the relevant classes and IDs to target with your CSS rules.  You can control aspects like image size, spacing, borders, captions, and overall layout.  Because the specific class names and IDs might change between versions, it is important to inspect your generated HTML to determine the appropriate selectors.
+
+
+### Custom Templates
+
+The `template` option offers the most powerful way to customize the feed's appearance. By providing a custom HTML string, you can create virtually any layout. This string uses placeholders that get replaced with data from the Instagram API response.  Here's a basic example:
+
+```javascript
+var feed = new Instafeed({
+  // ... other options ...
+  template: '<a href="{link}" target="_blank"><img src="{image}" alt="{caption}"></a><p>{caption}</p>'
+});
+feed.run();
+```
+
+This template creates a simple link around each image, with the caption displayed beneath.  Refer to the Instafeed.js documentation for the complete list of available placeholders. You can incorporate more complex HTML structures, including divs, spans, and other elements to control the positioning and styling of different parts of the feed. This allows for very specific control over the visual output and layout.
+
+
+### Responsive Design
+
+To create a responsive design, use CSS media queries to adjust the layout and styling based on screen size.  This ensures the feed looks good on devices of different sizes. You'll likely want to adjust image sizes, spacing, and possibly the overall layout (e.g., switching from a grid layout to a list layout on smaller screens).  Consider using CSS frameworks like Bootstrap or Flexbox to create flexible and responsive layouts that adapt seamlessly to various screen sizes and orientations.  This will help ensure that the Instagram feed renders appropriately, regardless of the device or viewport size.  This might involve modifying the `template` to dynamically change layout based on media query parameters.
+
+
+## Troubleshooting
+
+### Common Issues
+
+* **Feed not loading:** This is often caused by an invalid or missing access token (`accessToken`), incorrect user ID (`userId`), tag name (`tagName`), or location ID (`locationId`). Double-check these values and ensure your application has the necessary permissions.  Network connectivity issues can also prevent the feed from loading.
+
+* **Incorrect image sizes or display:** Review the `resolution` and `imageDisplay` options to ensure they are set to your desired values.  Inspect the generated HTML; images may not be displayed correctly due to CSS conflicts or incorrect template usage.
+
+* **Layout issues:**  Problems with the layout usually stem from incorrect CSS styling or improper use of the `template` option.  Carefully examine your CSS rules and ensure they target the correct elements. Using your browser's developer tools to inspect the generated HTML is very useful in debugging these issues.
+
+* **Error messages not displayed:** If you're not seeing error messages, ensure that you have included the `error` callback function in your Instafeed configuration. This callback will receive error objects; log these objects to the console for debugging.
+
+* **Feed not updating:** If you're trying to update the feed dynamically (e.g., after pagination), ensure that your update logic correctly handles the previous feed and appends new content without overwriting the existing feed.
+
+
+### Debugging Tips
+
+* **Inspect the generated HTML:** Use your browser's developer tools to inspect the HTML generated by Instafeed.js. This will help identify issues with element structure, class names, and IDs.
+
+* **Use the browser's console:** The browser's console is your friend. Log variables, check for errors, and inspect the structure of the data received from the Instagram API. This will help in understanding what's happening during the feed generation process.  The `error` callback provides error objects; log these to the console.
+
+* **Simplify your code:**  To isolate the problem, temporarily remove any complex CSS or custom templates.  See if the feed works with the default settings. This process of simplification helps pinpoint what causes the issue.
+
+* **Check the network requests:** Use your browser's developer tools to examine the network requests made to the Instagram API.  Look for errors in the API responses.  This allows you to identify HTTP status codes that indicate whether the requests are failing.
+
+* **Test with a different browser:**  Test your code in different browsers to rule out browser-specific issues.
+
+
+
+### Error Messages
+
+Instafeed.js provides limited direct error messages; most error handling relies on the `error` callback function. This callback function receives an error object that typically contains information about the type and cause of the error. Log this object to the console to get detailed error information.  Common errors relate to invalid API keys, network errors, and API rate limits. Pay close attention to the error messages provided by the Instagram API within the error object.
+
+
+### API Limits and Rate Limiting
+
+Instagram's API has rate limits. Exceeding these limits will result in errors and prevent your feed from loading correctly. To mitigate this:
+
+* **Implement caching:** Cache the fetched data to reduce the number of API calls.
+
+* **Use a smaller `limit`:** Fetch a smaller number of posts at a time (`limit` option).
+
+* **Space out your requests:** Add delays between API calls to avoid exceeding the rate limits.
+
+* **Check Instagram's API documentation:** Stay up to date with Instagram's API rate limits and policies; these can change.  Adhere to Instagram's terms of service.
+
+
+If you suspect rate limiting is the issue, review your API calls and implement appropriate strategies to reduce the load on the Instagram API.  Consult Instagram's API documentation for details on their rate limits.
+
+
+## API Reference
+
+This section provides a detailed overview of the Instafeed.js API, including its methods, properties, and events.  Note that the specific methods and properties might change slightly between versions; always refer to the most up-to-date documentation.
+
+
+### Methods
+
+The `Instafeed` object exposes several methods to control the feed's behavior:
+
+
+* **`run()`:** This is the primary method to initiate the fetching and rendering of the Instagram feed. It sends the request to the Instagram API based on the provided configuration options, processes the response, and updates the target element with the generated HTML.
+
+* **`next()`:** Used for pagination;  fetches and appends the next set of images to the existing feed (requires proper configuration of `before` or `after` parameters during initialization).   It does *not* automatically handle pagination; you must manage the timestamp and call `next()` manually as needed.
+
+* **`before()`:** A callback function that executes *before* the `run()` method. Useful for displaying a loading indicator or performing other setup actions. The function should accept no arguments.
+
+* **`success()`:** A callback function that executes after a successful API request and the feed has been rendered.  Use this to perform post-rendering actions. The function should accept the response object from the API as an argument.
+
+* **`error()`:** A callback function that executes if an error occurs during the API request (e.g., network issues, invalid token).  This function receives the error object as an argument, allowing you to handle errors gracefully.
+
+
+### Properties
+
+The `Instafeed` object doesn't expose many directly accessible properties after instantiation. Its configuration is primarily done through options passed to the constructor.  You wouldn't directly access properties of the object after its creation; the object manages the internal state.  The results of the API call are handled within the `success` and `error` callbacks.
+
+
+### Events
+
+Instafeed.js doesn't use a formal event system with custom events.  Instead, it uses callback functions (`before`, `success`, `error`) to provide a mechanism for handling specific stages of the feed loading process.  These act as asynchronous event handlers.  There are no events that are triggered or listened for using an event listener.  The callbacks are the primary means of reacting to the lifecycle of a feed (before loading, after successful loading, after failure).
+
+
+
+
+## Examples
+
+These examples demonstrate various usage scenarios of Instafeed.js.  Remember to replace placeholders like `YOUR_ACCESS_TOKEN` and `YOUR_USER_ID` with your actual values.  Ensure you have included the Instafeed.js library in your HTML file.
+
+
+### Simple Feed
+
+This example displays a basic feed from a user's Instagram profile:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Simple Instafeed</title>
+</head>
+<body>
+<div id="instafeed"></div>
+<script src="path/to/instafeed.min.js"></script>
+<script>
+  var feed = new Instafeed({
+    get: 'user',
+    userId: 'YOUR_USER_ID',
+    accessToken: 'YOUR_ACCESS_TOKEN',
+    target: 'instafeed'
+  });
+  feed.run();
+</script>
+</body>
+</html>
+```
+
+
+### Custom Templates
+
+This example demonstrates using a custom template to control the feed's output:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Custom Template Instafeed</title>
+</head>
+<body>
+<div id="instafeed"></div>
+<script src="path/to/instafeed.min.js"></script>
+<script>
+  var feed = new Instafeed({
+    get: 'user',
+    userId: 'YOUR_USER_ID',
+    accessToken: 'YOUR_ACCESS_TOKEN',
+    target: 'instafeed',
+    template: '<div class="insta-image"><a href="{link}" target="_blank"><img src="{image}" alt="{caption}"></a><p class="caption">{caption}</p></div>'
+  });
+  feed.run();
+</script>
+<style>
+  .insta-image {
+    margin-bottom: 10px;
+  }
+  .caption {
+    font-size: 0.8em;
+    color: #555;
+  }
+</style>
+</body>
+</html>
+```
+
+
+### Advanced Configurations
+
+This example showcases more advanced configurations, including error handling and specifying the image resolution:
+
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Advanced Instafeed</title>
+</head>
+<body>
+<div id="instafeed"></div>
+<script src="path/to/instafeed.min.js"></script>
+<script>
+  var feed = new Instafeed({
+    get: 'user',
+    userId: 'YOUR_USER_ID',
+    accessToken: 'YOUR_ACCESS_TOKEN',
+    target: 'instafeed',
+    resolution: 'standard_resolution',
+    limit: 12,
+    error: function(err) {
+      console.error('Instafeed error:', err);
+      document.getElementById('instafeed').innerHTML = '<p>Error loading feed.</p>';
+    },
+    success: function(response){
+        console.log('Feed loaded successfully!', response);
+    }
+  });
+  feed.run();
+</script>
+</body>
+</html>
+
+```
+
+
+### Pagination Example
+
+This is a simplified pagination example; robust pagination requires more sophisticated timestamp management:
+
+```javascript
+let nextMaxId = null; // variable to store the next max_id
+
+function loadMore(){
+    var feed = new Instafeed({
+        get: 'user',
+        userId: 'YOUR_USER_ID',
+        accessToken: 'YOUR_ACCESS_TOKEN',
+        target: 'instafeed',
+        limit: 5,
+        after: nextMaxId, // use the nextMaxId from previous request
+        success: function(response) {
+            nextMaxId = response.nextMaxId;  //get the nextMaxId for the next request
+            console.log('Next max ID:', nextMaxId);
+        }
+    });
+    feed.run();
+}
+
+loadMore(); //initial load
+
+document.getElementById('load-more').addEventListener('click', loadMore); //add button to load more.
+```
+
+
+Remember to add a button with the ID `load-more` to your HTML for this to function correctly.
+
+### Infinite Scroll Example
+
+Implementing true infinite scroll requires more complex logic to detect scroll position, prevent duplicate requests, and handle loading states.  This is a highly simplified illustration and would need enhancement for a production-ready implementation:
+
+
+```javascript
+let nextMaxId = null;
+
+function fetchMore() {
+  if (nextMaxId) { //check if more items exist
+    var feed = new Instafeed({
+      // ... instafeed options ...
+      after: nextMaxId,
+      success: function(response) {
+        nextMaxId = response.nextMaxId;
+      }
+    });
+    feed.run();
+  }
+}
+
+window.addEventListener('scroll', function() {
+  if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+    fetchMore();
+  }
+});
+
+fetchMore(); //initial load
+```
+
+This requires careful consideration of performance and user experience for a robust implementation.  These examples provide a starting point for building more complex feed integrations.  Always remember to consult the Instagram API documentation for the most current best practices and API limits.
+

@@ -1,0 +1,750 @@
+---
+title: "Fancybox - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+
+
+## Getting Started
+
+This section guides you through setting up and using Fancybox.  We'll cover installation, basic usage, and provide a quick example to get you started.
+
+
+### Installation
+
+Fancybox can be installed via several methods:
+
+**1. Using a CDN (Content Delivery Network):**  This is the quickest method for getting started.  Include the necessary CSS and JavaScript files directly in your HTML `<head>`:
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.6.0/dist/jquery.fancybox.min.css" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- Ensure jQuery is included -->
+<script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.6.0/dist/jquery.fancybox.min.js"></script>
+```
+
+**Note:** Replace `https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.6.0/dist/...` with the appropriate CDN link if using a different version. Always check the official Fancybox documentation for the latest CDN links.  Ensure that jQuery is included *before* the Fancybox JavaScript file.
+
+
+**2. Using npm (Node Package Manager):** For more advanced projects, using npm allows for better integration with your build process.
+
+```bash
+npm install @fancyapps/fancybox
+```
+
+Then, import the necessary files into your project using a module bundler like Webpack or Parcel.  Example using ES6 modules:
+
+```javascript
+import $ from 'jquery'; //If needed, include jQuery
+import 'fancybox'; // Import CSS
+import '@fancyapps/fancybox'; //Import JS
+```
+
+
+**3. Downloading Directly:** You can also download the files directly from the Fancybox release page and include them in your project as described in method 1.
+
+
+### Basic Usage
+
+Once Fancybox is installed, you need to initialize it on elements you want to trigger the lightbox effect.  This is typically done by adding a class or data attribute to your HTML elements and then using jQuery to initialize Fancybox.
+
+The simplest way is to add the `fancybox` class to elements you want to open in Fancybox:
+
+```html
+<a class="fancybox" href="image1.jpg" data-caption="Image 1"></a>
+<a class="fancybox" href="image2.jpg" data-caption="Image 2"></a>
+<a class="fancybox" href="video.mp4" data-caption="My Video"></a>
+```
+
+Then, initialize Fancybox:
+
+```javascript
+$(document).ready(function() {
+  $('.fancybox').fancybox();
+});
+```
+
+This will make all elements with the class `fancybox` open in a Fancybox lightbox. The `data-caption` attribute provides alt text/captions.  You can use href to link to images, videos or even inline content (using `#id` selector).
+
+
+### Quick Example
+
+Let's create a quick example demonstrating how to display a single image using Fancybox:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fancybox Example</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.6.0/dist/jquery.fancybox.min.css" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.6.0/dist/jquery.fancybox.min.js"></script>
+</head>
+<body>
+
+<a class="fancybox" href="path/to/your/image.jpg" data-caption="My Image">Click to view image</a>
+
+<script>
+$(document).ready(function() {
+  $('.fancybox').fancybox();
+});
+</script>
+
+</body>
+</html>
+```
+
+Remember to replace `"path/to/your/image.jpg"` with the actual path to your image. This example shows the minimal setup required to get Fancybox working.  More advanced configurations and options are covered in subsequent sections of this manual.
+
+
+
+
+## Core Functionality
+
+This section details the core functionalities of Fancybox, including opening and closing lightboxes, handling content loading, managing events, and utilizing API methods for advanced control.
+
+
+### Opening and Closing
+
+Fancybox provides several ways to open and close lightboxes:
+
+**Opening:**
+
+* **Automatic Initialization:** As shown in the "Getting Started" section, adding the `fancybox` class to your elements and calling `$('.fancybox').fancybox()` automatically initializes Fancybox and opens the lightbox when the element is clicked.
+
+* **Programmatic Opening:** You can programmatically open a Fancybox instance using the `$.fancybox.open()` method:
+
+```javascript
+$.fancybox.open({
+  src  : 'path/to/your/image.jpg',
+  type : 'image',
+  caption : 'My Image Caption'
+});
+
+//Or opening from a selector
+$.fancybox.open($('#myElement'));
+```
+
+Replace `'path/to/your/image.jpg'` with the actual path or selector.  The `type` option specifies the content type (image, video, iframe, inline, etc.).  See the "Content Loading" section for more details on content types.
+
+**Closing:**
+
+* **User Interaction:**  Users can typically close the lightbox by clicking the close button (X), pressing the Escape key, or clicking outside the lightbox (depending on configuration).
+
+* **Programmatic Closing:** You can close the currently open lightbox using:
+
+```javascript
+$.fancybox.close();
+```
+
+You can also close a specific instance if you have multiple lightboxes open.  See the "API Methods" section for details.
+
+
+### Content Loading
+
+Fancybox supports various content types:
+
+* **Images (`type: 'image'`):** Specify the image URL in the `src` option.
+
+* **Videos (`type: 'video'`):**  Provide the video URL (YouTube, Vimeo, etc.) in the `src` option.  Fancybox will automatically detect and embed the video.  For more control, you can use the `video.provider` and related options.
+
+* **IFrames (`type: 'iframe'`):** Load content from a URL within an iframe.
+
+* **Inline Content (`type: 'inline'`):** Reference an element on your page using its ID (e.g., `#myElement`).
+
+* **Ajax (`type: 'ajax'`):** Load content via AJAX. Specify the URL in the `src` option.
+
+* **HTML (`type: 'html'`):** Directly provide HTML content using the `src` option, but you'll need to escape certain characters.
+
+Example using different content types:
+
+```javascript
+$.fancybox.open({
+  src  : 'myvideo.mp4',
+  type : 'video'
+});
+
+$.fancybox.open({
+  src  : '#myInlineContent',
+  type : 'inline'
+});
+
+$.fancybox.open({
+    src: 'my-ajax-page.php',
+    type: 'ajax'
+});
+```
+
+
+### Event Handling
+
+Fancybox provides several events that you can listen for to customize behavior:
+
+```javascript
+$.fancybox.bind('afterShow', function(instance, current) {
+  console.log('Fancybox opened!');
+});
+
+$.fancybox.bind('beforeClose', function(instance, current) {
+    //Perform action before closing
+});
+
+$.fancybox.bind('afterClose', function(instance, current) {
+  console.log('Fancybox closed!');
+});
+```
+
+
+These are just a few examples. Consult the official Fancybox documentation for a complete list of events and their parameters. You can also use `instance` to access and manipulate the currently open Fancybox instance.
+
+
+### API Methods
+
+Fancybox provides several API methods for advanced control:
+
+* **`$.fancybox.open(options)`:** Opens a new Fancybox instance.  See "Opening and Closing" for details.
+
+* **`$.fancybox.close()`:** Closes the currently active Fancybox instance.
+
+* **`$.fancybox.close(index)`:** Closes a specific Fancybox instance by its index (0-based).
+
+* **`$.fancybox.getInstance()`:** Returns an instance of currently open Fancybox. Useful for accessing methods like `jumpTo` (for navigating between multiple items in the lightbox).
+
+* **`$.fancybox.destroy()`:** Removes Fancybox entirely from the page. Useful if you need to completely remove Fancybox’s functionality, e.g. you no longer need a gallery and want to remove the potential overhead.
+
+
+Remember to consult the official Fancybox documentation for the most up-to-date information on API methods, events, and options.  The available options and methods may vary slightly depending on the version of Fancybox you are using.
+
+
+
+
+## Customization
+
+This section details how to customize Fancybox's appearance and behavior to fit your specific needs.
+
+
+### Options Reference
+
+Many aspects of Fancybox's behavior can be controlled through options passed to the `$.fancybox.open()` method or the `$('.fancybox').fancybox()` initialization.  Here's a summary of key options:
+
+* **`src` (string):** The URL or selector for the content to be displayed.  Required.
+
+* **`type` (string):** The type of content: `'image'`, `'video'`, `'iframe'`, `'inline'`, `'ajax'`, `'html'`.  Defaults to 'image' if `src` is a URL ending in an image extension.
+
+* **`caption` (string):**  The caption to be displayed below the content.
+
+* **`width` (number, string):** The width of the lightbox. Can be a number (pixels) or a percentage string (e.g., '50%').
+
+* **`height` (number, string):** The height of the lightbox. Can be a number (pixels) or a percentage string.
+
+* **`autoSize` (boolean):** Automatically adjust the lightbox size to fit the content. Defaults to `true`.
+
+* **`fitToView` (boolean):**  Ensure the lightbox fits within the viewport. Defaults to `true`.
+
+* **`toolbar` (boolean):** Show or hide the toolbar (close button, etc.).
+
+* **`infobar` (boolean):** Show or hide the infobar (caption, navigation controls).
+
+* **`smallBtn` (boolean):** Use smaller close button.
+
+* **`animationEffect` (string):** The animation effect to use when opening and closing: `'zoom'`, `'fade'`, `'zoom-in-out'`, or `'none'`.
+
+* **`transitionEffect` (string):** The transition effect between slides (for galleries).
+
+* **`buttons` (array):**  Customize the buttons displayed in the toolbar.  Allows for adding, removing, or reordering buttons.
+
+
+A complete list of options with detailed descriptions can be found in the official Fancybox documentation.  Remember that the available options may differ slightly depending on the version of Fancybox.
+
+
+### CSS Customization
+
+You can extensively customize Fancybox's appearance by overriding the default CSS styles.  You can achieve this in several ways:
+
+* **Custom CSS file:** Create your own CSS file and include it after the Fancybox CSS file.  Use more specific selectors to target particular elements within Fancybox's structure.
+
+* **Inline styles:**  Add inline styles directly to the HTML elements generated by Fancybox (generally not recommended unless debugging or for very specific small adjustments).
+
+* **!important:** Use the `!important` declaration sparingly (generally not recommended except in desperate scenarios, as it can make maintaining your code more difficult).
+
+To find the selectors you need to override, inspect the Fancybox HTML structure using your browser's developer tools.
+
+
+### Customizing the HTML
+
+For more extensive customization, you can modify the HTML structure of the lightbox.  While this is generally more advanced, it gives you the greatest control over the look and feel.
+
+Fancybox uses templates to generate its HTML. While directly modifying these templates might be possible depending on your setup (e.g., by forking and building from source), it's generally easier and safer to work with the provided options and add custom CSS for most customization needs.
+
+
+### Callbacks
+
+Callbacks allow you to execute custom code at various stages of the Fancybox lifecycle.  Several events are available, including:
+
+* `beforeShow`: Triggered before the lightbox is shown.
+* `afterShow`: Triggered after the lightbox is shown.
+* `beforeClose`: Triggered before the lightbox is closed.
+* `afterClose`: Triggered after the lightbox is closed.
+* `beforeLoad`: Triggered before content is loaded.
+* `afterLoad`: Triggered after content is loaded.
+* `beforeChange`: Triggered before the lightbox switches to a new item (galleries).
+* `afterChange`: Triggered after the lightbox switches to a new item (galleries).
+
+Example using callbacks:
+
+```javascript
+$('.fancybox').fancybox({
+  beforeShow: function(instance, current){
+      console.log("Fancybox is about to show!");
+  },
+  afterShow: function(instance, current){
+      console.log("Fancybox is now showing!");
+      //Add your custom logic here
+  },
+  beforeClose: function(instance, current) {
+    console.log("Fancybox is about to close!");
+  },
+  afterClose: function(instance, current) {
+    console.log("Fancybox has closed!");
+  }
+
+});
+```
+
+Consult the official Fancybox documentation for a complete list of available callbacks and their arguments.  Using callbacks provides a flexible way to interact with and customize Fancybox's functionality without directly modifying its core code.
+
+
+
+
+## Advanced Usage
+
+This section covers more advanced techniques for using Fancybox, including handling different content types, creating galleries, and ensuring accessibility.
+
+
+### Ajax Loading
+
+Fancybox supports loading content dynamically via AJAX.  This is useful when you need to fetch content from a server without a full page reload.
+
+To load content via AJAX, set the `type` option to `'ajax'` and specify the URL in the `src` option:
+
+```javascript
+$.fancybox.open({
+  src  : '/my-ajax-endpoint.php',
+  type : 'ajax',
+  opts : {
+    ajax: {
+        dataType: 'html', // Specify data type if needed
+        data: {param1: 'value1'} //Add parameters if needed
+    }
+  }
+});
+```
+
+This will send an AJAX request to `/my-ajax-endpoint.php` and display the returned HTML content within the Fancybox lightbox.  The `opts` option allows for additional configuration of the AJAX request, including specifying data types or additional parameters.  Error handling should be implemented in the success/error callbacks of the AJAX call or within the Fancybox callbacks, `afterLoad` and `onError`.
+
+Remember to handle potential errors gracefully, such as network issues or server errors, by adding error handling within the AJAX request or by handling the `onError` Fancybox event.
+
+
+### Inline Content
+
+To display content that's already present on your page within a Fancybox lightbox, use the `'inline'` type and provide a CSS selector targeting the element as the `src` option:
+
+```html
+<div id="myInlineContent" style="display:none;">
+  <h2>My Inline Content</h2>
+  <p>This content will be displayed in a Fancybox lightbox.</p>
+</div>
+
+<a class="fancybox" data-fancybox data-src="#myInlineContent">Open Inline Content</a>
+
+<script>
+    $(document).ready(function() {
+        $('[data-fancybox]').fancybox();
+    });
+</script>
+```
+
+The `id="myInlineContent"` element's content will be shown in the Fancybox lightbox.  Note that the inline content is initially hidden (`style="display:none;"`) to prevent it from being visible on the page before it's opened in Fancybox.  The `data-fancybox` and `data-src` attributes are used when initializing with the `fancybox()` function.
+
+
+### Image Galleries
+
+Fancybox excels at creating image galleries.  Simply add the `fancybox` class (or use `data-fancybox`) to multiple image links:
+
+```html
+<a class="fancybox" href="image1.jpg" data-caption="Image 1"></a>
+<a class="fancybox" href="image2.jpg" data-caption="Image 2"></a>
+<a class="fancybox" href="image3.jpg" data-caption="Image 3"></a>
+```
+
+Fancybox will automatically detect that these are part of a gallery and provide navigation controls to switch between images.  For more control over the gallery behavior, see the options related to `loop`, `buttons`, `thumbs`, and others.
+
+
+### Video Integration
+
+Fancybox supports various video providers.  For YouTube, Vimeo, and others, simply provide the video URL in the `src` option and set `type` to `'video'`:
+
+```javascript
+$.fancybox.open({
+  src  : 'https://www.youtube.com/watch?v=YOUR_YOUTUBE_VIDEO_ID',
+  type : 'video'
+});
+```
+
+Fancybox will automatically embed the video using the appropriate provider's embed code.  For less common video providers or for more fine-grained control, you may need to use the `iframe` type with custom parameters in the `src` option.
+
+
+### IFrame Integration
+
+Use the `'iframe'` type to display content from another website or web page within a Fancybox lightbox:
+
+```javascript
+$.fancybox.open({
+  src  : 'https://www.example.com/my-page',
+  type : 'iframe'
+});
+```
+
+This will load the specified URL within an iframe inside the Fancybox lightbox.  You can further customize the iframe's size using the `width` and `height` options.
+
+
+### Multiple Instances
+
+You can have multiple Fancybox instances open simultaneously.  Each instance is independent, managing its own content and settings.  Each instance will receive a unique ID that you can use to target specific instances programmatically.
+
+
+### Accessibility
+
+Ensure your Fancybox implementation follows accessibility best practices:
+
+* **Alt Text:** Provide descriptive `alt` text for all images.
+* **Keyboard Navigation:**  Fancybox's default keyboard navigation should work without modification, but verify.
+* **Screen Reader Compatibility:**  Ensure sufficient semantic HTML structure.  Appropriate ARIA attributes may also be needed depending on complexity.
+* **Sufficient Contrast:**  Check color contrast between text and background.
+
+
+Remember to consult the official Fancybox documentation and relevant accessibility guidelines for more detailed information on creating accessible Fancybox lightboxes.  Using ARIA attributes and proper semantic HTML is crucial for full screen reader compatibility.
+
+
+
+
+## Troubleshooting
+
+This section helps you resolve common issues and optimize your Fancybox implementation.
+
+
+### Common Issues
+
+* **Fancybox not working:**
+    * **jQuery dependency:** Ensure jQuery is included before the Fancybox JavaScript file.  Check your console for errors related to jQuery.
+    * **Conflicting JavaScript:** Check for conflicts with other JavaScript libraries. Try disabling other scripts temporarily to isolate the problem.
+    * **Incorrect paths:** Verify that the paths to your CSS and JavaScript files are correct.
+    * **Incorrect initialization:** Double-check that you're correctly initializing Fancybox using `$('.fancybox').fancybox()` or `$.fancybox.open()`.
+    * **Missing or incorrect HTML:** Ensure that the elements you're targeting have the correct classes or data attributes for Fancybox to function.
+    * **Browser caching:** Clear your browser's cache and try again.
+    * **Incorrect version:** Ensure you're using a compatible version of Fancybox and jQuery.
+
+* **Content not loading:**  This often stems from incorrect `src` paths, incorrect content types (`type` option), network issues, or server-side errors.  Check your browser's developer console for network requests and errors.  For AJAX content, ensure your server-side code is functioning properly and returning the expected data type.
+
+* **Layout issues:**  Conflicts with other CSS styles can cause layout problems. Use your browser's developer tools to inspect the Fancybox elements and identify conflicting CSS rules.  Consider using more specific CSS selectors to avoid unintended style overrides.
+
+* **Animation problems:** Check for conflicts with CSS animation libraries or incorrect animation effect settings.
+
+
+### Debugging Tips
+
+* **Browser's developer tools:** Use your browser's developer tools (usually accessed by pressing F12) to inspect the Fancybox HTML structure, check for JavaScript errors in the console, and analyze network requests.
+
+* **Console logging:** Add `console.log()` statements to your JavaScript code to track the execution flow and the values of variables.  This is especially useful for debugging AJAX requests and callback functions.
+
+* **Simplify your code:** If you're encountering complex issues, temporarily simplify your implementation to isolate the problem.  Start with a minimal example and gradually add features to pinpoint the source of the error.
+
+* **Check the Fancybox documentation:**  The official Fancybox documentation is an excellent resource for resolving common issues and understanding the library's behavior.
+
+
+### Browser Compatibility
+
+Fancybox generally supports modern browsers.  However, very old or outdated browsers may not be fully supported.  Refer to the official Fancybox documentation for the most current browser compatibility information.   For older browsers, you may need to consider using polyfills for missing features or use a different lightbox library.
+
+
+### Performance Optimization
+
+* **Image optimization:** Optimize your images to reduce their file size.  Use appropriate image formats (e.g., WebP) and compression techniques.
+
+* **Lazy loading:**  If you have a large number of images, use lazy loading techniques to improve initial page load times.  Fancybox itself doesn't have built-in lazy loading, so you'll need to implement it separately.  Libraries like `lazysizes` can help.
+
+* **Minimize HTTP requests:** Combine or minify your CSS and JavaScript files to reduce the number of HTTP requests.
+
+* **Caching:** Use browser caching to improve performance by storing frequently accessed assets locally.
+
+* **Avoid unnecessary code:** Remove any unnecessary or unused code from your project.  Simplify your Fancybox initialization and avoid using excessive options.
+
+
+Remember that performance optimization is an iterative process.  Profile your website to identify performance bottlenecks and address them systematically.  Consider using performance analysis tools to pinpoint areas for improvement.
+
+
+
+
+## Examples
+
+This section provides practical examples showcasing various Fancybox functionalities and integrations.
+
+
+### Simple Image Gallery
+
+This example demonstrates a basic image gallery using Fancybox:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fancybox Image Gallery</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.6.0/dist/jquery.fancybox.min.css" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.6.0/dist/jquery.fancybox.min.js"></script>
+</head>
+<body>
+
+<a class="fancybox" href="image1.jpg" data-caption="Image 1"><img src="thumbnail1.jpg" alt="Image 1"></a>
+<a class="fancybox" href="image2.jpg" data-caption="Image 2"><img src="thumbnail2.jpg" alt="Image 2"></a>
+<a class="fancybox" href="image3.jpg" data-caption="Image 3"><img src="thumbnail3.jpg" alt="Image 3"></a>
+
+<script>
+$(document).ready(function() {
+  $('.fancybox').fancybox({
+      // Add options here if needed (e.g., loop: true, thumbnails: true)
+  });
+});
+</script>
+
+</body>
+</html>
+```
+
+Remember to replace `"image1.jpg"`, `"image2.jpg"`, `"image3.jpg"`, `"thumbnail1.jpg"`, `"thumbnail2.jpg"`, and `"thumbnail3.jpg"` with the actual paths to your images.  The thumbnails are optional, but improve user experience.  You can also customize this with additional options (see Options Reference section).  For instance, adding `loop: true` will allow continuous looping through the gallery.
+
+
+### Ajax-Powered Content
+
+This example shows how to load content via AJAX:
+
+```javascript
+<a id="ajax-link" href="#">Load Content via AJAX</a>
+
+<script>
+$(document).ready(function() {
+  $('#ajax-link').click(function(event) {
+    event.preventDefault();
+    $.fancybox.open({
+      src  : '/my-ajax-endpoint.php',
+      type : 'ajax',
+      ajax : {
+          dataType: 'html'
+      }
+    });
+  });
+});
+</script>
+```
+
+Replace `/my-ajax-endpoint.php` with the URL of your server-side script that returns the HTML content. Ensure your server-side script handles the request correctly and returns the appropriate data. Add error handling as necessary.
+
+
+### Custom Theme Implementation
+
+Creating a custom theme involves creating a new CSS file to override the default Fancybox styles.  This example outlines the process:
+
+
+1. **Create a new CSS file (e.g., `my-fancybox-theme.css`).**
+
+2. **Add your custom styles:**  Use CSS selectors targeting specific Fancybox classes and IDs to modify colors, fonts, spacing, and other visual aspects.  For example:
+
+```css
+/* my-fancybox-theme.css */
+.fancybox-container {
+  background-color: #f0f0f0; /* Change background color */
+}
+
+.fancybox-close-small {
+  color: #ff0000; /* Change close button color */
+}
+```
+
+3. **Include your custom CSS file in your HTML:**  Make sure to include it *after* the default Fancybox CSS file:
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.6.0/dist/jquery.fancybox.min.css" />
+<link rel="stylesheet" href="my-fancybox-theme.css" />
+```
+
+Remember to inspect the Fancybox HTML structure using your browser's developer tools to find the correct selectors for your customizations.
+
+
+### Integration with Other Libraries
+
+Fancybox can be integrated with other JavaScript libraries.  Here's an example integrating with a JavaScript image gallery library (replace with your actual library):
+
+```javascript
+// Assuming 'myImageGallery' is your image gallery library.
+myImageGallery.init(); // Initialize your image gallery.
+
+//Then use data-fancybox to trigger Fancybox on the gallery's images.
+//The details of this would depend heavily on the specifics of your library.
+//Ensure that elements you want to use Fancybox with have data-fancybox attribute.
+$('[data-fancybox]').fancybox();
+```
+
+
+This is a simplified illustration; the precise integration will depend on the specific libraries involved.  Pay close attention to initialization order and potential naming conflicts.  If libraries conflict, you might need to adjust the selectors or use namespaces to prevent interference. Remember to consult the documentation of each library for specific integration instructions.
+
+
+
+
+## API Reference
+
+This section provides detailed information on the core Fancybox API methods.  Refer to the official Fancybox documentation for the most up-to-date and comprehensive API reference.  Method signatures and available options may vary depending on the version of Fancybox you are using.
+
+
+### $.fancybox.open( options )
+
+Opens a new Fancybox instance.  This is the primary method for displaying content in a Fancybox lightbox.
+
+**Parameters:**
+
+* `options` (object): An object containing settings for the new Fancybox instance.  This object can contain a wide range of options to customize the lightbox's behavior and appearance.  Key options include:
+
+    * `src` (string, required): The source of the content to display.  This can be a URL, a CSS selector (for inline content), or other values depending on the `type` option.
+    * `type` (string): The type of content.  Common values include `'image'`, `'video'`, `'iframe'`, `'inline'`, `'ajax'`, and `'html'`.  This determines how the `src` parameter is interpreted.
+    * `caption` (string):  A caption to display below the content.
+    * `width` (number, string): The width of the lightbox.
+    * `height` (number, string): The height of the lightbox.
+    * `autoSize` (boolean): Whether to automatically adjust the lightbox size to fit the content.
+    * `smallBtn` (boolean): Use a smaller close button.
+    * `buttons` (array): Array of button names to display in the toolbar.
+    *  Many more options are available; see the Fancybox documentation for a complete list.
+
+**Return Value:**
+
+Returns a Fancybox instance object. This object allows access to methods for controlling the lightbox's behavior (e.g., `jumpTo`, `close`, `next`, `prev`).
+
+
+**Example:**
+
+```javascript
+$.fancybox.open({
+    src: 'image.jpg',
+    type: 'image',
+    caption: 'My Image',
+    smallBtn: true
+});
+```
+
+
+### $.fancybox.close( index )
+
+Closes an existing Fancybox instance.
+
+**Parameters:**
+
+* `index` (number, optional): The index of the instance to close (0-based). If omitted, it closes the currently active instance.
+
+**Return Value:**
+
+`undefined`
+
+
+**Example:**
+
+```javascript
+$.fancybox.close(); // Closes the currently active instance.
+
+$.fancybox.close(1); // Closes the instance at index 1.
+```
+
+
+### $.fancybox.destroy()
+
+Completely removes Fancybox from the page, including event listeners and any attached data.  Use this only when you no longer need Fancybox at all.
+
+**Parameters:**
+
+None.
+
+**Return Value:**
+
+`undefined`
+
+
+**Example:**
+
+```javascript
+$.fancybox.destroy();
+```
+
+
+### $.fancybox.getInstance( index )
+
+Retrieves a Fancybox instance object.  Useful for directly manipulating an open instance.
+
+**Parameters:**
+
+* `index` (number, optional):  The index of the instance to retrieve (0-based). If omitted, it returns the currently active instance.
+
+
+**Return Value:**
+
+A Fancybox instance object or `null` if no instance is found at the specified index or if no instances are open.
+
+
+**Example:**
+
+```javascript
+let instance = $.fancybox.getInstance();
+if (instance) {
+  instance.jumpTo(2); // Go to the third slide
+}
+```
+
+
+### $.fancybox.isMobile()
+
+Checks if the current browser is on a mobile device.
+
+**Parameters:**
+
+None
+
+**Return Value:**
+
+`true` if it's a mobile device, `false` otherwise.
+
+
+**Example:**
+
+```javascript
+if ($.fancybox.isMobile()) {
+  // Apply mobile-specific styles or behavior
+}
+```
+
+
+### $.fancybox.defaults
+
+An object containing the default settings for Fancybox.  You can modify these defaults to change the global behavior of Fancybox before any instances are created.  Modifying this object will affect all subsequent Fancybox instances.
+
+**Parameters:**
+
+None
+
+**Return Value:**
+
+An object containing the default options.
+
+
+**Example:**
+
+```javascript
+$.fancybox.defaults.animationEffect = "fade"; // Set the default animation effect to "fade".
+```
+
+
+Remember to always consult the official Fancybox documentation for the most up-to-date and complete information on the API and its options.  The specific options and behavior might change slightly between versions.
+

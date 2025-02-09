@@ -1,0 +1,610 @@
+---
+title: "Formvalidation.io - A Developer's Handbook"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Getting Started
+
+### Installation
+
+FormValidation.io can be installed via several methods.  The recommended approach is using npm or yarn for seamless integration with modern JavaScript workflows:
+
+```bash
+npm install formvalidation
+# or
+yarn add formvalidation
+```
+
+Alternatively, you can download the library directly from the [FormValidation.io website](https://formvalidation.io/) and include it in your project using a `<script>` tag.  Remember to include the CSS file as well for styling:
+
+```html
+<link rel="stylesheet" href="path/to/formvalidation.min.css"/>
+<script src="path/to/formvalidation.min.js"></script>
+```
+
+Replace `"path/to/..."` with the actual path to the downloaded files.  Ensure the script tag is placed before the closing `</body>` tag of your HTML document.  Using a CDN is also possible but less recommended for maintaining control over updates and potential caching issues.
+
+
+### Basic Usage
+
+FormValidation.io is designed to be intuitive.  After installation, initialize the library on your form element. This involves creating a `FormValidation` instance, providing it with the form's selector, and optionally, specifying configuration options (covered in the next section).  The core process consists of these steps:
+
+1. **Select the form:**  Identify your form using a CSS selector (e.g., `#myForm`, `.myForm`).
+
+2. **Create a FormValidation instance:** Use the constructor to create an instance, passing the form selector and configuration options as arguments.
+
+3. **Define Fields:**  Specify the validation rules for each field within the configuration.
+
+4. **Register Fields:**  FormValidation automatically registers fields within the form; you usually don't need to manually add them.
+
+5. **Submit the form:** When the form is submitted, FormValidation validates the fields and prevents submission if any validation fails.
+
+### First Example
+
+Let's create a simple form with a required field:
+
+```html
+<form id="myForm">
+  <div class="mb-3">
+    <label for="name">Name:</label>
+    <input type="text" class="form-control" id="name" name="name" />
+  </div>
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    FormValidation.formValidation(
+        document.getElementById('myForm'),
+        {
+          fields: {
+            name: {
+              validators: {
+                notEmpty: {
+                  message: 'The name is required'
+                }
+              }
+            }
+          }
+        }
+    );
+  });
+</script>
+```
+
+This code snippet initializes FormValidation on the form with id "myForm".  The `fields.name` section defines the validation rules for the `name` field, requiring it to be not empty.  A message will be displayed if the field is left blank.  Remember to include the FormValidation library as shown in the "Installation" section.
+
+
+### Configuration Options
+
+The FormValidation constructor accepts a configuration object as its second argument.  This object allows you to customize various aspects of the validation process.  Key configuration options include:
+
+* **`fields`:** (Required) An object defining validation rules for each field in the form.  The keys are field names (usually the input's `name` attribute), and the values are objects specifying validators.  Each validator is an object with a `validator` key (specifying the validator type like `notEmpty`, `email`, `regexp`, etc.) and a `message` key for the error message.
+
+* **`plugins`:** An array of plugin instances to enhance the library's functionality (e.g., adding a feedback icon).
+
+* **`locale`:**  Specifies the language for error messages (defaults to 'en').  You'll need to include the appropriate locale file if you choose a language other than English.
+
+* **`events`:** Allows for custom event handling (e.g., to react to validation success or failure).
+
+* **`submitButtons`:**  Specifies the buttons triggering form submission (useful for forms with multiple submit buttons).  Defaults to all buttons of type `submit`.
+
+A detailed explanation of all configuration options and available validators can be found in the [FormValidation.io documentation](https://formvalidation.io/guide/introduction/).
+
+
+## Core Concepts
+
+### Declarative Validation
+
+FormValidation.io employs a declarative approach to validation.  Instead of writing imperative validation code, you define validation rules directly within the configuration object. This makes the validation logic more readable and maintainable, especially for complex forms.  Rules are specified using a JSON-like structure, making it easy to manage and update validation requirements. The declarative style promotes separation of concerns, keeping validation logic distinct from the rest of the application's code. This enhances code organization and simplifies testing.
+
+
+### Validator Types
+
+FormValidation.io provides a rich set of built-in validator types to handle various validation scenarios.  These validators cover common checks like:
+
+* **`notEmpty`:** Checks if a field is not empty.
+* **`stringLength`:**  Verifies the length of a string value.
+* **`email`:** Validates an email address format.
+* **`url`:** Checks if a value is a valid URL.
+* **`regexp`:**  Uses a regular expression for custom validation patterns.
+* **`numeric`:**  Ensures the value is a number.
+* **`date`:** Validates date formats.
+* **`identical`:** Compares two fields for equality.
+* **`different`:**  Ensures two fields have different values.
+
+
+These validators can be combined and customized to create complex validation rules.  See the complete list and details in the [FormValidation.io documentation](https://formvalidation.io/guide/validators/).  Custom validators can also be created to extend the library's capabilities.
+
+### Rules
+
+Validation rules are defined within the `fields` configuration option.  Each field has an associated object that specifies its validators.  A rule consists of a validator type and its options (e.g., `message`, `min`, `max`). Multiple validators can be applied to a single field.  For example:
+
+```javascript
+fields: {
+  password: {
+    validators: {
+      notEmpty: {
+        message: 'The password is required'
+      },
+      stringLength: {
+        min: 8,
+        max: 20,
+        message: 'The password must be between 8 and 20 characters long'
+      }
+    }
+  }
+}
+```
+
+This defines two rules for the `password` field: one checking for emptiness and another verifying the password length.
+
+
+### Error Handling
+
+FormValidation.io handles errors gracefully. When validation fails, error messages are automatically displayed near the corresponding fields. The library provides flexibility in customizing the error message presentation. You can adjust the message placement, styling, and even create custom error message elements.  The default behavior is to display messages below the input fields, but this can be modified using CSS or plugins.  The `message` property within each validator defines the error message to be shown.
+
+### Event Handling
+
+FormValidation.io offers several events that allow you to react to different validation stages.  You can listen for events like:
+
+* `core.form.valid`: Triggered when the form is valid.
+* `core.field.invalid`: Fired when a field is invalid.
+* `core.field.valid`: Fired when a field is valid.
+* `core.form.submit`: Fired before the form is submitted.  This event can be used to prevent submission if validation fails.
+
+These events are useful for providing feedback to the user, performing additional actions based on validation results, or integrating with other parts of your application.  Event handling is typically done using the `on` method of the FormValidation instance.
+
+
+### Asynchronous Validation
+
+FormValidation.io supports asynchronous validation. This is crucial when performing validation checks that require external requests (e.g., checking if a username already exists). Asynchronous validators are defined similarly to synchronous ones, but they return a Promise that resolves to either true (valid) or false (invalid). For example:
+
+```javascript
+fields: {
+  username: {
+    validators: {
+      async: {
+        message: 'This username is already taken',
+        check: function(value) {
+          return new Promise(function(resolve, reject) {
+            // Perform async check (e.g., AJAX request)
+            setTimeout(function() {
+              // Simulate an async check
+              resolve(value !== 'test');
+            }, 1000);
+          });
+        }
+      }
+    }
+  }
+}
+```
+
+This example shows an asynchronous validator that checks if a username is already taken.  Remember to handle potential errors during the asynchronous operation within the `Promise`.
+
+
+## Built-in Validators
+
+### Required
+
+The `notEmpty` validator checks if a field has a value.  It's the most basic validator and ensures that a field isn't left blank.
+
+```javascript
+validators: {
+  notEmpty: {
+    message: 'This field is required'
+  }
+}
+```
+
+This will display "This field is required" if the field is empty.  Note that whitespace-only values are also considered empty.
+
+
+### Length
+
+The `stringLength` validator verifies that the length of a string falls within a specified range.  It uses the `min` and `max` options to define the minimum and maximum allowed lengths.
+
+```javascript
+validators: {
+  stringLength: {
+    min: 5,
+    max: 25,
+    message: 'The string must be between 5 and 25 characters long'
+  }
+}
+```
+
+This example ensures the string length is between 5 and 25 characters.  If either `min` or `max` is omitted, only one boundary is checked.
+
+
+### Min/Max
+
+The `numeric` validator, when combined with `min` and `max` options, checks if a numeric value falls within a specified range.  It's important to note that this validator first checks if the input is a valid number.
+
+```javascript
+validators: {
+  numeric: {
+    min: 10,
+    max: 100,
+    message: 'The value must be between 10 and 100'
+  }
+}
+```
+
+This ensures the numeric input is between 10 and 100 (inclusive).  Similar to `stringLength`, omitting `min` or `max` checks only one boundary.
+
+
+### Email
+
+The `email` validator checks if a value is a valid email address using a regular expression.
+
+```javascript
+validators: {
+  email: {
+    message: 'Please enter a valid email address'
+  }
+}
+```
+
+This will validate the format of the entered email, checking for the presence of "@" and a valid domain.
+
+
+### URL
+
+The `url` validator verifies if a value is a valid URL.
+
+```javascript
+validators: {
+  url: {
+    message: 'Please enter a valid URL'
+  }
+}
+```
+
+This checks for a valid URL structure, including protocol (http:// or https://), domain, and potentially a path.
+
+
+### Regex
+
+The `regexp` validator uses a regular expression to perform custom validation checks.
+
+```javascript
+validators: {
+  regexp: {
+    regexp: /^[a-zA-Z]+$/,
+    message: 'The value can only contain letters'
+  }
+}
+```
+
+This example allows only alphabetic characters using a regular expression. You can use any valid regular expression to define your custom validation pattern.
+
+
+### Numeric
+
+The `numeric` validator ensures that a value is a number.
+
+```javascript
+validators: {
+  numeric: {
+    message: 'The value must be a number'
+  }
+}
+```
+
+This will check if the input can be parsed as a valid number.
+
+
+### Date
+
+The `date` validator checks if a value is a valid date.  You can specify a format using the `format` option (refer to the documentation for supported formats).
+
+```javascript
+validators: {
+  date: {
+    format: 'YYYY-MM-DD',
+    message: 'Please enter a valid date in YYYY-MM-DD format'
+  }
+}
+```
+
+This example expects the date to be in 'YYYY-MM-DD' format.
+
+
+### Alpha
+
+The `alpha` validator checks if a value contains only alphabetic characters.
+
+```javascript
+validators: {
+  alpha: {
+    message: 'The value can only contain letters'
+  }
+}
+```
+
+This only allows letters (a-z, A-Z).
+
+
+### Alphanumeric
+
+The `alphanumeric` validator checks if a value contains only alphanumeric characters (letters and numbers).
+
+```javascript
+validators: {
+  alphanumeric: {
+    message: 'The value can only contain letters and numbers'
+  }
+}
+```
+
+This allows letters and numbers (a-z, A-Z, 0-9).
+
+
+### CreditCard
+
+The `creditCard` validator checks if a value is a valid credit card number using the Luhn algorithm.
+
+```javascript
+validators: {
+  creditCard: {
+    message: 'Please enter a valid credit card number'
+  }
+}
+```
+
+This performs a basic check for credit card number validity.
+
+
+### IBAN
+
+The `iban` validator checks if a value is a valid IBAN (International Bank Account Number).
+
+```javascript
+validators: {
+  iban: {
+    message: 'Please enter a valid IBAN'
+  }
+}
+```
+
+This validator verifies the structure and checksum of the provided IBAN.  Note that country-specific IBAN validation rules are applied.
+
+Remember to consult the [FormValidation.io documentation](https://formvalidation.io/guide/validators/) for detailed information on options and usage of each validator.
+
+
+## Custom Validators
+
+### Creating Custom Validators
+
+FormValidation.io allows you to create custom validators to extend its functionality beyond the built-in ones.  A custom validator is a function that receives the field's value as input and returns a promise resolving to `true` (valid) or `false` (invalid).  It should also provide an error message.  Here's the structure:
+
+```javascript
+function myCustomValidator(value) {
+  // Perform your custom validation logic here
+  const isValid =  value.length >= 10; // Example: Check if length is at least 10
+  return new Promise((resolve, reject) => {
+      resolve({ valid: isValid, message: isValid ? '' : 'Value must be at least 10 characters long' });
+  });
+}
+```
+
+This example creates a validator that checks if the input string's length is at least 10 characters.  The function returns a promise that resolves to an object containing `valid` (a boolean indicating validity) and `message` (the error message if invalid).  For synchronous validation, you can return the object directly instead of a Promise.
+
+
+### Registering Custom Validators
+
+Once you've created a custom validator, you need to register it with FormValidation.io before using it in your form's configuration.  This is done using the `registerValidator` method:
+
+```javascript
+FormValidation.registerValidator('myCustom', myCustomValidator);
+```
+
+This registers the `myCustomValidator` function under the name `myCustom`.  You can now use this custom validator in your `fields` configuration:
+
+```javascript
+fields: {
+  myField: {
+    validators: {
+      myCustom: {
+        message: 'Custom validation failed'
+      }
+    }
+  }
+}
+```
+
+Now, FormValidation will apply your `myCustom` validator to the `myField`.  If the validation fails, the custom message ("Custom validation failed") will be displayed.
+
+
+### Extending Built-in Validators
+
+Instead of creating entirely new validators, you can sometimes extend existing ones by providing custom logic within the `check` method of the validator. This can avoid redundant code and keeps your codebase more organized.
+
+Let's say we want to extend the `stringLength` validator to allow only uppercase letters:
+
+```javascript
+FormValidation.extendValidator('stringLength', {
+  validate: function(value, validator) {
+    if (!/^[A-Z]+$/.test(value)) {
+      return {
+        valid: false,
+        message: validator.message + ' and must be uppercase'
+      }
+    }
+    return validator.validate(value, validator);
+  }
+});
+```
+
+This code snippet extends the `stringLength` validator.  The custom `validate` function first checks if the value contains only uppercase letters. If not, it returns an appropriate error message. Otherwise, it falls back to the default `stringLength` validator's validation logic.  This approach maintains the original validator's core functionality while adding specific conditions. Remember to replace `validator.message` with a suitable error message construction.  You may need to adapt this based on the validator's structure and the version of FormValidation.io you're using.
+
+
+## Advanced Usage
+
+### Working with Forms
+
+FormValidation.io seamlessly integrates with various form types and structures. While the basic usage focuses on single forms, it effectively handles complex scenarios.  You can target forms with multiple submit buttons by specifying the `submitButtons` option in the configuration.  For forms with dynamic elements, ensure you trigger revalidation using the appropriate FormValidation methods (`revalidateField`, `revalidateForm`) after updating the DOM.  Handling nested forms might require creating separate FormValidation instances for each nested form.
+
+
+### Conditional Validation
+
+Conditional validation allows you to dynamically adjust validation rules based on the values of other fields.  This is achieved by using JavaScript functions within the validator options. These functions receive the entire form's data as an argument and can return modified validator configurations.
+
+```javascript
+fields: {
+  fieldA: {
+    validators: {
+      notEmpty: {
+        message: 'Field A is required',
+        enabled: function(form) {
+          return form.fieldB === 'value1'; // Validate only if fieldB is 'value1'
+        }
+      }
+    }
+  }
+}
+```
+
+In this example, the `notEmpty` validator for `fieldA` is only enabled if the value of `fieldB` is 'value1'.
+
+
+### Dynamic Validation
+
+Dynamic validation refers to adjusting validation rules during runtime.  You can achieve this by programmatically modifying the FormValidation instance's configuration using methods like `updateField`, `removeField`, and `addField`.  This is particularly useful when dealing with forms that change structure or validation requirements based on user interaction. Remember to revalidate the affected fields or the entire form after making configuration changes.
+
+
+### Field Groups
+
+For forms containing logically grouped fields (e.g., address fields), consider using field groups. This improves organization and allows for applying common validation rules to an entire group.  Field groups can be managed similarly to individual fields, applying validators to the entire group.  The exact implementation details may depend on your specific grouping strategy in your form.
+
+
+### Nested Objects
+
+When dealing with forms that represent complex nested data structures, represent these structures using nested objects in your validation configuration. This allows for structured validation, ensuring that validation is applied accurately to each nested property.  Be mindful of the naming convention used for the fields to match the nested object structure.
+
+
+### Localization
+
+FormValidation.io supports internationalization through locale files.  You can specify the desired locale in the configuration (`locale` option).  FormValidation.io includes several locales; additional locales may be found in community contributions.  If a specific locale file is not included, validation messages will default to English.
+
+
+### Accessibility
+
+Ensure your forms are accessible by following accessibility best practices.  This includes using appropriate ARIA attributes, providing clear and concise error messages, and ensuring sufficient color contrast.  Proper ARIA attributes ensure screen readers can interpret the form's structure and validation states accurately.
+
+
+### Integration with Frameworks (React, Vue, Angular)
+
+FormValidation.io can be easily integrated into popular JavaScript frameworks. While there aren't framework-specific packages, the library's core functionality remains consistent across different environments.  You'll typically manage the FormValidation instance within your component's lifecycle methods (e.g., `componentDidMount`, `mounted`, `ngOnInit`), ensuring proper initialization and cleanup.  The integration involves using FormValidation's API within the component's logic, binding the form's data to your framework's state management system and handling validation results within your component's rendering.  Refer to the FormValidation.io documentation for more detailed guidance on integrating with specific frameworks.
+
+
+## Troubleshooting
+
+### Common Errors
+
+Several common errors arise when using FormValidation.io.  Understanding these can significantly expedite problem resolution.
+
+* **`FormValidation is not defined`:** This error typically indicates that the FormValidation library hasn't been correctly included in your project. Ensure the script tag is included in your HTML file, and the path to the library is accurate.  Check your browser's developer console for any loading errors.
+
+* **Validation not working:**  Double-check your field names in the configuration (`fields` option) to ensure they exactly match the `name` attributes of your form inputs.  Confirm that you've correctly specified the validators and their options.  If using asynchronous validators, verify the promise resolution is handled correctly.  Review the browser's developer console for any JavaScript errors.
+
+* **Incorrect error messages:** Verify the `message` property within each validator is correctly set.  If using localization, ensure the correct locale file is included and the `locale` option is set appropriately.
+
+* **Unexpected behavior with dynamic forms:** When dynamically adding or removing form elements, ensure you use FormValidation.io's methods (`addField`, `removeField`, `revalidateField`, `revalidateForm`) to update the validation instance accordingly. Failure to do so may lead to incorrect validation or unexpected behavior.
+
+* **Conflicts with other libraries:**  In rare cases, conflicts with other JavaScript libraries might interfere with FormValidation.io's functionality. Try disabling other libraries temporarily to isolate the problem.  Consider the order in which scripts are loaded.
+
+
+### Debugging Tips
+
+Effective debugging is essential when resolving FormValidation.io issues.  Here are some helpful techniques:
+
+* **Use your browser's developer tools:** The browser's developer console provides valuable insights into JavaScript errors, network requests (for asynchronous validators), and the overall state of your application.
+
+* **Simplify your form:**  If you're encountering complex issues, create a minimal, reproducible example with only the problematic fields and validators.  This helps isolate the problem and reduces the complexity of debugging.
+
+* **Inspect the FormValidation instance:**  Use your browser's debugging tools to inspect the FormValidation instance. This allows you to examine the current configuration, validated fields, and any error messages.
+
+* **Check the FormValidation documentation and examples:** The official documentation contains detailed explanations and examples that can help you understand the library's functionality and troubleshoot common problems.
+
+
+### Troubleshooting Specific Issues
+
+While the above covers common scenarios, resolving specific issues may require additional investigation.  Here are some approaches:
+
+* **Asynchronous validator problems:** If an asynchronous validator is not working, use your browser's network tools to inspect the requests made to the server.  Check for errors in the server response or any network issues.
+
+* **Plugin-related issues:**  If a plugin is causing problems, temporarily disable it to see if that solves the issue.  Check the plugin's documentation for troubleshooting information.
+
+* **Version compatibility:** Ensure you are using a compatible version of FormValidation.io with your other libraries and dependencies.  Check the release notes and compatibility information on the FormValidation.io website.
+
+* **Community support:** The FormValidation.io community is a valuable resource for troubleshooting complex problems.  Consult forums or online communities for assistance.  Providing a clear description of your problem, including code snippets and error messages, helps others assist you efficiently.
+
+Remember to always consult the official FormValidation.io documentation for the most up-to-date information and troubleshooting guidance.
+
+
+## API Reference
+
+This section provides a concise overview of the FormValidation.io API.  For complete and detailed information, refer to the comprehensive documentation available on the FormValidation.io website.
+
+
+### FormValidation Class
+
+The `FormValidation` class is the core of the library. It's responsible for managing the validation process of a form.  Key methods include:
+
+* **`constructor(form, options)`:** Creates a new `FormValidation` instance.  `form` is a CSS selector or DOM element representing the form, and `options` is a configuration object.
+
+* **`on(event, handler)`:** Attaches an event handler to the instance.  Events include `core.form.valid`, `core.form.invalid`, `core.field.valid`, `core.field.invalid`, `core.form.submit`, etc.
+
+* **`off(event, handler)`:** Detaches an event handler.
+
+* **`validate()`:** Validates the entire form.
+
+* **`validateField(fieldName)`:** Validates a specific field.
+
+* **`revalidateField(fieldName)`:** Revalidates a specific field.
+
+* **`revalidateForm()`:** Revalidates the entire form.
+
+* **`destroy()`:** Destroys the instance and removes all event listeners.
+
+* **`getFields()`:** Returns an object containing all validated fields and their statuses.
+
+* **`getFieldElements(fieldName)`:** Returns a list of DOM elements associated with a field.
+
+* **`updateField(fieldName, options)`:** Updates the validation rules for a specific field.
+
+* **`addField(fieldName, options)`:** Adds a new field to be validated.
+
+* **`removeField(fieldName)`:** Removes a field from the validation process.
+
+* `getLocale()`: Returns the currently set locale.
+
+* `setLocale(locale)`: Sets the locale for error messages.
+
+
+### Validator Methods
+
+Validators are functions that perform specific validation checks.  While you primarily define validators in the configuration, understanding their underlying methods is beneficial.  Many validators (especially custom ones) will utilise the following pattern where `value` is the field's value and `validator` is the validator's configuration:
+
+* **`validate(value, validator)`:** This is the core function of a validator. It receives the field's value and the validator's configuration as arguments and returns an object with `valid` (boolean) and `message` (string) properties.  This method is commonly used within custom validators and extended validators.
+
+
+### Utility Methods
+
+FormValidation.io provides several utility methods for common tasks:
+
+* **`FormValidation.registerValidator(name, validator)`:** Registers a custom validator.  `name` is the validator's name, and `validator` is the validation function.
+
+* **`FormValidation.extendValidator(name, options)`:** Extends an existing validator with additional logic.  `name` specifies the validator to extend, and `options` contain the extension logic.
+
+* **`FormValidation.utils.isValidDate(dateString, format)`:** Checks if a date string is valid given a specific format.
+
+* **`FormValidation.utils.format(value, format)`:** Formats a value according to a specific format (for date, number, etc.).
+
+* **`FormValidation.utils.getElement(selector)`:** Gets the DOM element matching the given selector.
+
+
+This is a condensed overview.  The complete API documentation provides detailed explanations, examples, and parameter descriptions for each method and property.  Always refer to the official documentation for the most accurate and up-to-date information.
+
