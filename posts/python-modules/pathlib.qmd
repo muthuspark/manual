@@ -1,0 +1,909 @@
+---
+title: "pathlib - Documentation"
+categories: [ "Python Modules" ]
+---
+
+
+### What is pathlib?
+
+`pathlib` is a Python module that offers an object-oriented way to interact with files and directories.  Instead of manipulating file paths as strings, `pathlib` provides a `Path` object that represents a file system path.  These objects have methods for performing common file system operations, making code more readable and less error-prone.  It's designed to be more Pythonic and intuitive than working directly with strings and the `os` module.
+
+### Why use pathlib?
+
+`pathlib` offers several advantages over using strings and the `os` module for file path manipulation:
+
+* **Readability and Maintainability:**  `pathlib`'s methods (e.g., `.exists()`, `.mkdir()`, `.rename()`) are more descriptive and easier to understand than their `os` module equivalents. This improves code readability and makes it easier to maintain.
+
+* **Type Safety:**  `Path` objects are explicitly typed, leading to fewer runtime errors caused by incorrect path manipulation. The compiler (or your IDE) can catch some mistakes that would be silent with string manipulation.
+
+* **Improved Error Handling:**  `pathlib` methods often raise more specific exceptions, allowing for more targeted error handling in your code.
+
+* **Object-Oriented Approach:**  The object-oriented nature of `pathlib` allows for chaining of operations, leading to more concise and elegant code.
+
+* **Platform Independence:** `pathlib` handles the differences between operating systems (Windows, macOS, Linux) transparently, so your code is more portable.
+
+### pathlib vs. os.path
+
+`os.path` provides functions for manipulating file paths as strings.  While functional, this approach is prone to errors due to string manipulation and lacks the readability and object-oriented advantages of `pathlib`.  `pathlib` builds upon the functionality of `os.path` but offers a significantly improved user experience and reduced risk of errors.  For new projects, `pathlib` is strongly recommended.  Migrating existing projects to `pathlib` can greatly improve maintainability and reduce bugs.
+
+### Installing pathlib
+
+`pathlib` is part of Python's standard library, meaning it's included with every standard Python installation.  There's no separate installation required.  You can simply import it into your scripts using:
+
+```python
+from pathlib import Path
+```
+
+
+## Core Concepts
+
+### Path Objects
+
+The central element of `pathlib` is the `Path` object.  A `Path` object represents a file system path.  You create a `Path` object by passing a string representing a path to the `Path()` constructor:
+
+```python
+from pathlib import Path
+
+my_path = Path("/tmp/my_file.txt")  # For POSIX systems
+my_path = Path("C:\\Users\\username\\Documents\\my_file.txt") # For Windows
+my_path = Path("relative/path/to/file.txt") # Relative path
+```
+
+Once you have a `Path` object, you can use its methods to perform various operations on the file or directory it represents, such as checking if it exists, creating directories, reading files, etc.
+
+
+### Path Representation
+
+`Path` objects internally represent paths in a way that's independent of the underlying operating system.  However, when you need to convert a `Path` object to a string (e.g., for printing or use with other libraries), it adapts to the current operating system's path conventions.  This means the string representation will use forward slashes (`/`) on POSIX systems and backslashes (`\`) on Windows.  You can explicitly control the string representation using the `as_posix()` and `as_uri()` methods.
+
+```python
+my_path = Path("/tmp/my_file.txt")
+print(str(my_path)) # Output will be OS-specific
+print(my_path.as_posix()) # Output: /tmp/my_file.txt (POSIX style)
+print(my_path.as_uri()) # Output: file:///tmp/my_file.txt (URI style)
+
+```
+
+### Absolute vs. Relative Paths
+
+A *absolute path* specifies the location of a file or directory starting from the root of the file system.  Examples include `/tmp/my_file.txt` (POSIX) and `C:\Users\username\Documents\my_file.txt` (Windows).  An *relative path* specifies the location of a file or directory relative to the current working directory. For example, `data/myfile.txt` would locate the file in the `data` subdirectory relative to where your script is running.
+
+`pathlib` allows you to easily work with both types of paths.  The `is_absolute()` method can be used to determine if a `Path` object represents an absolute path.  The `resolve()` method can convert a relative path to an absolute path.
+
+```python
+absolute_path = Path("/tmp/my_file.txt") # Absolute path (POSIX)
+relative_path = Path("data/myfile.txt") # Relative path
+
+print(absolute_path.is_absolute()) # Output: True
+print(relative_path.is_absolute()) # Output: False
+
+absolute_relative_path = relative_path.resolve() # Convert to absolute path (requires appropriate current working directory)
+print(absolute_relative_path)
+```
+
+
+### Pure Paths
+
+A `PurePath` object is similar to a `Path` object, but it doesn't interact with the actual file system.  It's purely for path manipulation without file system I/O.  This is useful for situations where you want to perform path operations (like joining paths or extracting components) without the overhead of file system access or the risk of exceptions due to nonexistent files.  You can create a `PurePath` object using the `PurePath()` constructor.   Note that methods that involve interaction with the file system (like `exists()`, `mkdir()`, `open()`) are not available on `PurePath` objects.
+
+```python
+from pathlib import PurePath
+
+pure_path = PurePath("/tmp/my_file.txt")
+print(pure_path.parent) # Output: PurePosixPath('/tmp')
+# pure_path.exists()  # This would raise an AttributeError because PurePath cannot interact with the file system.
+
+```
+
+
+## Creating Paths
+
+### Creating Paths from Strings
+
+The most common way to create a `Path` object is by passing a string representing the file path to the `Path()` constructor:
+
+```python
+from pathlib import Path
+
+# Absolute paths
+posix_path = Path("/tmp/my_file.txt")
+windows_path = Path("C:\\Users\\username\\Documents\\myfile.txt")
+
+# Relative paths
+relative_path = Path("data/file.txt")
+
+print(posix_path)
+print(windows_path)
+print(relative_path)
+```
+
+The constructor automatically handles the appropriate path separators for the operating system.
+
+
+### Creating Paths from other Paths
+
+You can create new `Path` objects from existing ones using path manipulation methods. For example, you can create a new path by combining an existing path with a new component using the `/` operator or the `joinpath()` method:
+
+```python
+from pathlib import Path
+
+base_path = Path("/tmp")
+new_file = base_path / "my_new_file.txt"  # Using the / operator
+another_file = base_path.joinpath("another_file.txt") # Using joinpath()
+print(new_file)
+print(another_file)
+
+#Creating subdirectories
+directory = Path("/tmp/mydir")
+subdirectory = directory / "subdir1"
+subdirectory.mkdir(parents=True, exist_ok=True) # Creates both mydir and subdir1 if they do not already exist
+
+```
+
+The `parents=True` argument to `mkdir()` ensures that parent directories are created if they do not exist, and `exist_ok=True` prevents errors if the directory already exists.
+
+
+### Joining Paths
+
+The `/` operator and the `joinpath()` method are primarily used for joining paths. They intelligently handle path separators and ensure that the resulting path is correctly formatted:
+
+
+```python
+from pathlib import Path
+
+path1 = Path("/tmp")
+path2 = Path("data")
+path3 = Path("file.txt")
+
+joined_path = path1 / path2 / path3
+print(joined_path) # Output: /tmp/data/file.txt (or equivalent for your OS)
+
+
+joined_path_2 = path1.joinpath(path2,path3)
+print(joined_path_2) # Output: /tmp/data/file.txt (or equivalent for your OS)
+
+```
+
+
+### Resolving Paths
+
+The `resolve()` method converts a relative path to an absolute path.  It takes into account symbolic links and resolves them to their ultimate target, making the resulting path fully qualified.
+
+```python
+from pathlib import Path
+
+relative_path = Path("my_file.txt") # relative to the current working directory
+
+absolute_path = relative_path.resolve()
+print(absolute_path) # Prints the absolute path of my_file.txt
+```
+
+Note that `resolve()` needs to know the current working directory, and may fail if it cannot determine the absolute path (e.g., due to symbolic links that cannot be fully resolved).  In such cases, you might see the original relative path returned instead of an absolute path.
+
+
+## Path Manipulation
+
+### Getting Path Components
+
+`pathlib` provides attributes and methods to access individual components of a path:
+
+* **`parts`:** A tuple containing all path components.
+* **`name`:** The final component of the path (filename or directory name).
+* **`stem`:** The filename without the suffix (extension).
+* **`suffix`:** The file extension (including the leading dot).
+* **`suffixes`:** A list of all suffixes (extensions) if there are multiple.
+* **`parent`:** The parent directory of the path.
+* **`drive`:**  (Windows only) The drive letter.
+
+
+```python
+from pathlib import Path
+
+path = Path("/tmp/my_file.txt")
+
+print(f"Parts: {path.parts}")
+print(f"Name: {path.name}")
+print(f"Stem: {path.stem}")
+print(f"Suffix: {path.suffix}")
+print(f"Suffixes: {path.suffixes}")
+print(f"Parent: {path.parent}")
+print(f"Drive: {path.drive}") # Output will be empty on POSIX systems
+
+path2 = Path("C:/Users/User/Documents/my_report.csv.gz")
+print(f"Suffixes of path2: {path2.suffixes}")
+```
+
+
+### Modifying Path Components
+
+While you can create new paths by combining existing ones (as described in the "Creating Paths" section), `pathlib` doesn't directly provide methods to modify components of an existing `Path` object *in place*. Instead, you create a new `Path` object with the desired modifications:
+
+
+```python
+from pathlib import Path
+
+path = Path("/tmp/my_file.txt")
+new_path = path.with_name("new_file.csv") # Changes the filename and extension
+print(f"Original path: {path}")
+print(f"New path: {new_path}")
+
+new_path2 = path.with_suffix(".csv") # Changes only the extension
+print(f"New path2: {new_path2}")
+```
+
+
+### Working with suffixes and prefixes
+
+Besides changing suffixes as shown above, you can check for suffixes and prefixes:
+
+```python
+from pathlib import Path
+path = Path("/tmp/my_file.txt")
+print(path.match("*.txt")) #Returns True if the path matches the pattern
+print(path.match("*.csv")) #Returns False
+
+path2 = Path("/tmp/my_report.csv.gz")
+print(path2.suffixes)
+```
+
+
+### Normalization
+
+The `resolve()` method (already discussed in "Creating Paths") normalizes paths to their canonical form, handling symbolic links and resolving relative paths to absolute ones.  Additionally,  `path.resolve()` eliminates redundant path separators and up-level references (`..`).
+
+
+```python
+from pathlib import Path
+
+path = Path("/tmp/../tmp/./my_file.txt") # Redundant separators and '..'
+normalized_path = path.resolve()
+print(f"Original path: {path}")
+print(f"Normalized path: {normalized_path}")
+
+```
+
+The `absolute()` method is similar, but does not resolve symlinks.
+
+
+### Iteration
+
+`Path` objects representing directories can be iterated over to access their contents:
+
+
+```python
+from pathlib import Path
+
+directory = Path("./my_directory") #Make sure my_directory exists
+directory.mkdir(exist_ok=True) #Create directory if it doesn't exist
+(directory / "file1.txt").touch()
+(directory / "file2.txt").touch()
+
+for item in directory.iterdir():
+    print(item)
+
+for item in directory.glob("*.txt"): #Use glob for pattern matching
+    print(item)
+
+for item in directory.rglob("*"): # Use rglob for recursive search
+    print(item)
+```
+
+`iterdir()` yields all immediate children, `glob()` provides pattern matching within the current directory, and `rglob()` performs recursive globbing through subdirectories.  Remember to handle exceptions properly, as `iterdir()` and related methods can raise exceptions if the directory does not exist or if access is denied.
+
+
+## File System Operations
+
+### Checking File Existence
+
+The `exists()` method checks if a file or directory exists:
+
+```python
+from pathlib import Path
+
+file_path = Path("./my_file.txt")
+if file_path.exists():
+    print("File exists!")
+else:
+    print("File does not exist.")
+
+#Check if a directory exists
+directory_path = Path("./my_directory")
+if directory_path.is_dir() and directory_path.exists():
+    print("Directory exists!")
+else:
+    print("Directory does not exist.")
+
+
+```
+
+`is_file()` and `is_dir()` can be used for more specific checks.
+
+
+### Creating Files and Directories
+
+* `touch()` creates an empty file.
+* `mkdir()` creates a directory.  The `parents=True` argument creates parent directories if they don't exist, and `exist_ok=True` prevents an error if the directory already exists.
+
+```python
+from pathlib import Path
+
+file_path = Path("./new_file.txt")
+file_path.touch()
+
+directory_path = Path("./new_directory/subdir")
+directory_path.mkdir(parents=True, exist_ok=True)
+
+```
+
+
+### Deleting Files and Directories
+
+* `unlink()` deletes a file.
+* `rmdir()` deletes an empty directory.
+* `rmtree()` recursively deletes a directory and all its contents.  Use with caution!
+
+```python
+from pathlib import Path
+
+file_path = Path("./new_file.txt")
+file_path.unlink()
+
+empty_directory = Path("./empty_directory")
+empty_directory.mkdir(exist_ok=True)
+empty_directory.rmdir()
+
+# Be extremely careful when using rmtree:
+recursive_directory = Path("./recursive_dir")
+recursive_directory.mkdir(exist_ok=True)
+(recursive_directory/"file_in_subdir").touch()
+
+#recursive_directory.rmtree() # Uncomment to delete recursively.  Use with caution!
+```
+
+
+### Renaming Files and Directories
+
+`rename()` renames a file or directory:
+
+```python
+from pathlib import Path
+
+source_path = Path("./my_file.txt")
+source_path.touch()
+destination_path = Path("./renamed_file.txt")
+source_path.rename(destination_path)
+
+```
+
+
+### Copying Files and Directories
+
+* `copy()` copies a file.
+* `copytree()` recursively copies a directory and its contents.
+
+```python
+from pathlib import Path
+source_file = Path("./my_file.txt")
+source_file.touch()
+destination_file = Path("./copied_file.txt")
+source_file.copy(destination_file)
+
+#For directories use copytree
+source_dir = Path("./source_dir")
+source_dir.mkdir(exist_ok=True)
+(source_dir / "file1.txt").touch()
+destination_dir = Path("./destination_dir")
+shutil.copytree(source_dir, destination_dir) #Requires shutil module
+
+```
+
+Note that `copytree` requires the `shutil` module.
+
+
+### Moving Files and Directories
+
+`replace()` moves (renames) a file or directory.  If the destination exists, it will be overwritten. `rename()` is generally preferred for simple renaming unless overwrite is needed.
+
+```python
+from pathlib import Path
+
+source_path = Path("./my_file.txt")
+source_path.touch()
+destination_path = Path("./moved_file.txt")
+source_path.replace(destination_path)
+```
+
+
+### Getting File Information (size, modification time, etc.)
+
+* `stat()` returns a `stat` object containing various file information (size, modification time, etc.).
+* `lstat()` is similar to `stat()` but doesn't follow symbolic links.
+* `exists()`, `is_file()`, `is_dir()` can be used for basic checks.
+
+
+```python
+import time
+from pathlib import Path
+
+file_path = Path("./my_file.txt")
+file_path.touch()
+file_info = file_path.stat()
+
+print(f"File size: {file_info.st_size} bytes")
+print(f"Last modified time: {time.ctime(file_info.st_mtime)}")
+print(f"Is file: {file_info.st_mode}")
+
+```
+
+
+### Globbing (finding files matching patterns)
+
+The `glob()` and `rglob()` methods find files matching specified patterns:
+
+```python
+from pathlib import Path
+import glob
+
+# Create some files for testing
+(Path("./my_dir") / "file1.txt").touch()
+(Path("./my_dir") / "image.jpg").touch()
+(Path("./my_dir") / "file2.txt").touch()
+
+
+for file_path in Path("./my_dir").glob("*.txt"):
+    print(file_path)
+
+for file_path in Path("./my_dir").rglob("*"): # Recursive glob
+    print(file_path)
+
+# Using glob module for comparison
+for file_path in glob.glob("./my_dir/*.txt"):
+    print(file_path)
+
+```
+
+`glob()` searches only the current directory, while `rglob()` recursively searches subdirectories.  The `glob` module (part of Python's standard library) provides similar functionality but with string-based path manipulation.  `pathlib`'s methods are generally preferred for better readability and type safety.
+
+
+
+## Working with Directories
+
+### Listing Directory Contents
+
+The `listdir()` method returns a list of the names (as `Path` objects) of files and subdirectories within a directory:
+
+```python
+from pathlib import Path
+
+my_dir = Path("./my_directory")
+my_dir.mkdir(exist_ok=True)
+(my_dir / "file1.txt").touch()
+(my_dir / "subdir").mkdir()
+
+contents = list(my_dir.iterdir()) #or list(my_dir.listdir())
+for item in contents:
+    print(item)
+
+```
+
+Note that `iterdir()` is generally preferred for better memory efficiency in cases with many files, as it yields items one at a time rather than creating a full list in memory.
+
+
+### Creating Directories
+
+The `mkdir()` method creates a directory.  The `parents=True` argument creates any necessary parent directories, and `exist_ok=True` prevents an error if the directory already exists.
+
+```python
+from pathlib import Path
+
+dir_to_create = Path("./new_directory/subdir1/subdir2")
+dir_to_create.mkdir(parents=True, exist_ok=True)
+```
+
+
+### Removing Directories
+
+* `rmdir()` removes an empty directory.  It will raise an exception if the directory is not empty.
+* `rmtree()` recursively removes a directory and all its contents.  Use with extreme caution!
+
+```python
+from pathlib import Path
+import shutil
+
+empty_dir = Path("./empty_dir")
+empty_dir.mkdir(exist_ok=True)
+empty_dir.rmdir()
+
+
+#Recursive Removal - Use with extreme caution!
+recursive_dir = Path("./recursive_dir")
+recursive_dir.mkdir(exist_ok=True, parents=True)
+(recursive_dir / "file1.txt").touch()
+(recursive_dir / "subdir" / "file2.txt").mkdir(parents=True)
+
+#shutil.rmtree(recursive_dir) #Uncomment to delete recursively
+```
+
+Note that `rmtree()` requires the `shutil` module for recursive deletion.  Always double-check before using `rmtree()` to avoid accidental data loss.
+
+
+### Iterating over Directories
+
+The `iterdir()` method provides an iterator that yields `Path` objects for each item (file or subdirectory) within a directory. This is generally preferred over `listdir()` for large directories as it avoids loading all the file names into memory at once.
+
+```python
+from pathlib import Path
+
+my_dir = Path("./my_directory")
+my_dir.mkdir(exist_ok=True)
+(my_dir / "file1.txt").touch()
+(my_dir / "subdir").mkdir()
+
+for item in my_dir.iterdir():
+    print(item)
+
+```
+
+
+### Walking Directory Trees
+
+For recursively traversing a directory tree, `os.walk()` from the `os` module is commonly used and still very efficient, though pathlib's `rglob` can be used for pattern-based traversal:
+
+```python
+import os
+from pathlib import Path
+
+root_dir = Path("./my_large_directory")
+root_dir.mkdir(exist_ok=True)
+(root_dir / "subdir1" / "file1.txt").touch()
+(root_dir / "subdir2" / "file2.txt").touch()
+
+#Using os.walk:
+for root, dirs, files in os.walk(root_dir):
+    print("Root:", root)
+    print("Dirs:", dirs)
+    print("Files:", files)
+
+#Using pathlib's rglob for pattern matching:
+for item in root_dir.rglob("*"):
+    print(item)
+```
+
+`os.walk()` provides more detailed information (root directory, subdirectories, files), while `rglob()` is more concise if you only need to process files that match a certain pattern.  Choose the approach best suited to your specific needs.  For simple iteration through all items in subdirectories, `rglob()` is often more convenient.  If you need more control over the traversal process or information, `os.walk()` offers greater flexibility.
+
+
+## Advanced Usage
+
+### Symbolic Links
+
+`pathlib` handles symbolic links differently depending on the method used.  `resolve()` follows symbolic links and returns the final target path.  `stat()` and `lstat()` provide different information when dealing with symbolic links;  `stat()` reports information about the target of the symbolic link, while `lstat()` reports information about the link itself.
+
+
+```python
+import os
+from pathlib import Path
+
+# Create a symbolic link (replace with your OS-specific command if needed)
+link_path = Path("./my_link")
+target_path = Path("./my_target.txt")
+target_path.touch()
+os.symlink(target_path, link_path)
+
+print(f"Link path: {link_path}")
+print(f"Resolved link path: {link_path.resolve()}")
+
+print(f"Link stat: {link_path.lstat()}") # Information about the link itself
+print(f"Target stat: {link_path.stat()}") # Information about the target file
+
+
+```
+
+
+### Handling Errors
+
+File system operations can raise exceptions (e.g., `FileNotFoundError`, `PermissionError`, `OSError`). It's crucial to handle these exceptions appropriately using `try...except` blocks:
+
+```python
+from pathlib import Path
+
+file_path = Path("./nonexistent_file.txt")
+
+try:
+    file_path.unlink()
+except FileNotFoundError:
+    print("File not found.")
+except PermissionError:
+    print("Permission denied.")
+except OSError as e:
+    print(f"An OS error occurred: {e}")
+
+```
+
+Always anticipate potential errors and handle them gracefully to prevent your program from crashing.  Consider using more specific exception handling when possible to pinpoint the type of error that occurred.
+
+
+### Performance Optimization
+
+For performance-critical operations on many files or directories, consider these optimizations:
+
+* **Use iterators:**  `iterdir()`, `rglob()`, etc., return iterators, reducing memory usage compared to creating lists directly.
+* **Avoid unnecessary operations:** Don't perform redundant checks or calculations within loops.
+* **Batch operations:** When possible, perform multiple file system operations in a single batch (e.g., creating multiple directories at once).
+* **Use appropriate modules:** For specific tasks (like copying large directories), use optimized modules like `shutil` for better performance.
+
+Example of using iterators:
+
+```python
+from pathlib import Path
+import os
+
+large_directory = Path("./my_large_directory")
+large_directory.mkdir(exist_ok=True)
+
+# inefficient way (creates a list in memory):
+#files = list(large_directory.glob("*"))
+#for file in files:
+#   # Process file...
+
+#Efficient way (uses an iterator):
+for file in large_directory.glob("*"):
+    # Process file...
+
+```
+
+
+### Integration with other modules
+
+`pathlib` integrates well with other Python modules:
+
+* **`shutil`:** For advanced file operations (copying, moving, archiving, etc.).
+* **`os`:** For lower-level file system operations.
+* **`glob`:** For pattern matching.
+* **`gzip`, `bz2`, `zipfile`:** For working with compressed files.
+
+Example using `shutil`:
+
+```python
+import shutil
+from pathlib import Path
+
+source_dir = Path("./source_directory")
+source_dir.mkdir(exist_ok=True)
+(source_dir / "my_file.txt").touch()
+destination_dir = Path("./destination_directory")
+
+shutil.copytree(source_dir, destination_dir)  # Efficiently copies the directory
+
+```
+
+Combining `pathlib` with these modules allows you to write more powerful and efficient file system manipulation code while benefiting from `pathlib`'s improved readability and error handling.
+
+
+## Examples and Best Practices
+
+### Common Use Cases
+
+Here are some common use cases for `pathlib`, illustrating best practices:
+
+**1. Checking file existence and type:**
+
+```python
+from pathlib import Path
+
+file_path = Path("./my_data.txt")
+
+if file_path.exists() and file_path.is_file():
+    print("File exists and is a regular file.")
+elif file_path.exists() and file_path.is_dir():
+    print("File exists and is a directory.")
+else:
+    print("File does not exist.")
+
+```
+
+**2. Creating directories and files:**
+
+```python
+from pathlib import Path
+
+output_dir = Path("./output_data")
+output_dir.mkdir(parents=True, exist_ok=True)  # Create directory, parents if needed, no error if exists
+output_file = output_dir / "results.txt"
+output_file.touch()  # Create an empty file
+
+```
+
+**3. Processing files in a directory:**
+
+```python
+from pathlib import Path
+
+data_dir = Path("./data")
+for file_path in data_dir.glob("*.txt"):  # Efficiently process only .txt files
+    with open(file_path, "r") as f:
+        # Process file contents
+        pass
+
+```
+
+**4.  Working with file paths relative to the script:**
+
+```python
+from pathlib import Path
+
+script_dir = Path(__file__).parent # Get the directory of the current script
+data_file = script_dir / "data.csv"
+
+if data_file.exists():
+    #Process data_file
+    pass
+
+```
+
+
+
+### Coding Style Guidelines
+
+* **Use `Path` objects:** Always use `Path` objects instead of string manipulation for file paths.
+* **Be explicit:** Use methods like `is_file()`, `is_dir()`, etc., for clarity.
+* **Handle errors:** Use `try...except` blocks to handle potential exceptions.
+* **Keep it concise:** Utilize `pathlib`'s methods for chaining operations when possible.
+* **Use descriptive variable names:** Choose names that clearly indicate the purpose of each path object.
+
+
+### Error Handling Examples
+
+**1. Handling `FileNotFoundError`:**
+
+```python
+from pathlib import Path
+
+file_path = Path("./my_file.txt")
+try:
+    with file_path.open("r") as f:
+        contents = f.read()
+except FileNotFoundError:
+    print(f"Error: File '{file_path}' not found.")
+    # Handle the error appropriately (e.g., create the file, use default values, etc.)
+
+
+```
+
+**2. Handling `PermissionError`:**
+
+```python
+from pathlib import Path
+
+file_path = Path("./protected_file.txt") #Assume this file has restricted access
+try:
+    file_path.unlink()
+except PermissionError:
+    print(f"Error: Permission denied when trying to delete '{file_path}'.")
+    #Handle the error appropriately (e.g., log the error, request administrative privileges, etc.)
+
+```
+
+
+### Advanced Examples
+
+
+**1. Recursive directory copying with error handling:**
+
+```python
+import shutil
+from pathlib import Path
+
+source_dir = Path("./source_dir")
+source_dir.mkdir(exist_ok=True)
+(source_dir / "file1.txt").touch()
+destination_dir = Path("./dest_dir")
+
+try:
+    shutil.copytree(source_dir, destination_dir)
+except OSError as e:
+    print(f"Error copying directory: {e}")
+
+```
+
+**2.  Processing files based on pattern matching:**
+
+```python
+from pathlib import Path
+
+image_dir = Path("./images")
+image_dir.mkdir(exist_ok=True)
+(image_dir / "image1.jpg").touch()
+(image_dir / "image2.png").touch()
+(image_dir / "report.txt").touch()
+
+for image_file in image_dir.glob("*.jpg"):
+    print(f"Processing JPG image: {image_file}")
+    #Add your image processing code here
+
+```
+
+These examples demonstrate how to use `pathlib` effectively, incorporating best practices for error handling, and utilizing advanced features for more complex file system operations.  Remember to adapt these examples to your specific use cases and always prioritize robust error handling.
+
+
+## Appendix: Reference
+
+### Path methods and attributes
+
+This section provides a concise reference to commonly used `pathlib` methods and attributes.  For a complete list, refer to the official Python documentation.  Note that some methods may not be available on `PurePath` objects (which only perform path manipulation without file system access).
+
+**Path Creation and Manipulation:**
+
+* `Path(path)`: Creates a `Path` object from a string path.
+* `__truediv__(other)` / `/`: Joins paths.  `path / "subdir" / "file.txt"`
+* `joinpath(*paths)`: Joins multiple paths.
+* `with_name(name)`: Returns a new `Path` object with a different name.
+* `with_suffix(suffix)`: Returns a new `Path` object with a different suffix.
+* `parent`: The parent directory.
+* `parts`: A tuple of path components.
+* `name`: The name of the last path component.
+* `stem`: The filename without the suffix.
+* `suffix`: The file extension (including the dot).
+* `suffixes`:  A list of all suffixes.
+* `drive` (Windows only): The drive letter.
+* `as_posix()`: Returns a string representation using POSIX-style path separators.
+* `as_uri()`: Returns a URI representation of the path.
+* `resolve()`: Resolves a path to its absolute form, following symbolic links.
+* `absolute()`: Returns the absolute path without resolving symbolic links.
+* `is_absolute()`: Checks if a path is absolute.
+* `is_relative_to(path)`: Checks if the path is relative to a given path.
+
+
+**File System Operations:**
+
+* `exists()`: Checks if a path exists.
+* `is_dir()`: Checks if a path is a directory.
+* `is_file()`: Checks if a path is a regular file.
+* `is_symlink()`: Checks if a path is a symbolic link.
+* `mkdir(*, exist_ok=False, parents=False)`: Creates a directory.
+* `rmdir()`: Removes an empty directory.
+* `unlink()`: Deletes a file.
+* `rename(target)`: Renames a file or directory.
+* `replace(target)`: Replaces a file or directory (moves and overwrites).
+* `touch()`: Creates an empty file.
+* `stat()`: Gets file information (size, modification time, etc.).
+* `lstat()`: Gets file information without following symbolic links.
+* `open(mode='r', encoding=None, errors=None)`: Opens a file.
+* `read_bytes()`: Reads file content as bytes.
+* `read_text(encoding=None, errors=None)`: Reads file content as text.
+* `write_bytes(data)`: Writes bytes to a file.
+* `write_text(data, encoding=None, errors=None)`: Writes text to a file.
+* `iterdir()`: Iterates over items in a directory.
+* `glob(pattern)`: Returns an iterator for files matching a pattern.
+* `rglob(pattern)`: Recursively returns an iterator for files matching a pattern.
+* `match(pattern)`: Checks if the path matches a given pattern.
+
+
+**Other methods:**
+
+* `chmod(mode)`: Changes file permissions.
+* `expanduser()`: Expands `~` to the user's home directory.
+* `samefile(other)`: Checks if two paths refer to the same file.
+
+
+
+
+### Exceptions
+
+`pathlib` and its underlying operating system functions can raise various exceptions.  Handling these exceptions is crucial for robust code.
+
+* `FileNotFoundError`: Raised when trying to access a file or directory that doesn't exist.
+* `IsADirectoryError`: Raised when trying to perform a file operation on a directory.
+* `NotADirectoryError`: Raised when trying to perform a directory operation on a file.
+* `PermissionError`: Raised when the user lacks sufficient permissions to perform an operation.
+* `FileExistsError`: Raised when trying to create a file or directory that already exists.
+* `OSError`: A general error raised by the operating system.  Provides more context through its `.strerror` and `.errno` attributes.  This is a broad category and specific sub-exceptions may be more useful to catch individually for cleaner error handling.
+* `BlockingIOError`: Raised if I/O operations are blocked.
+* `BrokenPipeError`: Raised if there is a broken pipe during I/O.
+* `InterruptedError`: Raised if the operation was interrupted.
+* `ChildProcessError`: Raised if a child process fails during I/O.
+* `ConnectionAbortedError`: Raised if a network connection is aborted.
+* `ConnectionRefusedError`: Raised if a network connection is refused.
+* `ConnectionResetError`: Raised if a network connection is reset.
+
+It is recommended to catch exceptions as specifically as possible to handle errors in a targeted and informative manner. For instance, catching `FileNotFoundError` specifically provides a much clearer indication of the problem than catching the generic `OSError`.
+

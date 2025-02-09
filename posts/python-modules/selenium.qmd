@@ -1,0 +1,661 @@
+---
+title: "selenium - Documentation"
+categories: [ "Python Modules" ]
+---
+
+
+### What is Selenium?
+
+Selenium is a powerful and widely-used open-source framework primarily for automating web browsers.  It allows you to write scripts that can interact with web pages in the same way a human user would: clicking buttons, filling out forms, navigating links, and extracting data.  Selenium supports multiple programming languages, including Python, Java, C#, JavaScript, Ruby, and Kotlin, making it highly versatile.  At its core, Selenium simulates user actions within a browser, making it invaluable for tasks such as web testing, web scraping, and automating repetitive web-based processes.
+
+### Why use Selenium with Python?
+
+Python's simplicity and readability make it an excellent choice for Selenium automation.  Its extensive libraries, combined with Selenium's capabilities, offer a robust and efficient solution for web automation tasks.  Key benefits of using Selenium with Python include:
+
+* **Ease of Use:** Python's clear syntax simplifies script writing and maintenance.
+* **Large Community and Support:** A vast community provides ample resources, tutorials, and support for resolving issues.
+* **Rich Ecosystem:** Numerous Python libraries complement Selenium, extending its functionality (e.g., for data handling, reporting, etc.).
+* **Cross-Browser Compatibility:** Selenium supports major browsers like Chrome, Firefox, Edge, and Safari.
+* **Open-Source and Free:**  It's freely available and avoids licensing costs.
+
+### Setting up your environment
+
+Before you begin, ensure you have the following:
+
+1. **Python:** Download and install the latest version of Python from [https://www.python.org/](https://www.python.org/).  Ensure that Python is added to your system's PATH environment variable.
+
+2. **IDE or Text Editor:** Choose a suitable Integrated Development Environment (IDE) like PyCharm, VS Code, or Atom, or a simple text editor like Notepad++ or Sublime Text.  An IDE offers features like code completion, debugging, and project management that enhance development.
+
+3. **Understanding of Basic Python:**  A fundamental understanding of Python programming concepts is necessary.
+
+
+### Installing Selenium
+
+Selenium is installed using pip, Python's package installer. Open your terminal or command prompt and execute the following command:
+
+```bash
+pip install selenium
+```
+
+This command downloads and installs the Selenium library.  You might need administrator privileges for the installation to succeed.
+
+
+### Choosing a WebDriver
+
+Selenium doesn't directly interact with the browser; it needs a *WebDriver* to act as an intermediary.  A WebDriver is a browser-specific driver that allows Selenium to control the browser.  You'll need to download the appropriate WebDriver for the browser you intend to automate:
+
+* **ChromeDriver:** For Chrome. Download it from [https://chromedriver.chromium.org/downloads](https://chromedriver.chromium.org/downloads) and place it in a directory included in your system's PATH or specify its path in your Selenium code.
+
+* **geckodriver:** For Firefox. Download it from [https://github.com/mozilla/geckodriver/releases](https://github.com/mozilla/geckodriver/releases) and place it similarly to ChromeDriver.
+
+* **edgedriver:** For Microsoft Edge. Download it from [https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/) and place it similarly to ChromeDriver.
+
+* **Other Browsers:** WebDrivers are available for other browsers as well; consult the respective browser's documentation for download instructions.  Ensure the WebDriver version is compatible with your browser version.  Mismatched versions will lead to errors.
+
+
+## Locating Web Elements
+
+Locating web elements (like buttons, text fields, links, etc.) is crucial for Selenium automation.  Selenium provides several strategies to identify and interact with these elements within a web page. The choice of locator depends on the HTML structure of the page and the uniqueness of the element.
+
+### ID
+
+The `id` attribute is the most reliable and recommended way to locate an element. Each element on a well-formed webpage should have a unique ID.
+
+```python
+element = driver.find_element(By.ID, "myElementId")
+```
+
+This code finds the element with the ID "myElementId".  If multiple elements share the same ID (which is invalid HTML), only the first one found will be returned.
+
+### Name
+
+The `name` attribute is another common way to locate elements, particularly form elements.  However, it's less reliable than ID because multiple elements can share the same name.
+
+```python
+element = driver.find_element(By.NAME, "myElementName")
+```
+
+This finds the element with the name "myElementName".
+
+### Class Name
+
+The `class` attribute can identify elements sharing a common class. However, using class name is less precise as many elements could share the same class.
+
+```python
+element = driver.find_element(By.CLASS_NAME, "myElementClass")
+```
+
+This locates the first element with the class "myElementClass".
+
+### Tag Name
+
+Locating by tag name finds all elements of a specific HTML tag (e.g., `div`, `p`, `a`, `input`).  This is generally less precise and should only be used when other locators are unavailable.
+
+```python
+elements = driver.find_elements(By.TAG_NAME, "a") #finds all anchor tags (<a>)
+```
+Note the use of `find_elements` (plural) as this will return a list.  `find_element` will raise an exception if multiple elements match.
+
+
+### Link Text
+
+This locator finds an `<a>` (anchor) element by its visible text.
+
+```python
+element = driver.find_element(By.LINK_TEXT, "Click Here")
+```
+
+This finds the link with the exact text "Click Here".
+
+### Partial Link Text
+
+Similar to `LINK_TEXT`, but matches if the link text *contains* the specified text.
+
+```python
+element = driver.find_element(By.PARTIAL_LINK_TEXT, "Click")
+```
+
+This will find any link containing "Click" in its text.
+
+
+### CSS Selectors
+
+CSS selectors offer powerful and flexible ways to locate elements using CSS syntax. They are very efficient and allow for complex targeting.
+
+```python
+element = driver.find_element(By.CSS_SELECTOR, "#myElementId") # By ID
+element = driver.find_element(By.CSS_SELECTOR, ".myElementClass") # By Class Name
+element = driver.find_element(By.CSS_SELECTOR, "a[href='myLink']") # Anchor with specific href
+element = driver.find_element(By.CSS_SELECTOR, "div > p") # p tag that is a direct child of a div
+```
+
+Consult CSS selector documentation for more advanced usage.
+
+
+### XPath
+
+XPath uses XML path language to navigate the HTML DOM. It's powerful but can become complex, making it less readable than CSS selectors.
+
+```python
+element = driver.find_element(By.XPATH, "//input[@id='myElementId']") #Using ID
+element = driver.find_element(By.XPATH, "//a[contains(text(), 'Click')]") #Partial Link Text
+element = driver.find_element(By.XPATH, "//div[@class='myClass']/p") # p inside div with class myClass
+```
+
+XPath provides many functions for complex selections.
+
+
+### Finding multiple elements
+
+To locate multiple elements matching a particular criteria, use `find_elements` (note the plural).  This returns a list of `WebElement` objects.
+
+```python
+elements = driver.find_elements(By.CLASS_NAME, "myClass")
+for element in elements:
+    print(element.text)
+```
+
+### Best practices for element location
+
+* **Prioritize ID:** If available, always use the `id` attribute for element location as it's the most reliable and unique.
+* **Use CSS Selectors:** CSS selectors offer a good balance between readability and power.
+* **Avoid XPath if possible:** XPath can become complex and less maintainable, especially in large applications.
+* **Keep Locators Concise:** Use the simplest and most efficient locator possible.
+* **Use Explicit Waits:** Always use explicit waits (discussed in a later section) to handle dynamic page loading.
+* **Avoid brittle locators:** Locators dependent on text content are fragile as text can easily change. Prefer attribute-based locators whenever feasible.
+* **Test your Locators:** Verify that your locators correctly identify the intended elements.
+
+
+
+## Interacting with Web Elements
+
+This section details how to interact with various web elements using Selenium.  Remember to locate the element using one of the methods described in the previous section before attempting any interaction.  We'll assume you've already obtained a `WebElement` object (e.g., `element = driver.find_element(By.ID, "myElement")`).
+
+### Clicking elements
+
+The simplest interaction is clicking an element.
+
+```python
+element.click()
+```
+
+This simulates a mouse click on the element.
+
+### Entering text
+
+To enter text into an input field or text area:
+
+```python
+element.send_keys("This is some text")
+```
+
+This sends the specified text to the element.  You can also use `clear()` to empty the field before entering new text:
+
+```python
+element.clear()
+element.send_keys("New text")
+```
+
+### Selecting options from dropdown menus
+
+For `<select>` elements (dropdown menus), you need to select an option by value or visible text:
+
+```python
+select = Select(element)  #Import Select from selenium.webdriver.support.ui
+select.select_by_value("optionValue")
+select.select_by_visible_text("Option Text")
+select.select_by_index(2) #Selects the third option (index starts at 0)
+```
+
+Remember to import the `Select` class: `from selenium.webdriver.support.ui import Select`
+
+### Handling checkboxes and radio buttons
+
+Checkboxes and radio buttons are handled similarly:
+
+```python
+checkbox = driver.find_element(By.ID, "myCheckbox")
+if not checkbox.is_selected(): #Check current state before toggling
+    checkbox.click()
+
+radioButton = driver.find_element(By.ID, "myRadioButton")
+radioButton.click()
+```
+
+`is_selected()` returns `True` if the checkbox or radio button is selected, `False` otherwise.
+
+### Working with alerts
+
+Alerts (pop-up dialog boxes) require specific handling:
+
+```python
+alert = driver.switch_to.alert
+alert_text = alert.text  #Get the alert's text
+alert.accept()  #Click "OK"
+alert.dismiss() #Click "Cancel"
+alert.send_keys("Text to send") #Send text to prompt
+```
+
+`switch_to.alert` accesses the alert object.
+
+### Uploading files
+
+To upload files, use `send_keys()` with the file path:
+
+```python
+upload_element = driver.find_element(By.ID, "fileUpload")
+upload_element.send_keys("/path/to/your/file.txt")
+```
+
+Replace `/path/to/your/file.txt` with the actual path to your file.
+
+### Handling iframes and frames
+
+To switch to an iframe or frame:
+
+```python
+driver.switch_to.frame("iframeName") #Switch to iframe by name
+driver.switch_to.frame(0) #Switch to the first iframe (index 0)
+#Interact with elements within the iframe...
+driver.switch_to.default_content() #Switch back to the main page
+```
+
+You can use name, id or index to switch to the desired frame.  Switching back to the main page is essential after interacting with the iframe's contents.
+
+### Working with windows and tabs
+
+To switch between different browser windows or tabs:
+
+```python
+original_window = driver.current_window_handle #Store current window handle
+
+# Open a new window (e.g., by clicking a link)
+
+for handle in driver.window_handles:
+    if handle != original_window:
+        driver.switch_to.window(handle)
+        # Interact with the new window...
+        driver.close() #Close the new window
+        break
+
+driver.switch_to.window(original_window) #Switch back to original window
+```
+
+`window_handles` returns a list of all open window handles.
+
+### Handling mouse actions (hover, drag and drop)
+
+For advanced mouse actions, you'll need the `ActionChains` class:
+
+```python
+from selenium.webdriver import ActionChains
+
+actions = ActionChains(driver)
+element = driver.find_element(By.ID, "myElement")
+actions.move_to_element(element).perform() #Hover over element
+
+#Drag and drop:
+source = driver.find_element(By.ID, "draggable")
+target = driver.find_element(By.ID, "droppable")
+actions.drag_and_drop(source, target).perform()
+```
+
+### Handling keyboard actions
+
+Similar to mouse actions, `ActionChains` can also handle keyboard actions:
+
+```python
+from selenium.webdriver import ActionChains
+actions = ActionChains(driver)
+actions.send_keys("Hello World").perform() #Send text from keyboard
+actions.send_keys(Keys.ENTER).perform() #Press Enter key
+actions.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform() #Select All (Ctrl+A)
+
+```
+
+Remember to import `Keys` from `selenium.webdriver.common.keys`: `from selenium.webdriver.common.keys import Keys`
+
+
+
+## Advanced Selenium Techniques
+
+This section covers more advanced Selenium techniques to handle complex scenarios and improve your testing efficiency.
+
+### Explicit and Implicit Waits
+
+Selenium's waits manage synchronization issues with dynamic web pages.
+
+* **Implicit Waits:**  Set a global timeout for all element searches. If an element is not immediately found, Selenium will poll the page at intervals up to the timeout before throwing an exception.
+
+```python
+driver.implicitly_wait(10) #Sets a 10-second implicit wait
+```
+
+* **Explicit Waits:**  More precise, applying a timeout to a specific element's availability.  Use `WebDriverWait` and expected conditions.
+
+```python
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+
+element = WebDriverWait(driver, 10).until(
+    EC.presence_of_element_located((By.ID, "myDynamicElement"))
+)
+```
+
+This waits up to 10 seconds for an element with the ID "myDynamicElement" to be present on the page.  Other expected conditions include `visibility_of_element_located`, `element_to_be_clickable`, etc.  Consult the Selenium documentation for a complete list.  Explicit waits are generally preferred over implicit waits due to their precision.
+
+### Handling exceptions
+
+Selenium interactions can throw various exceptions (e.g., `NoSuchElementException`, `TimeoutException`, `StaleElementReferenceException`).  Use `try...except` blocks to handle them gracefully:
+
+```python
+try:
+    element = driver.find_element(By.ID, "myElement")
+    element.click()
+except NoSuchElementException:
+    print("Element not found!")
+except TimeoutException:
+    print("Timeout waiting for element!")
+except StaleElementReferenceException:
+    print("Element is no longer attached to the DOM!")
+```
+
+Appropriate error handling prevents script crashes and improves robustness.
+
+
+### Working with AJAX and dynamic content
+
+AJAX and dynamic content often require explicit waits, as elements might load asynchronously.  Ensure your waits target the specific element's appearance or state after the AJAX call completes.  Use appropriate expected conditions, like waiting for an element's text to change or an attribute to appear.
+
+
+### Page Object Model (POM)
+
+POM organizes test code by creating separate classes (page objects) representing different web pages.  Each page object contains locators and methods for interacting with elements on that page. This promotes code reusability, maintainability, and readability.
+
+```python
+class LoginPage:
+    def __init__(self, driver):
+        self.driver = driver
+        self.username_field = driver.find_element(By.ID, "username")
+        self.password_field = driver.find_element(By.ID, "password")
+        self.login_button = driver.find_element(By.ID, "loginButton")
+
+    def login(self, username, password):
+        self.username_field.send_keys(username)
+        self.password_field.send_keys(password)
+        self.login_button.click()
+```
+
+
+### TestNG Integration
+
+TestNG is a popular testing framework that integrates well with Selenium. It offers features like test annotations, test suites, parallel test execution, and reporting.
+
+
+### Selenium Grid
+
+Selenium Grid enables parallel test execution across multiple browsers and machines.  This significantly reduces testing time. It allows you to run the same tests on different browser/OS combinations simultaneously.
+
+
+### Parallel Test Execution
+
+Running tests in parallel using tools like TestNG or pytest-xdist dramatically shortens the overall test execution time, especially with large test suites.
+
+
+### Generating reports (ExtentReports, Allure)
+
+Frameworks like ExtentReports and Allure generate detailed and visually appealing test reports, providing insights into test results, execution time, and potential issues.  They offer advanced features like screenshots on failure, test step logging and more.
+
+
+### Headless Browsing
+
+Headless browsing executes Selenium tests without a visible browser window, useful for CI/CD pipelines and reducing resource consumption.  You can use options like `options.add_argument("--headless")` with browser drivers (e.g., ChromeDriver) to enable headless mode.
+
+
+### Handling authentication
+
+Websites often require authentication. Selenium can handle various authentication mechanisms:
+
+* **Basic Authentication:**  Often handled by including credentials directly in the URL (e.g., `http://username:password@website.com`).
+
+* **Form-Based Authentication:**  Requires locating and interacting with the username, password, and login button elements on the login form.
+
+* **Other Authentication Methods:**  More complex methods (e.g., OAuth, OpenID) require specific libraries or strategies depending on the authentication provider.  You may need to investigate the specific authentication provider's API or documentation to learn how to interact with them from your Selenium tests.
+
+
+## Example Test Cases
+
+This section provides example test cases demonstrating various Selenium functionalities.  Remember to replace placeholders like URLs, IDs, and selectors with your actual values.  These examples assume you have a basic understanding of Python and Selenium setup.
+
+### Simple login test
+
+This test case verifies a successful login to a website.  Replace `"your_username"`, `"your_password"`, the URL, and element locators with your application's specific details.
+
+```python
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+def test_simple_login():
+    driver = webdriver.Chrome() #Or other WebDriver
+    driver.get("your_login_url")
+
+    username_field = driver.find_element(By.ID, "username")
+    password_field = driver.find_element(By.ID, "password")
+    login_button = driver.find_element(By.ID, "loginButton")
+
+    username_field.send_keys("your_username")
+    password_field.send_keys("your_password")
+    login_button.click()
+
+    # Assertion: Check if login was successful (e.g., by checking for a welcome message)
+    welcome_message = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.ID, "welcomeMessage"))
+    )
+    assert "Welcome" in welcome_message.text
+
+    driver.quit()
+
+```
+
+### E-commerce search and purchase flow
+
+This example simulates a search and purchase on an e-commerce website. Adapt it to your specific site's structure.
+
+```python
+def test_ecommerce_flow():
+    driver = webdriver.Chrome()
+    driver.get("your_ecommerce_url")
+
+    #Search for a product
+    search_box = driver.find_element(By.ID, "searchBox")
+    search_box.send_keys("Test Product")
+    search_button = driver.find_element(By.ID, "searchButton")
+    search_button.click()
+
+    #Select a product and add to cart
+    product = driver.find_element(By.XPATH, "//div[@class='product'][1]") #First product
+    product.click()
+    add_to_cart = driver.find_element(By.ID, "addToCart")
+    add_to_cart.click()
+
+    #Proceed to checkout (adapt as needed for your site)
+    checkout_button = driver.find_element(By.ID, "checkoutButton")
+    checkout_button.click()
+
+    #Assertions: Verify that the product is in the cart, checkout is successful etc.
+    #...
+
+    driver.quit()
+
+```
+
+
+### Testing form submissions
+
+This test case verifies successful form submission.  Again, tailor it to your specific form's structure.
+
+```python
+def test_form_submission():
+    driver = webdriver.Chrome()
+    driver.get("your_form_url")
+
+    name_field = driver.find_element(By.ID, "name")
+    email_field = driver.find_element(By.ID, "email")
+    submit_button = driver.find_element(By.ID, "submitButton")
+
+    name_field.send_keys("Test User")
+    email_field.send_keys("test@example.com")
+    submit_button.click()
+
+    # Assertion: Check for a success message or redirection after submission
+    success_message = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.ID, "successMessage"))
+    )
+    assert "Success!" in success_message.text #Or appropriate assertion
+
+    driver.quit()
+```
+
+### Data-driven testing with Selenium
+
+This example uses a CSV file for data-driven testing. You'll need the `csv` module.  This allows running the same test with different sets of input data.
+
+```python
+import csv
+
+def test_data_driven_login(data_row):
+    driver = webdriver.Chrome()
+    driver.get("your_login_url")
+
+    # ... (Login code as before, using data_row[0] for username and data_row[1] for password) ...
+
+
+    driver.quit()
+
+
+# Read data from CSV and run tests
+with open('login_data.csv', 'r') as file:
+    reader = csv.reader(file)
+    next(reader) # Skip header row
+    for row in reader:
+        test_data_driven_login(row)
+
+```
+
+`login_data.csv` would contain something like:
+
+```csv
+username,password
+user1,pass1
+user2,pass2
+```
+
+### Complex web application test
+
+Complex tests often involve multiple pages and interactions.  Use the Page Object Model (POM) to structure such tests effectively.  Example test incorporating POM is shown below.  Note that this is a simplified representation and needs adaptation to a specific complex application.
+
+```python
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from pages.login_page import LoginPage
+from pages.dashboard_page import DashboardPage
+
+
+def test_complex_app():
+    driver = webdriver.Chrome()
+    login_page = LoginPage(driver)
+    login_page.navigate()
+    login_page.login("user", "password")
+
+    dashboard_page = DashboardPage(driver)
+    dashboard_page.verify_dashboard()
+
+    #Further interactions and assertions based on app features
+
+    driver.quit()
+```
+
+You would need to create `login_page.py` and `dashboard_page.py` files implementing the `LoginPage` and `DashboardPage` classes respectively, using the POM structure explained in the previous section.  This example highlights the structure; you must populate the `LoginPage` and `DashboardPage` classes with appropriate locators and actions for the specific web application being tested.  Remember to handle waits appropriately in the Page Objects.
+
+
+## Appendix
+
+This appendix provides supplementary information to assist in your Selenium development journey.
+
+### Troubleshooting common issues
+
+This section addresses frequently encountered problems:
+
+* **`NoSuchElementException`:** This indicates Selenium couldn't find the specified web element. Double-check your locator strategy (ID, CSS selector, XPath, etc.) and ensure the element exists on the page when the script tries to locate it. Use explicit waits to handle dynamic content.  Inspect the HTML source to ensure the element has the expected attributes and structure.
+
+* **`StaleElementReferenceException`:** This happens when you try to interact with an element that's no longer attached to the DOM (Document Object Model), often due to page updates or AJAX calls. Use explicit waits and potentially re-locate the element after the page changes.
+
+* **`TimeoutException`:** Occurs when an explicit wait times out without finding the expected condition.  Increase the timeout duration (carefully) or adjust your expected condition to be more specific.  Examine the page loading process to identify why the element isn't appearing within the timeout.
+
+* **`ElementNotInteractableException`:** Indicates that the element is present but isn't currently interactable (e.g., it's hidden, disabled, or covered by another element). Check the element's attributes (`disabled`, CSS visibility), ensure it's visible and not obscured. Use JavaScript executor if needed to make element interactable.
+
+* **WebDriver errors (e.g., `SessionNotCreatedException`):**  Verify that the correct WebDriver is being used (Chrome for Chrome, Firefox for Firefox, etc.) and that the WebDriver version is compatible with your browser version. Ensure that the browser is correctly installed and accessible to Selenium. Check your system's PATH environment variable to ensure the webdriver is accessible.  
+
+* **Synchronization issues:**  Incorrect use of waits (implicit or explicit) is a frequent source of problems.  Always use explicit waits, especially when dealing with dynamically loaded content or asynchronous operations (AJAX calls).
+
+
+### Useful resources and links
+
+* **SeleniumHQ:** [https://www.selenium.dev/](https://www.selenium.dev/) – The official Selenium website, with documentation, downloads, and community forums.
+
+* **Selenium Python Bindings:** [https://pypi.org/project/selenium/](https://pypi.org/project/selenium/) – The Python package information on PyPI.
+
+* **Selenium WebDriver Documentation:**  (link varies by version, find it on the SeleniumHQ site) – Comprehensive documentation on Selenium's WebDriver API.
+
+* **Stack Overflow:**  Search for Selenium-related questions and answers; it's a valuable resource for problem-solving.
+
+
+### Selenium Python API Reference
+
+This section provides a condensed overview of commonly used methods.  Consult the official Selenium documentation for a complete and up-to-date reference.
+
+
+**`WebDriver` methods:**
+
+* `get(url)`: Navigates to the specified URL.
+* `find_element(By.locator, value)`: Locates a single web element.
+* `find_elements(By.locator, value)`: Locates multiple web elements.
+* `implicitly_wait(time)`: Sets the implicit wait time.
+* `quit()`: Closes the browser and ends the Selenium session.
+* `switch_to.frame(frame_reference)`: Switches to a specific iframe or frame.
+* `switch_to.window(window_handle)`: Switches to a different browser window or tab.
+* `switch_to.alert`: Accesses and interacts with alert dialog boxes.
+* `current_window_handle`: Gets the handle of the current window.
+* `window_handles`: Gets a list of all open window handles.
+* `execute_script(script)`: Executes JavaScript code within the browser.
+
+
+**`WebElement` methods:**
+
+* `click()`: Clicks the element.
+* `send_keys(text)`: Sends keys (text) to the element.
+* `text`:  Returns the text content of the element.
+* `get_attribute(attribute_name)`: Gets the value of a specified attribute.
+* `is_displayed()`: Checks if the element is visible.
+* `is_enabled()`: Checks if the element is enabled.
+* `is_selected()`: Checks if a checkbox or radio button is selected.
+* `clear()`: Clears the text from an input field.
+
+
+**`By` locators:**
+
+* `By.ID`: Locates by element ID.
+* `By.NAME`: Locates by element name.
+* `By.CLASS_NAME`: Locates by class name.
+* `By.TAG_NAME`: Locates by HTML tag name.
+* `By.LINK_TEXT`: Locates by link text.
+* `By.PARTIAL_LINK_TEXT`: Locates by partial link text.
+* `By.XPATH`: Locates by XPath expression.
+* `By.CSS_SELECTOR`: Locates by CSS selector.
+
+
+This is not exhaustive; refer to the official documentation for a comprehensive list of methods and their usage. Remember to import the necessary modules (e.g., `from selenium.webdriver.common.by import By`, `from selenium.webdriver.support.ui import WebDriverWait`, etc.) before using these methods.
+

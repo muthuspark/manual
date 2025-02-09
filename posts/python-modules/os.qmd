@@ -1,0 +1,716 @@
+---
+title: "os - Documentation"
+categories: [ "Python Modules" ]
+---
+
+
+### What is the os Module?
+
+The `os` module in Python provides a way of using operating system dependent functionality.  This means it allows your Python programs to interact with the underlying operating system (like Windows, macOS, or Linux) to perform tasks such as creating and deleting files and directories, navigating the file system, interacting with processes, and getting environment variables.  It's a crucial module for any Python program that needs to handle files, directories, or other system-level resources.  The specific functions available might differ slightly depending on your operating system, but the core functionality remains consistent.
+
+
+### Why Use the os Module?
+
+The `os` module is essential for writing robust and versatile Python applications because:
+
+* **File and Directory Management:**  It provides functions to create, delete, rename, and list files and directories.  This is vital for any program that works with data stored on the file system.
+
+* **Path Manipulation:** It offers tools to manipulate file paths, making it easier to work with different path formats across operating systems (e.g., handling forward slashes vs. backslashes).
+
+* **Environment Interaction:** You can access and modify environment variables (like `PATH` or `HOME`) through the `os` module. This allows your programs to adapt to different system configurations.
+
+* **Process Control (Limited):** While not its primary focus,  `os` offers basic functionality for interacting with processes (although more advanced process management often involves other modules like `subprocess`).
+
+* **System Information:** You can retrieve information about the operating system, like the current user or the system's architecture.
+
+In essence, the `os` module acts as a bridge between your Python code and the underlying operating system, enabling powerful and platform-independent file and system-level operations.
+
+
+### Setting up your Environment
+
+To use the `os` module, you generally don't need any special setup.  It's a built-in module in Python, meaning it's already included when you install Python.  Therefore, you can directly import and use it in your scripts:
+
+```python
+import os
+
+# Now you can use os functions, e.g.,
+current_directory = os.getcwd()
+print(f"Current directory: {current_directory}")
+```
+
+No additional libraries or environment variables are typically required.  However, ensure you have a compatible version of Python installed and that your system's file system is accessible and configured correctly.  Issues with permissions or access rights might arise if you are attempting operations that require administrator privileges.
+
+
+## File and Directory Management
+
+### Working with Paths
+
+The `os` module provides several functions for manipulating file paths, ensuring consistent handling across different operating systems.  Key functions include:
+
+* **`os.path.join(path1, path2, ...)`:**  Constructs a path by joining multiple path components.  This handles platform-specific path separators automatically (e.g., `/` on Unix-like systems, `\` on Windows).  It's crucial to use this function instead of manually concatenating paths to avoid errors.
+
+* **`os.path.split(path)`:** Splits a path into its directory and base name components.  Returns a tuple `(head, tail)`.
+
+* **`os.path.dirname(path)`:** Returns the directory portion of a path.
+
+* **`os.path.basename(path)`:** Returns the base name (filename) part of a path.
+
+* **`os.path.exists(path)`:** Checks if a path exists (file or directory).
+
+* **`os.path.isfile(path)`:** Checks if a path exists and is a regular file.
+
+* **`os.path.isdir(path)`:** Checks if a path exists and is a directory.
+
+* **`os.path.abspath(path)`:** Returns the absolute path of a given path.
+
+* **`os.path.realpath(path)`:**  Returns the canonical path (resolves symbolic links).
+
+
+Example:
+
+```python
+import os
+
+path = "/tmp/mydir/myfile.txt"
+head, tail = os.path.split(path)
+print(f"Head: {head}, Tail: {tail}")  # Output: Head: /tmp/mydir, Tail: myfile.txt
+
+abs_path = os.path.abspath("myfile.txt") # Get absolute path of myfile.txt relative to current working dir.
+print(f"Absolute path: {abs_path}")
+
+new_path = os.path.join("/tmp", "newdir", "anotherfile.txt")
+print(f"New path: {new_path}")
+```
+
+
+### Creating and Deleting Files and Directories
+
+* **`os.makedirs(path, exist_ok=False)`:** Creates a directory and any necessary intermediate directories. `exist_ok=True` prevents an error if the directory already exists.
+
+* **`os.mkdir(path)`:** Creates a single directory.  Raises an exception if the directory already exists or if parent directories are missing.
+
+* **`os.remove(path)`:** Deletes a file.  Raises an exception if the file doesn't exist.
+
+* **`os.rmdir(path)`:** Deletes a directory.  The directory must be empty.
+
+* **`shutil.rmtree(path)`:** Recursively deletes a directory and its contents.  Use with caution! (This is in the `shutil` module, not `os` directly, but commonly used alongside it).
+
+
+Example:
+
+```python
+import os
+import shutil
+
+os.makedirs("mydir/subdir", exist_ok=True)  # Create directories
+with open("mydir/myfile.txt", "w") as f:
+    f.write("Hello, world!")
+os.remove("mydir/myfile.txt") # Delete file
+#shutil.rmtree("mydir") # Delete directory tree (use carefully)
+os.rmdir("mydir") # Delete directory - must be empty.
+
+```
+
+
+### Renaming and Moving Files and Directories
+
+* **`os.rename(src, dst)`:** Renames or moves a file or directory.  If `dst` is in a different directory, it performs a move.
+
+* **`shutil.move(src, dst)`:**  More robust version of `os.rename`, handling more cases (including cross-device moves).  (From the `shutil` module).
+
+
+Example:
+
+```python
+import os
+import shutil
+
+os.rename("oldfile.txt", "newfile.txt")
+shutil.move("newfile.txt", "/tmp/newfile.txt") #move to a different directory.
+
+```
+
+
+### Checking File Existence and Attributes
+
+* **`os.path.exists(path)`:** Checks if a path exists (file or directory).
+
+* **`os.path.isfile(path)`:** Checks if a path is a regular file.
+
+* **`os.path.isdir(path)`:** Checks if a path is a directory.
+
+* **`os.stat(path)`:** Returns a stat object containing various file attributes (size, modification time, etc.).
+
+
+Example:
+
+```python
+import os
+import time
+
+if os.path.exists("myfile.txt"):
+    print("File exists!")
+    file_stat = os.stat("myfile.txt")
+    print(f"File size: {file_stat.st_size} bytes")
+    last_modified = time.ctime(file_stat.st_mtime) #Convert timestamp to readable format.
+    print(f"Last modified: {last_modified}")
+```
+
+
+### Listing Files and Directories
+
+* **`os.listdir(path)`:** Lists all files and directories in a given directory.  Returns a list of strings (filenames).
+
+* **`os.scandir(path)`:**  More efficient version of `os.listdir`; returns `DirEntry` objects providing more file information.  (Python 3.5+)
+
+
+Example:
+
+```python
+import os
+
+files = os.listdir(".") #list files in current dir.
+print(files)
+
+
+for entry in os.scandir("."): #using scandir for more info
+    print(f"Name: {entry.name}, Is file: {entry.is_file()}, Is dir: {entry.is_dir()}")
+    entry.close() #close entry object to free resources.
+
+```
+
+
+### Walking Directory Trees
+
+* **`os.walk(top)`:** Generates the file names in a directory tree by walking the tree either top-down or bottom-up.  For each directory in the tree rooted at `top`, it yields a 3-tuple: `(dirpath, dirnames, filenames)`.
+
+
+Example:
+
+```python
+import os
+
+for dirpath, dirnames, filenames in os.walk("."):
+    print(f"Directory: {dirpath}")
+    for filename in filenames:
+        print(f"  File: {filename}")
+
+```
+
+
+## File System Interaction
+
+### Reading and Writing Files
+
+While the `os` module primarily focuses on file system *management*,  it provides basic tools for interacting with file contents. However, for more advanced file I/O operations (especially for large files or complex data structures), consider using the `io` module or dedicated libraries like `csv` or `pickle`.  `os`'s contribution is mainly in opening files with specific modes:
+
+* **`open(filename, mode)`:**  The built-in `open()` function (not strictly part of `os`, but heavily used with it) is the primary way to open files for reading or writing.  The `mode` argument specifies how the file should be opened (e.g., `"r"` for reading, `"w"` for writing, `"a"` for appending, `"b"` for binary mode, and combinations like `"rb"` or `"wb"`).  `os` is used in conjunction with `open` to construct the `filename` using `os.path.join` for better portability.
+
+Example:
+
+```python
+import os
+
+filepath = os.path.join("data", "myfile.txt")
+try:
+    with open(filepath, "r") as f:
+        contents = f.read()
+        print(contents)
+except FileNotFoundError:
+    print(f"File not found: {filepath}")
+
+with open(os.path.join("data", "newfile.txt"), "w") as f:
+    f.write("This is some text.")
+
+```
+
+
+### Managing File Permissions
+
+The `os` module allows you to inspect and (in some cases) modify file permissions.  The level of control varies by operating system;  on Unix-like systems, you have finer-grained control.
+
+* **`os.stat(path)`:** Returns a `stat` object.  Attributes within the `stat` object related to permissions are OS-dependent, but generally include mode information which can be used to determine read, write, and execute permissions for the owner, group, and others.
+
+* **`os.chmod(path, mode)`:** Changes the file permissions (Unix-like systems primarily).  `mode` is typically an integer representing the new permissions. (Use caution; incorrect permission changes can lead to security issues).
+
+*  Note:  More advanced permission management might require interacting with the operating system directly (outside Python) or using OS-specific libraries.
+
+
+Example (Unix-like systems):
+
+```python
+import os
+import stat
+
+filepath = "myfile.txt"
+
+st = os.stat(filepath)
+print(f"Current permissions (octal): {oct(st.st_mode & 0o777)}")  #Extract and display permission bits
+
+#Change permissions (example: make file readable by everyone):
+os.chmod(filepath, st.st_mode | stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)  #add read permissions to owner, group, and others
+
+st = os.stat(filepath) #Refresh stat info.
+print(f"Permissions after change (octal): {oct(st.st_mode & 0o777)}")
+
+```
+
+
+
+### Working with Symbolic Links
+
+Symbolic links (symlinks) are like shortcuts or aliases to other files or directories.
+
+* **`os.symlink(src, dst)`:** Creates a symbolic link named `dst` pointing to `src`.
+
+* **`os.path.islink(path)`:** Checks if a path is a symbolic link.
+
+* **`os.readlink(path)`:** Returns the target of a symbolic link.
+
+
+Example:
+
+```python
+import os
+
+os.symlink("myfile.txt", "mylink.txt")
+if os.path.islink("mylink.txt"):
+    target = os.readlink("mylink.txt")
+    print(f"mylink.txt points to: {target}")
+```
+
+
+### Handling File Metadata
+
+Beyond basic file attributes from `os.stat()`, more extensive metadata handling often involves other libraries or OS-specific calls.  `os.stat()` provides fundamental information like file size, last modification time, and access times.
+
+### Working with Environment Variables
+
+Environment variables are key-value pairs that store system-wide or user-specific settings.
+
+* **`os.environ`:**  A dictionary-like object providing access to environment variables.  You can read values:  `value = os.environ.get("MY_VARIABLE")` or set values (with caution, especially in production): `os.environ["MY_VARIABLE"] = "NewValue"`
+
+* **`os.getenv(key, default=None)`:** Gets the value of an environment variable; returns `default` if the variable isn't found.  This is preferred over direct access to `os.environ` as it handles missing variables gracefully.
+
+
+Example:
+
+```python
+import os
+
+home_dir = os.getenv("HOME", "/tmp")  # Get user's home directory or default to /tmp
+print(f"Home directory: {home_dir}")
+
+path_variable = os.environ.get("PATH")
+print(f"PATH variable: {path_variable}")
+
+
+```
+
+Remember that changes to environment variables made within your Python script might not persist after the script finishes unless you explicitly modify system settings or use subprocesses to launch processes inheriting the changes.
+
+
+## Process Management
+
+The `os` module offers basic process management capabilities.  However, for more robust and feature-rich process control, consider using the `subprocess` module, which provides a higher-level and safer interface.  The `os` module's process functions are generally lower-level and may require more careful handling.
+
+
+### Spawning Processes
+
+The `os.fork()` function (Unix-like systems only) creates a new process that is a copy of the current process.  It returns 0 in the child process and the child's process ID in the parent process.
+
+```python
+import os
+
+pid = os.fork()
+if pid == 0:
+    print("Child process: My PID is", os.getpid())
+    # Child process code here...
+else:
+    print("Parent process: My PID is", os.getpid(), ", Child PID is", pid)
+    # Parent process code here...
+```
+
+**Important Note:** `os.fork()` is not available on Windows.  For cross-platform process creation, use `subprocess`.
+
+
+### Executing External Commands
+
+`os.system(command)` executes a shell command.  It's simple but less flexible and less secure than `subprocess`.  The command's output is sent to the standard output (stdout) and standard error (stderr) streams.
+
+
+```python
+import os
+
+return_code = os.system("ls -l") #List files in long listing format
+print(f"Command returned: {return_code}") # Return code indicates success or failure.
+```
+
+
+### Managing Process Output
+
+The `os` module itself doesn't directly manage process output in a structured way.   With `os.system()`, output goes to standard streams.  For capturing output, you would typically redirect stdout and stderr using shell features (e.g., `>` and `2>`), or better yet use `subprocess`.
+
+
+### Waiting for Processes to Complete
+
+`os.waitpid(pid, options)` waits for a specific child process to finish. It returns a tuple containing the process ID and the exit code. The `options` argument can control the waiting behavior (e.g., whether to wait for a specific process or any child process).
+
+
+```python
+import os
+import time
+
+pid = os.fork()
+if pid == 0:
+    time.sleep(2)  # Simulate some work
+    os._exit(0) #Exit the child process cleanly, don't call sys.exit() here.
+else:
+    pid, exit_code = os.waitpid(pid, 0)
+    print(f"Child process {pid} finished with exit code {exit_code}")
+
+```
+
+Without `os.waitpid()` (or a similar mechanism using `subprocess`), the parent process might finish before the child, resulting in the child process being terminated prematurely (or becoming an "orphan").
+
+
+### Killing Processes
+
+`os.kill(pid, signal)` sends a signal to a process.  On Unix-like systems, you can send signals like `SIGTERM` (to request termination gracefully) or `SIGKILL` (to force immediate termination).  This requires appropriate permissions.  The specific signals available depend on your operating system.
+
+```python
+import os
+import signal
+import time
+
+pid = os.fork()
+if pid == 0:
+    time.sleep(5) # Simulate long running process.
+    os._exit(0)
+else:
+    time.sleep(2) #Give the child process some time to start.
+    print("Sending SIGTERM to child process...")
+    os.kill(pid, signal.SIGTERM) #Send signal to terminate process.
+    time.sleep(1)
+    pid, exit_code = os.waitpid(pid, 0)
+    print(f"Child process {pid} finished with exit code {exit_code}")
+
+```
+
+**Important Considerations:**  Improper use of `os.kill()` can lead to data loss or system instability.  Use with caution and only when absolutely necessary.  For cross-platform process killing, again, `subprocess` is a safer alternative.  `subprocess` also handles signals in a more managed way.
+
+
+## Advanced Usage
+
+### Handling Signals
+
+The `os` module provides basic signal handling capabilities, primarily on Unix-like systems. The `signal` module offers a more comprehensive and portable approach to signal handling.  `os`'s role is mainly in providing access to signal numbers.   Use `signal.signal()` to register a handler for specific signals.
+
+```python
+import os
+import signal
+import time
+
+def signal_handler(signum, frame):
+    print(f"Received signal {signum}")
+    # Perform cleanup actions here
+
+signal.signal(signal.SIGINT, signal_handler) #Register handler for SIGINT (Ctrl+C)
+
+print("Press Ctrl+C to interrupt...")
+while True:
+    time.sleep(1)
+
+```
+
+### Working with User and Group IDs
+
+On Unix-like systems, `os` provides functions to get and sometimes set user and group IDs:
+
+* **`os.getuid()`:** Returns the real user ID of the current process.
+* **`os.geteuid()`:** Returns the effective user ID.
+* **`os.getgid()`:** Returns the real group ID.
+* **`os.getegid()`:** Returns the effective group ID.
+
+
+* **Note:**  Modifying user and group IDs typically requires administrator/root privileges and should be handled with extreme caution.  The methods for doing this are OS-specific and not directly part of the `os` module.
+
+
+### Interacting with the File System in a Thread-safe Manner
+
+When multiple threads access and modify the file system concurrently, race conditions can occur, leading to data corruption or unexpected behavior.  To handle this:
+
+* **File Locking:** Use file locking mechanisms (e.g., `fcntl` module on Unix-like systems or `msvcrt` on Windows) to ensure exclusive access to files when reading, writing, or modifying them.
+
+* **Thread-safe Libraries:**  If you're dealing with complex file operations, utilize thread-safe libraries designed for concurrent access.  Libraries like `sqlite3` (for database access) are often inherently thread-safe.
+
+* **Synchronization Primitives:** Employ synchronization primitives like locks (`threading.Lock`) or semaphores (`threading.Semaphore`) to control access to shared file system resources.
+
+
+Example using `threading.Lock`:
+
+
+```python
+import os
+import threading
+
+file_lock = threading.Lock()
+
+def write_to_file(filename, data):
+    with file_lock:  # Acquire lock before accessing the file
+        with open(filename, "a") as f:
+            f.write(data + "\n")
+
+# Create multiple threads, each writing to the same file
+threads = []
+for i in range(5):
+    thread = threading.Thread(target=write_to_file, args=("my_file.txt", f"Data from thread {i}"))
+    threads.append(thread)
+    thread.start()
+
+for thread in threads:
+    thread.join()
+
+print("Finished writing to file.")
+
+
+```
+
+### Platform-specific Functionality
+
+The `os` module includes platform-specific functions. These are often accessed indirectly through other functions or via OS-specific environment variables.  For example, different functions may behave slightly differently on Windows vs. Unix-like systems in how they handle paths, permissions, or process management. Refer to Python's documentation for OS-specific details.  Using `os.name` ("posix" for Unix-like, "nt" for Windows) is sometimes used to check and branch your code based on the operating system.
+
+
+### Error Handling and Exception Management
+
+When working with the `os` module, be prepared for exceptions like:
+
+* **`FileNotFoundError`:** Raised when trying to access a file that doesn't exist.
+* **`PermissionError`:** Raised if you don't have permission to perform a file system operation.
+* **`OSError`:** A more general exception for various operating system-related errors.
+* **`BlockingIOError`:** When trying to perform an IO operation on a blocked socket or device.
+
+Always use `try...except` blocks to handle potential errors gracefully, preventing your program from crashing.
+
+
+
+```python
+import os
+
+try:
+    os.remove("nonexistent_file.txt")
+except FileNotFoundError:
+    print("File not found. Ignoring.")
+except PermissionError:
+    print("Permission denied.")
+except OSError as e:
+    print(f"An operating system error occurred: {e}")
+
+
+```
+
+
+## Security Considerations
+
+The `os` module, while powerful, can introduce security vulnerabilities if not used carefully.  Many of the functions provide low-level access to the operating system, so it is crucial to understand the implications and follow secure coding practices.
+
+
+### Preventing Security Vulnerabilities
+
+* **Input Validation:** Always validate user-supplied input before using it in `os` functions (e.g., in file paths).  Never directly incorporate untrusted data into file paths or commands without thorough sanitization.  This prevents directory traversal attacks and other injection vulnerabilities.
+
+* **Path Traversal:**  Never construct file paths by concatenating strings directly from user input. Use `os.path.join()` to correctly join path components, preventing users from manipulating paths to access files outside intended directories.
+
+* **Command Injection:** Avoid using `os.system()` or similar functions to execute shell commands with user-supplied input. This is extremely dangerous as it allows users to inject arbitrary shell commands.  Use the `subprocess` module with appropriate argument handling to execute external commands safely.
+
+* **File Permissions:** Set appropriate file permissions to restrict access to sensitive files.  Avoid using overly permissive permissions.   When using `os.chmod()`, be mindful of the changes and only grant necessary access.
+
+* **Error Handling:** Handle exceptions properly.  Don't expose sensitive information in error messages.  Log errors securely, avoiding the disclosure of file paths, credentials, or other sensitive data.
+
+* **Least Privilege:** Run processes with the least amount of privilege necessary.  If a task does not need root/administrator access, don't run it with those elevated privileges.
+
+
+### Best Practices for Secure File Handling
+
+* **Use `os.path.join()`:**  Always use `os.path.join()` to construct file paths, preventing path traversal attacks.
+
+* **Sanitize Input:** Before using user-supplied data in file operations, sanitize and validate it rigorously to prevent injection attacks.
+
+* **Check File Existence:** Before attempting to open or delete a file, check its existence using `os.path.exists()` to avoid errors and potential security issues.
+
+* **Use Temporary Files Safely:** When using temporary files, use the `tempfile` module to create temporary files in secure locations with appropriate permissions.
+
+* **Avoid Hardcoded Paths:** Do not hardcode sensitive file paths directly in your code.  Use configuration files or environment variables to manage sensitive paths.
+
+* **Regular Security Audits:** Periodically review and audit your code to identify and address potential security vulnerabilities.
+
+
+### Avoiding Common Pitfalls
+
+* **Unvalidated Input in `os.system()` or `os.popen()`:** This is a major security risk, leading to command injection.
+
+* **Ignoring Exceptions:** Failure to handle exceptions (like `PermissionError` or `FileNotFoundError`) can lead to unexpected behavior or expose sensitive information in error messages.
+
+* **Insufficient File Permissions:** Overly permissive file permissions can allow unauthorized access to sensitive data.
+
+* **Improper use of `os.chmod()`:** Incorrectly changing file permissions can create security vulnerabilities.
+
+* **Using `os.fork()` without proper cleanup:** On Unix-like systems, if you use `os.fork()` for process creation, ensure proper cleanup and handling of child processes to prevent resource leaks and potential security issues.  Prefer `subprocess` in most cases for cross-platform process creation and management.
+
+By adhering to these security considerations and best practices, you can significantly reduce the risk of security vulnerabilities when using the `os` module in your Python applications.  Remember that security is an ongoing process, and regular review and updating of code are crucial.
+
+
+## Example Applications
+
+This section presents example applications demonstrating the use of the `os` module for common tasks.  Note that these examples are simplified for clarity and may require error handling and additional features for production use.  For more robust applications, consider using additional libraries (like `pathlib` for enhanced path manipulation).
+
+
+### File Search Utility
+
+This example demonstrates a simple file search utility that searches for files matching a given pattern within a specified directory:
+
+```python
+import os
+import fnmatch
+
+def find_files(directory, pattern):
+    """Finds files matching a pattern within a directory."""
+    for root, _, files in os.walk(directory):
+        for filename in fnmatch.filter(files, pattern):
+            yield os.path.join(root, filename)
+
+if __name__ == "__main__":
+    search_directory = "."  # Current directory
+    search_pattern = "*.txt"  # Search for .txt files
+    found_files = list(find_files(search_directory, search_pattern))
+    if found_files:
+        print("Found files:")
+        for file in found_files:
+            print(file)
+    else:
+        print("No files found matching the pattern.")
+
+```
+
+
+### Directory Organizer
+
+This example demonstrates organizing files into directories based on their file extensions:
+
+```python
+import os
+import shutil
+
+def organize_directory(directory):
+    """Organizes files in a directory based on their extensions."""
+    for filename in os.listdir(directory):
+        filepath = os.path.join(directory, filename)
+        if os.path.isfile(filepath):
+            base, ext = os.path.splitext(filename)
+            ext = ext.lstrip(".").lower()  # Remove leading dot and lowercase
+            target_dir = os.path.join(directory, ext)
+            if not os.path.exists(target_dir):
+                os.makedirs(target_dir)
+            shutil.move(filepath, os.path.join(target_dir, filename))
+
+if __name__ == "__main__":
+    target_directory = "my_files" #Directory to organize.
+    organize_directory(target_directory)
+    print(f"Files in '{target_directory}' organized by extension.")
+
+```
+
+Remember to create the `my_files` directory and put some files in it before running this script.
+
+
+### System Monitor
+
+This example provides a basic system monitor (using platform-specific commands).  **This is a simplified example and does not provide comprehensive system monitoring.**  For robust system monitoring, use dedicated system monitoring tools or libraries.  This example leverages the `subprocess` module, showing an alternative to `os.system()`:
+
+
+```python
+import subprocess
+import platform
+
+def get_cpu_usage():
+    """Gets CPU usage (platform-specific)."""
+    if platform.system() == "Linux":
+        result = subprocess.run(["top", "-bn1", "|", "grep", "%Cpu(s)"], capture_output=True, text=True, check=True)
+        cpu_line = result.stdout.splitlines()[0]
+        cpu_usage = cpu_line.split("%")[0]
+        return cpu_usage.strip()
+    elif platform.system() == "Windows":
+        # Windows-specific implementation (requires different commands)
+        return "Windows CPU usage not implemented"
+    else:
+        return "CPU usage not supported on this platform"
+
+def get_memory_usage():
+    #Implementation for getting memory usage, platform specific.
+    return "Memory Usage not implemented."
+
+if __name__ == "__main__":
+    cpu_usage = get_cpu_usage()
+    memory_usage = get_memory_usage()
+    print(f"CPU Usage: {cpu_usage}")
+    print(f"Memory Usage: {memory_usage}")
+
+```
+
+
+These examples illustrate the versatility of the `os` module.  However, for production applications, you should add more robust error handling, input validation, and consider using more advanced libraries where applicable.  The `pathlib` module is recommended for more modern and object-oriented file system interactions in Python.
+
+
+## Appendix: Platform-Specific Notes
+
+While the `os` module aims for cross-platform compatibility, some functions behave differently or are only available on specific operating systems.  This appendix highlights key differences and platform-specific functions.
+
+
+### Windows-Specific Functions
+
+Windows has its own set of APIs and conventions that the `os` module adapts to. Some functions have Windows-specific behaviors or alternatives:
+
+* **Path Separators:** Use `os.path.join()` consistently to avoid issues with path separators (`\` on Windows, `/` on Unix-like).
+
+* **File Permissions:** Windows' file permission system differs from Unix-like systems.  While `os.chmod()` exists, its functionality is more limited.  For finer-grained control, you might need to use Windows-specific APIs through other libraries.
+
+* **Process Creation/Management:**  `os.fork()` is not available on Windows.  Use `subprocess` for cross-platform process management.
+
+* **Drive Letters:**  Windows uses drive letters (e.g., `C:\`, `D:\`).  Be mindful of these when working with paths.
+
+
+* **Example (Windows-Specific):**  While not directly in `os`, the `win32api` (part of `pywin32`) module allows access to more Windows-specific functionality, including detailed file and security information not readily available through `os`.
+
+
+
+### macOS-Specific Functions
+
+macOS (being a Unix-like system) largely aligns with the behavior of Unix-like systems.  However, certain functionalities might have subtle differences or specific behaviors related to macOS's file system and system calls:
+
+* **Symbolic Links:**  macOS supports symbolic links, and `os.symlink()` works as expected.
+
+* **File Permissions:** The standard Unix-style permissions apply, and `os.chmod()` works as expected.
+
+* **Process Management:** `os.fork()` and related functions work, but consider using `subprocess` for better portability.
+
+* **Path Handling:**   `os.path.join()` is recommended for robust path construction, handling forward slashes used in macOS paths.
+
+* **System Calls:** macOS's kernel might have variations in how specific system calls are implemented compared to other Unix-like systems, which is indirectly reflected in the `os` module's behavior.
+
+
+### Linux-Specific Functions
+
+Linux, as a Unix-like operating system, mostly shares the same functionalities as other Unix-like systems (like macOS and BSD). The differences are often subtle and relate to specific system calls or kernel variations:
+
+* **Symbolic Links:**  Linux supports symbolic links, and `os.symlink()` functions as expected.
+
+* **File Permissions:** Standard Unix-style permissions and `os.chmod()` work.
+
+* **Process Management:**  `os.fork()` is available but using `subprocess` is generally preferred for better cross-platform compatibility.
+
+* **Path Handling:**  Use `os.path.join()` for consistent path handling.  Linux paths primarily use forward slashes.
+
+* **System Calls:** While `os` tries to abstract the details, some low-level functions or specific behaviors might differ depending on the Linux distribution and kernel version.
+
+**Important Note:**  For detailed OS-specific variations, always refer to the official Python documentation and the relevant operating system's documentation.  The behaviour and availability of specific functions can change across operating system versions.
+

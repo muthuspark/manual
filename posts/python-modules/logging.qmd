@@ -1,0 +1,635 @@
+---
+title: "logging - Documentation"
+categories: [ "Python Modules" ]
+---
+
+
+### Why Use Logging?
+
+Logging is crucial for debugging, monitoring, and maintaining Python applications.  Instead of relying on print statements (which are unsuitable for production environments), logging provides a structured and flexible way to record events occurring during your program's execution.  This information is invaluable for identifying errors, tracking performance, and understanding user behavior.  Logging allows you to record messages at different severity levels, making it easier to filter and analyze the most relevant information.
+
+### Benefits of Logging
+
+* **Centralized Error Reporting:**  Instead of scattered `print()` statements, logging channels all relevant information to a single point, simplifying debugging and troubleshooting.
+* **Detailed Event Tracking:** Logs record events with timestamps, making it easy to identify the sequence of events leading to errors or unexpected behavior.
+* **Flexible Output:** Logs can be written to files, sent to remote servers, or displayed on the console, adapting to different monitoring and debugging needs.
+* **Severity Levels:** Logging allows you to categorize messages by severity (e.g., DEBUG, INFO, WARNING, ERROR, CRITICAL), enabling selective filtering and analysis.
+* **Improved Maintainability:** Well-structured logs make it easier to understand the application's behavior and greatly simplify maintenance and updates.
+* **Security:** Sensitive information can be logged securely, protecting against data breaches and misuse.
+
+
+### Logging Levels
+
+Python's logging module uses several severity levels, each representing a different type of event:
+
+* **DEBUG:** Detailed information, typically only useful for developers during debugging.
+* **INFO:**  Confirmation that things are working as expected.
+* **WARNING:** An indication that something unexpected happened, or indicative of a potential problem.  The application is still running.
+* **ERROR:**  An error occurred; the application may have been affected.
+* **CRITICAL:** A serious error; the application may have stopped working.
+
+
+The numerical values associated with these levels are `DEBUG=10`, `INFO=20`, `WARNING=30`, `ERROR=40`, `CRITICAL=50`.  Messages with a severity level lower than the configured logging level are ignored.
+
+### Basic Logging Setup
+
+The simplest way to set up logging is using the `basicConfig()` method:
+
+```python
+import logging
+
+logging.basicConfig(level=logging.DEBUG,  # Set the logging level
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', # Customize the log message format
+                    filename='my_app.log',  # Specify the log file (optional; logs to console by default)
+                    filemode='w')  # overwrite the log file each time (optional, 'a' for append)
+
+
+logging.debug('This is a debug message.')
+logging.info('This is an info message.')
+logging.warning('This is a warning message.')
+logging.error('This is an error message.')
+logging.critical('This is a critical message.')
+```
+
+This example configures logging to write messages to a file named `my_app.log` with a detailed format including timestamp, logger name, level, and message.  Adjust the `level` parameter to control which messages are recorded.  Removing `filename` will send logs to the console.  Remember to adjust the filemode if you don't want to overwrite your log file every time the application runs.
+
+
+## The `logging` Module
+
+### Core Components: Loggers, Handlers, and Formatters
+
+The Python `logging` module's functionality revolves around three core components:
+
+* **Loggers:**  Loggers are the entry points for emitting log messages.  They have names (often reflecting the module or class they're associated with) and a hierarchy, allowing for granular control over logging output.  A logger's name can be hierarchical (e.g., 'my_app.module1', 'my_app.module2').  Loggers inherit handlers and levels from their ancestors in the hierarchy.
+
+
+* **Handlers:** Handlers determine where log messages are sent.  They can send messages to the console, a file, a network socket, an email server, or any other custom destination.  A single logger can have multiple handlers.
+
+
+* **Formatters:** Formatters control the appearance of log messages.  They define how the timestamp, logger name, log level, and message are combined into a single string.
+
+
+### Creating a Logger
+
+Loggers are created using the `logging.getLogger()` function.  If a logger with the given name already exists, it's returned; otherwise, a new logger is created.
+
+```python
+import logging
+
+# Create a logger named 'my_app'
+logger = logging.getLogger('my_app')
+
+# Check if handlers are already attached (important to avoid duplication)
+if not logger.handlers:
+    # Add handlers and formatters here (see next sections)
+    pass
+
+logger.info('This is a log message from my_app.')
+```
+The `if not logger.handlers` check prevents handlers from being added multiple times if this code is called more than once, for example in different modules.
+
+### Configuring Handlers
+
+Handlers are added to loggers using the `addHandler()` method.  Common handlers include:
+
+* **`logging.StreamHandler`:** Sends messages to the console (standard output or standard error).
+* **`logging.FileHandler`:** Sends messages to a file.
+* **`logging.RotatingFileHandler`:**  Creates rotating log files when they reach a specified size.
+* **`logging.SMTPHandler`:** Sends messages via email.
+* **`logging.SysLogHandler`:** Sends messages to a syslog server.
+
+
+Example using a `FileHandler`:
+
+```python
+import logging
+
+logger = logging.getLogger('my_app')
+if not logger.handlers:
+    handler = logging.FileHandler('my_app.log', mode='w') # mode='a' for appending
+    logger.addHandler(handler)
+    # ... (Add a formatter - see next section) ...
+```
+
+### Customizing Log Output with Formatters
+
+Formatters define the appearance of log messages. They use format strings similar to those used with `str.format()`. Common format specifiers include:
+
+* `%(asctime)s`: Timestamp
+* `%(name)s`: Logger name
+* `%(levelname)s`: Log level
+* `%(message)s`: Log message
+
+
+Example:
+
+```python
+import logging
+
+logger = logging.getLogger('my_app')
+if not logger.handlers:
+    handler = logging.FileHandler('my_app.log', mode='w')
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+logger.warning('A warning message with custom formatting.')
+```
+
+### Working with Different Log Levels
+
+Each log message is associated with a level (DEBUG, INFO, WARNING, ERROR, CRITICAL).  A logger's effective level determines which messages are processed.  Messages with a level below the effective level are discarded.  The effective level is determined by the level set on the logger itself and its ancestors.  A handler also has a level which acts as a filter.
+
+```python
+import logging
+
+logger = logging.getLogger('my_app')
+logger.setLevel(logging.WARNING)  # Only WARNING, ERROR, and CRITICAL messages will be processed
+
+logger.debug('This debug message will be ignored.')
+logger.warning('This warning message will be logged.')
+```
+
+### Disabling and Enabling Loggers
+
+Loggers can be disabled by setting their effective level to `logging.CRITICAL + 1` (which is effectively disabling it), or enabled by setting the level to the desired level.  Disabling a logger higher in the hierarchy affects all its children, while disabling a specific logger only affects that logger.  Alternatively, you can remove handlers to achieve a similar effect.  Be mindful of the hierarchical nature of loggers; disabling a parent logger will also disable its children.
+
+
+## Advanced Logging Techniques
+
+### Filtering Log Records
+
+Beyond setting log levels, you can filter log records using filters.  Filters allow you to selectively include or exclude log messages based on more complex criteria than just severity level.  You create a `logging.Filter` object and specify a method to check each log record.
+
+```python
+import logging
+
+class MyFilter(logging.Filter):
+    def filter(self, record):
+        return 'important' in record.getMessage()
+
+logger = logging.getLogger('my_app')
+handler = logging.FileHandler('my_app.log')
+handler.addFilter(MyFilter())
+logger.addHandler(handler)
+
+logger.info("This is a regular message.")
+logger.info("This is an important message.")
+
+```
+
+This example only logs messages containing "important".
+
+
+### Using Multiple Handlers
+
+A single logger can have multiple handlers, sending log messages to different destinations.  This allows for separating log messages based on severity or other criteria.
+
+```python
+import logging
+
+logger = logging.getLogger('my_app')
+handler1 = logging.StreamHandler()  # Log to console
+handler2 = logging.FileHandler('error.log')  # Log errors to a separate file
+
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+handler1.setFormatter(formatter)
+handler2.setFormatter(formatter)
+handler2.setLevel(logging.ERROR) #Only errors go to error.log
+
+logger.addHandler(handler1)
+logger.addHandler(handler2)
+
+logger.info("This goes to the console and error.log.")
+logger.error("This error goes only to error.log.")
+
+```
+
+
+### Rotating Log Files
+
+To prevent log files from growing indefinitely, use `logging.handlers.RotatingFileHandler`. This handler automatically creates new log files when the current file reaches a specified size.
+
+```python
+import logging
+import logging.handlers
+
+logger = logging.getLogger('my_app')
+handler = logging.handlers.RotatingFileHandler('my_app.log', maxBytes=1024*1024, backupCount=5) # 1MB, 5 backups
+logger.addHandler(handler)
+
+# ... log messages ...
+```
+
+### Log Rotation Strategies
+
+Besides size-based rotation (`RotatingFileHandler`), other rotation strategies exist:
+
+* **Time-based rotation:**  Use `logging.handlers.TimedRotatingFileHandler` to rotate logs based on time intervals (e.g., daily, weekly).  Specify `when` parameter ('S', 'M', 'H', 'D', 'midnight', 'W0'-'W6').
+
+* **Custom rotation:**  Create a custom handler that implements your desired rotation logic.
+
+### Writing to Different Destinations (Files, Databases, etc.)
+
+The `logging` module's flexibility extends to various destinations.  For databases, you would need a custom handler that connects to your database and inserts log records.  Many third-party libraries can help with this. Examples include writing to a message queue like RabbitMQ or Kafka or cloud-based logging services (e.g., CloudWatch, Stackdriver).
+
+
+### Using Contextual Information in Log Messages
+
+Enhance log messages with contextual information (e.g., user ID, request ID, transaction ID) for easier analysis.  You can add this information directly to the message string or use the `extra` parameter in `logger.log()` method.
+
+```python
+import logging
+
+logger = logging.getLogger('my_app')
+extra = {'user_id': 123, 'request_id': 'abc'}
+logger.info("User %s made a request (%s)." % (extra['user_id'], extra['request_id']), extra=extra)
+```
+
+
+### Exception Handling and Logging
+
+Logging exceptions provides valuable debugging information.  Use `logger.exception()` to log both the error message and the traceback.
+
+```python
+import logging
+
+try:
+    # ... code that might raise an exception ...
+    raise ValueError("Invalid input")
+except ValueError as e:
+    logger.exception("An error occurred:")
+
+```
+
+### Logging to a Remote Server
+
+For centralized logging, you can send logs to a remote server using a handler like `logging.handlers.SysLogHandler` (for syslog) or a custom handler that uses a network protocol like TCP or UDP.  Consider using structured logging formats (like JSON) for easier parsing and analysis by the remote server.
+
+### Asynchronous Logging
+
+To avoid blocking your application, use asynchronous logging.  The `concurrent_log_handler` library provides asynchronous handlers that process log messages in a separate thread, preventing logging from slowing down your application.  Consider using libraries to implement this efficiently and reliably.
+
+
+## Integrating Logging into Your Projects
+
+### Best Practices for Logging
+
+* **Use a structured logging format:**  JSON or other structured formats make log parsing and analysis much easier.  Avoid overly verbose messages; keep them concise and informative.
+
+* **Use informative logger names:**  Choose names that clearly identify the source of the log message (e.g., module name, class name).
+
+* **Log at appropriate levels:**  Use DEBUG for detailed information, INFO for normal operation, WARNING for potential problems, ERROR for errors, and CRITICAL for critical failures.
+
+* **Avoid logging sensitive information:**  Never log passwords, API keys, or other sensitive data.  Redact or mask sensitive data before logging.
+
+* **Handle exceptions gracefully:**  Always log exceptions with `logger.exception()`, providing sufficient context for debugging.
+
+* **Configure logging centrally:**  Use a configuration file (e.g., YAML, JSON, or Python code) to manage logging settings, making it easy to change settings without modifying application code.
+
+* **Use a logging framework:** Libraries like `loguru` offer advanced features and improved performance compared to the standard `logging` module.
+
+
+### Structuring Log Messages for Readability and Search
+
+Use a consistent format for log messages, including:
+
+* **Timestamp:**  Essential for ordering events.
+* **Logger name:**  Identifies the source of the message.
+* **Log level:**  Indicates the severity of the message.
+* **Message:**  A clear and concise description of the event.
+* **Contextual information:** Include relevant data such as user IDs, request IDs, or other relevant details, formatted for easy searching.
+
+Consider using a structured format like JSON:
+
+```json
+{
+  "timestamp": "2024-10-27T10:30:00.123Z",
+  "level": "INFO",
+  "logger": "my_app.user",
+  "message": "User logged in successfully.",
+  "user_id": 12345
+}
+```
+
+### Logging in Different Python Environments
+
+Logging works similarly across different Python environments (e.g., command-line scripts, interactive sessions, web servers).  However, configuration might differ slightly (e.g., setting up handlers in a web server framework vs a simple script).  The logging configuration is typically handled outside of the code itself, so your logging logic remains consistent.
+
+
+### Logging in Web Applications (e.g., Flask, Django)
+
+Web frameworks often provide integrations or extensions to enhance logging.
+
+* **Flask:**  Flask's built-in logging capabilities are easily extended.  You can configure logging in your Flask application using `app.logger`.
+
+* **Django:** Django has a sophisticated logging system, typically managed through settings files.
+
+In both, integrate logging into your request handling logic to capture relevant information about each request, such as request method, URL, response status, and execution time.  Consider using request IDs for tracking requests across multiple services.
+
+
+### Logging in Microservices
+
+Microservices architectures benefit significantly from robust logging.  Key considerations include:
+
+* **Centralized logging:** Aggregate logs from all services to a central location for monitoring and analysis (consider using a tool like ELK stack, Splunk, or a cloud-based logging service).
+
+* **Structured logging:**  Use structured logging formats for easy parsing and analysis.
+
+* **Distributed tracing:**  Use distributed tracing tools to correlate logs across multiple services, providing a complete picture of a request's journey.
+
+* **Log shipping:** Employ efficient log shipping mechanisms to transport logs from microservices to the central logging system.
+
+
+### Security Considerations with Logging
+
+* **Avoid logging sensitive data:**  Never log passwords, API keys, credit card numbers, or other sensitive information directly.  Use masking or redaction techniques to protect sensitive data.
+
+* **Secure log storage:** Protect log files from unauthorized access.  Encrypt log files at rest and in transit if necessary.
+
+* **Regularly review logs:** Monitor your logs for suspicious activity, such as unauthorized access attempts or data breaches.
+
+* **Use secure logging infrastructure:** Choose secure logging solutions that adhere to industry best practices.
+
+* **Implement logging access controls:** Limit access to log files and systems based on the principle of least privilege.
+
+By carefully implementing logging and security best practices, you can maintain a secure and efficient logging infrastructure in your projects.
+
+
+## Troubleshooting and Debugging Logs
+
+### Analyzing Log Files
+
+Analyzing log files effectively requires the right tools and techniques.  The simplest approach is using a text editor or IDE with log file viewing capabilities.  However, for large log files or complex analysis, consider using specialized tools:
+
+* **Log aggregators:** Tools like the ELK stack (Elasticsearch, Logstash, Kibana), Splunk, or Graylog collect and analyze logs from multiple sources, providing powerful search, filtering, and visualization capabilities.
+
+* **Log viewers:**  Many dedicated log viewers provide enhanced features for browsing, searching, and filtering log files.
+
+* **Custom scripts:** Write scripts (e.g., Python) to parse and analyze log files based on specific needs, extracting data, performing calculations, or generating reports.
+
+
+When analyzing, focus on:
+
+* **Timestamps:** Identify the order of events and pinpoint the time of errors.
+* **Log levels:**  Prioritize critical and error messages.
+* **Logger names:**  Trace the source of messages.
+* **Message content:**  Understand the nature of events and errors.
+* **Contextual data:** Use included contextual information (user IDs, request IDs, etc.) to correlate events across multiple log entries.
+
+
+### Interpreting Log Messages
+
+Understanding log messages involves interpreting the information they provide:
+
+* **Log Level:**  The severity of the event (DEBUG, INFO, WARNING, ERROR, CRITICAL).
+
+* **Logger Name:**  The source of the log message (module, class, or function).
+
+* **Message Content:**  The description of the event.  This is often the most critical part of the message.
+
+* **Exception Tracebacks (if any):**  Detailed information about exceptions, including the type of exception, its message, and the call stack.  Essential for diagnosing errors.
+
+* **Contextual Data:**  Additional data that provides further insight into the event (user ID, request ID, etc.).
+
+If messages are unclear, check the code where the log message was generated to understand the context and meaning.
+
+
+### Debugging Log Configuration Issues
+
+Log configuration problems often manifest as missing logs, unexpected log output, or improperly formatted messages.  Troubleshooting involves:
+
+* **Verify the logging level:**  Ensure that the logging level is set appropriately. Messages with levels below the configured level are discarded.
+
+* **Check handler configuration:**  Confirm that handlers are correctly added to loggers and that their output destinations are valid (file paths, network addresses, etc.).
+
+* **Inspect formatter configuration:**  Ensure that the format string is correct and that the format specifiers are valid.  Improper formatting can lead to unreadable or incomplete log messages.
+
+* **Review the log file path:** Ensure the log file path is correct and that the application has the necessary permissions to write to the file or directory.
+
+* **Examine the log file permissions:**  Ensure that the application has write access to the log file.
+
+
+### Common Logging Errors and Solutions
+
+* **No log messages:**  Check the logging level, ensure handlers are correctly configured, and verify that log messages are actually being generated.
+
+* **Incorrect log levels:** Verify the level used in `logger.log()` matches the intended level.
+
+* **Missing information in log messages:**  Review the formatter string to ensure it includes the desired information.
+
+* **Log messages not appearing in expected location:**  Double-check the handler configuration (file paths, network addresses) and application permissions.
+
+* **Log files too large:** Use log rotation to manage file sizes.
+
+* **Performance issues due to logging:** For high-volume logging, consider asynchronous logging or optimized logging libraries.
+
+* **Sensitive data in logs:**  Implement data redaction or masking techniques.
+
+When encountering problems, use a systematic approach, checking each component of the logging system (loggers, handlers, formatters) and verifying the configuration against the expected behavior.  If necessary, use debugging tools to trace the flow of log messages and identify the point of failure.
+
+
+## Alternatives and Advanced Libraries
+
+### Comparison with Other Logging Libraries
+
+While Python's built-in `logging` module is robust and versatile, several third-party libraries offer enhanced features and capabilities. Here's a comparison:
+
+* **`logging` (Standard Library):**  Mature, widely used, highly configurable, but can be verbose for complex setups.  Good for most applications.
+
+* **`loguru`:**  Modern, user-friendly API, asynchronous logging, exception handling improvements, simpler configuration.  A popular alternative for its ease of use.
+
+* **`structlog`:** Focuses on structured logging, excellent for creating JSON logs or other structured formats.  Requires a more involved setup but pays off in terms of log analysis.
+
+* **`coloredlogs`:**  Adds color to log messages for better readability in the console.  Easily integrated with the standard `logging` module.
+
+
+The best choice depends on the project's needs.  For simple applications, the standard `logging` module is sufficient.  For more complex projects or those requiring structured logging or enhanced performance, `loguru` or `structlog` might be preferable.  `coloredlogs` is a useful addition regardless of the base library you choose.
+
+
+### Using Structured Logging Libraries
+
+Structured logging enhances log analysis significantly. Instead of free-form text messages, structured logging uses formats like JSON to represent log events as key-value pairs.  This makes it easy to filter, search, and analyze logs using specialized tools.
+
+`structlog` is a prominent library for structured logging in Python. It provides a flexible API to create structured log events and integrate with various backends.
+
+
+```python
+import structlog
+
+logger = structlog.get_logger(__name__)
+
+# Using structlog to create structured log entries
+logger.info("User logged in.", user_id=123, username="testuser")
+```
+
+
+This produces a structured log entry (often JSON) with keys for timestamp, level, logger, message, user_id, and username.  This greatly simplifies searching and filtering by specific attributes.
+
+
+### Integrating with Monitoring Systems
+
+Logging is often integrated with monitoring systems to provide real-time insights into application health and performance.  Several strategies exist:
+
+* **Direct integration:** Some monitoring systems have dedicated libraries or APIs to send log data directly.  Cloud-based logging services (e.g., AWS CloudWatch, Google Cloud Logging, Azure Monitor) provide this capability.
+
+* **Log shippers:** Tools like Fluentd, Logstash, or Filebeat collect logs from various sources and forward them to a central monitoring system.
+
+* **Custom handlers:** You can create custom logging handlers to send log data to your monitoring system using its API.
+
+* **Centralized logging services:**  Services like Datadog, New Relic, or Splunk offer centralized log management, analysis, and alerting.  These services often integrate with Python through their own libraries or by receiving log data through log shippers.
+
+
+Efficient integration with monitoring systems allows for real-time monitoring, alerting on critical issues, and advanced analysis of application behavior.  The choice of integration method depends on the specific monitoring system and the architecture of your application.
+
+
+## Appendix: Configuration File Examples
+
+Python's `logging` module supports configuration via a file, typically in YAML, JSON, or Python code.  This allows you to manage logging settings externally, separating them from your application code.  Here are some examples:
+
+
+### Basic Configuration File (Python)
+
+This example uses a Python file (`logging_config.py`) for configuration:
+
+```python
+import logging.config
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'level': 'DEBUG',
+            'formatter': 'standard',
+            'stream': 'ext://sys.stdout'
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'level': 'INFO',
+            'formatter': 'standard',
+            'filename': 'my_app.log',
+            'mode': 'w'
+        }
+    },
+    'loggers': {
+        '': {  # root logger
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+        },
+    }
+}
+
+logging.config.dictConfig(LOGGING)
+
+# Now you can use logging.getLogger() as usual...
+
+```
+
+To use it:
+
+```python
+import logging
+import logging_config #Import the config file
+
+logger = logging.getLogger(__name__)
+logger.info("This will go to console and file.")
+```
+
+
+### Advanced Configuration File with Multiple Handlers (Python)
+
+This example demonstrates multiple handlers with different levels:
+
+```python
+import logging.config
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'level': 'DEBUG',
+            'formatter': 'standard',
+            'stream': 'ext://sys.stdout'
+        },
+        'info_file': {
+            'class': 'logging.FileHandler',
+            'level': 'INFO',
+            'formatter': 'standard',
+            'filename': 'info.log',
+            'mode': 'w'
+        },
+        'error_file': {
+            'class': 'logging.FileHandler',
+            'level': 'ERROR',
+            'formatter': 'standard',
+            'filename': 'error.log',
+            'mode': 'w'
+        }
+    },
+    'loggers': {
+        '': {  # root logger
+            'handlers': ['console', 'info_file', 'error_file'],
+            'level': 'DEBUG',
+        },
+    }
+}
+
+logging.config.dictConfig(LOGGING)
+```
+
+
+### Example: Rotating Log File Configuration (Python)
+
+
+This configures a rotating log file handler using `RotatingFileHandler`:
+
+```python
+import logging.config
+import logging.handlers
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        },
+    },
+    'handlers': {
+        'rotating_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'level': 'INFO',
+            'formatter': 'standard',
+            'filename': 'rotating.log',
+            'mode': 'a',
+            'maxBytes': 1024 * 1024,  # 1 MB
+            'backupCount': 5,
+        },
+    },
+    'loggers': {
+        '': {  # root logger
+            'handlers': ['rotating_file'],
+            'level': 'DEBUG',
+        },
+    }
+}
+
+logging.config.dictConfig(LOGGING)
+```
+
+Remember to replace placeholders like filenames with your desired values.  You can adapt these examples to create more complex logging configurations to suit your needs.  YAML or JSON configuration files are also possible with appropriate configuration functions.
+

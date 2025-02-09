@@ -1,0 +1,670 @@
+---
+title: "requests - Documentation"
+categories: [ "Python Modules" ]
+---
+
+
+### What is the Requests Library?
+
+Requests is a popular and elegant Python HTTP library.  It allows you to send HTTP requests (like GET, POST, PUT, DELETE, etc.) easily and efficiently.  It handles the complexities of making HTTP requests, such as encoding data, handling headers, and managing cookies, making it much simpler than using Python's built-in `urllib` library.  It's designed to be user-friendly and intuitive, letting you focus on the application logic rather than the low-level details of HTTP communication.
+
+### Why Use Requests?
+
+Requests offers several key advantages over lower-level alternatives:
+
+* **Simplicity:**  The API is incredibly easy to learn and use.  Complex tasks are reduced to concise and readable code.
+* **Clean Syntax:**  Requests uses a clean and consistent API, making your code more maintainable and readable.
+* **Feature-Rich:**  It supports various HTTP methods, handles cookies and sessions automatically, and provides robust error handling.
+* **Extensibility:**  Requests can be extended with various plugins and features to suit your specific needs.
+* **Widely Used and Well-Documented:**  A large and active community provides excellent support and resources.
+
+### Installation and Setup
+
+Requests is easily installed using pip, the Python package installer:
+
+```bash
+pip install requests
+```
+
+This command will download and install the Requests library and its dependencies.  No further configuration is usually required.
+
+
+### Basic Request Example
+
+The simplest way to make a GET request is:
+
+```python
+import requests
+
+response = requests.get('https://www.example.com')
+
+# Check the status code (200 means success)
+print(response.status_code)
+
+# Access the content of the response
+print(response.text)  #Get the response body as text
+print(response.json()) #Get the response body as a json object (if applicable)
+
+```
+
+This code snippet first imports the `requests` library. Then, it makes a GET request to `https://www.example.com`. The `response` object contains the server's response, including the status code (e.g., 200 for OK) and the content.  The example then prints the status code and the response text.  If the response is JSON, you can use `response.json()` for convenient parsing.  Remember to handle potential exceptions (like `requests.exceptions.RequestException`) in production code.
+
+
+## Making GET Requests
+
+### Simple GET Requests
+
+The most basic GET request is made using the `requests.get()` function, passing the URL as an argument:
+
+```python
+import requests
+
+response = requests.get('https://www.example.com')
+
+print(response.status_code)  # Check the status code (e.g., 200)
+print(response.text)       # Access the response content as text
+```
+
+This sends a GET request to the specified URL.  The response object contains details about the request, including the status code and the response content.  Always check the status code to ensure the request was successful (200 OK is a common success code).
+
+
+### Handling Query Parameters
+
+Query parameters are appended to the URL after a question mark (`?`).  They are used to pass additional information to the server.  Requests handles these easily:
+
+```python
+import requests
+
+params = {'key1': 'value1', 'key2': 'value2'}
+response = requests.get('https://api.example.com/data', params=params)
+
+print(response.url) # Print the full URL with query parameters
+print(response.json()) # Parse JSON response if applicable
+```
+
+The `params` dictionary is automatically converted into a query string.
+
+
+### Working with Headers
+
+HTTP headers provide additional information about the request.  You can set custom headers using the `headers` parameter:
+
+```python
+import requests
+
+headers = {'User-Agent': 'My Custom User Agent', 'Accept': 'application/json'}
+response = requests.get('https://api.example.com/data', headers=headers)
+
+print(response.headers) # Access response headers
+print(response.json()) # Parse JSON response if applicable
+```
+
+This example sets a custom User-Agent header, which helps identify your application to the server.  Setting the `Accept` header specifies the desired response content type.
+
+
+### Accessing Response Data
+
+The response object provides several ways to access the data:
+
+* `response.text`: Returns the response content as a Unicode string.  Useful for HTML or text-based responses.
+* `response.content`: Returns the response content as bytes. Useful for binary data like images.
+* `response.json()`: Parses the response content as JSON and returns a Python dictionary or list.  Raises a `requests.exceptions.JSONDecodeError` if the content isn't valid JSON.
+* `response.headers`: A dictionary containing response headers.
+* `response.status_code`: The HTTP status code (e.g., 200, 404, 500).
+
+
+### Handling Different Content Types
+
+Requests automatically handles various content types. However, you might need to specify the expected content type using the `headers` parameter's `Accept` header or handle the response accordingly (e.g. by checking the `Content-Type` header in the response).  For example, to ensure you get JSON back:
+
+```python
+import requests
+
+headers = {'Accept': 'application/json'}
+response = requests.get('https://api.example.com/data', headers=headers)
+
+try:
+    data = response.json()
+    print(data)
+except requests.exceptions.JSONDecodeError:
+    print("Response is not valid JSON")
+
+```
+
+### Error Handling and Status Codes
+
+Always check the `response.status_code` to ensure the request was successful.  Non-2xx status codes indicate errors.  You can use `try...except` blocks to handle potential exceptions:
+
+```python
+import requests
+
+try:
+    response = requests.get('https://api.example.com/data')
+    response.raise_for_status()  # Raise an exception for bad status codes (4xx or 5xx)
+    print(response.json())
+except requests.exceptions.RequestException as e:
+    print(f"An error occurred: {e}")
+```
+
+`response.raise_for_status()` conveniently raises an exception for bad status codes, simplifying error handling.  The `requests.exceptions.RequestException` handles various network and HTTP errors.
+
+
+## Making POST Requests
+
+### Sending Data with POST Requests
+
+POST requests are used to send data to the server.  The data is typically sent in the request body.  The basic structure is similar to GET requests, but using `requests.post()`:
+
+```python
+import requests
+
+data = {'key1': 'value1', 'key2': 'value2'}
+response = requests.post('https://api.example.com/submit', data=data)
+
+print(response.status_code)
+print(response.text)
+```
+
+This sends a POST request with the data provided in the `data` dictionary.  The server will process this data.
+
+
+### Different Data Encoding Types (form-data, json, etc.)
+
+Requests supports different ways to encode the data sent in the request body.
+
+* **`data` (for form-encoded data):**  This is used for simple key-value pairs, often used in HTML forms.  It automatically URL-encodes the data.
+
+
+* **`json` (for JSON data):**  For sending JSON data, use the `json` parameter:
+
+```python
+import requests
+
+data = {'key1': 'value1', 'key2': 'value2'}
+response = requests.post('https://api.example.com/submit', json=data)
+
+print(response.status_code)
+print(response.json()) #Parse the JSON response.
+```
+
+This sends the data as a JSON object.  The server should expect JSON data.
+
+
+* **Files (for file uploads):**  See the next section for details on file uploads.
+
+
+### Handling POST Responses
+
+Handling POST responses is similar to GET requests. Check the `response.status_code` to verify success.  Access the response content using `response.text`, `response.content`, or `response.json()` depending on the expected content type.  Remember to handle potential errors using `try...except` blocks.  For example:
+
+```python
+import requests
+
+try:
+    response = requests.post('https://api.example.com/submit', json={'key': 'value'})
+    response.raise_for_status() # Raise HTTPError for bad responses (4xx or 5xx)
+    print(response.json())
+except requests.exceptions.RequestException as e:
+    print(f"An error occurred: {e}")
+```
+
+
+### Working with Files in POST Requests
+
+To upload files, use the `files` parameter with a dictionary where keys are the field names and values are file-like objects (e.g., opened files or file paths):
+
+```python
+import requests
+
+files = {'file': open('my_file.txt', 'rb')}  # 'rb' for binary read mode
+response = requests.post('https://api.example.com/upload', files=files)
+
+print(response.status_code)
+print(response.text)
+```
+
+This uploads `my_file.txt`. Remember to close the file after the request using `files['file'].close()`.  Alternatively, you can use `with open(...) as f:` to manage file closing automatically.  The server-side needs to be configured to handle file uploads.  You might also need to adjust the `Content-Type` header appropriately, depending on the server's requirements.  For example, a multipart/form-data content type is common for file uploads.  Requests usually handles this automatically when using the `files` parameter.
+
+
+## Handling Responses
+
+### Response Status Codes
+
+HTTP status codes indicate the outcome of a request.  The `response.status_code` attribute provides this information.  Codes in the 2xx range generally indicate success, while 4xx codes represent client-side errors (like 404 Not Found), and 5xx codes indicate server-side errors (like 500 Internal Server Error).  Always check the status code to ensure your request was successful.  For example:
+
+```python
+import requests
+
+response = requests.get('https://www.example.com')
+
+if response.status_code == 200:
+    print("Request successful!")
+elif response.status_code == 404:
+    print("Not Found")
+else:
+    print(f"Request failed with status code: {response.status_code}")
+```
+
+### Accessing Response Headers
+
+Response headers provide additional information about the response.  Access them using `response.headers`, which is a dictionary-like object:
+
+```python
+import requests
+
+response = requests.get('https://www.example.com')
+
+content_type = response.headers.get('Content-Type')
+print(f"Content-Type: {content_type}")
+
+server = response.headers.get('Server')
+print(f"Server: {server}")
+```
+
+`response.headers.get('Header-Name')` is used to safely access a header, returning `None` if the header isn't present.
+
+
+### Working with Response Content (text, json)
+
+The response content can be accessed in several ways:
+
+* `response.text`: Returns the content as a Unicode string.  Suitable for text-based responses like HTML.
+* `response.content`: Returns the content as bytes.  Suitable for binary data like images or PDFs.
+* `response.json()`: Parses the content as JSON and returns a Python dictionary or list.  Raises a `requests.exceptions.JSONDecodeError` if the content is not valid JSON.  This is the most convenient way to work with JSON APIs.
+
+
+```python
+import requests
+
+response = requests.get('https://api.example.com/data')
+
+if response.status_code == 200:
+    try:
+        data = response.json()
+        print(data)
+    except requests.exceptions.JSONDecodeError:
+        print("Invalid JSON response")
+```
+
+### Handling Errors and Exceptions
+
+Requests raises exceptions for various errors, including network issues and HTTP errors.  Use `try...except` blocks to handle these:
+
+```python
+import requests
+
+try:
+    response = requests.get('https://api.example.com/data')
+    response.raise_for_status() #Raises HTTPError for bad responses (4xx or 5xx)
+    #Process the successful response here
+except requests.exceptions.RequestException as e:
+    print(f"An error occurred: {e}")
+except requests.exceptions.HTTPError as e:
+    print(f"HTTP Error: {e}")
+except requests.exceptions.ConnectionError as e:
+    print(f"Connection Error: {e}")
+except requests.exceptions.Timeout as e:
+    print(f"Timeout Error: {e}")
+
+```
+
+`response.raise_for_status()` is helpful for explicitly raising exceptions for bad status codes.
+
+
+### Checking for Redirects
+
+Requests automatically handles redirects (3xx status codes).  To access information about redirects:
+
+```python
+import requests
+
+response = requests.get('https://shorturl.at/somelink', allow_redirects=True) #allow_redirects is True by default
+
+print(response.url) #The final URL after redirects
+print(response.history) #List of intermediate responses during redirects.
+```
+
+Setting `allow_redirects=False` will prevent automatic redirection and allow handling redirects manually.
+
+
+### Working with Cookies
+
+Requests handles cookies automatically.  To access or manipulate cookies:
+
+```python
+import requests
+
+session = requests.Session() # Use a session for managing cookies across requests.
+
+response = session.get('https://www.example.com/login', data={'username':'user', 'password':'pass'})
+cookies = session.cookies
+
+response2 = session.get('https://www.example.com/profile') #Cookies from the login will be sent automatically
+#access cookies using cookies.get_dict() etc.
+
+print(response2.text)
+```
+
+Using a `requests.Session()` object is recommended for managing cookies across multiple requests.  You can directly access and modify cookies through the `session.cookies` attribute for more advanced control.
+
+
+## Advanced Usage
+
+### Authentication Methods (Basic, OAuth, etc.)
+
+Requests supports various authentication methods.
+
+* **HTTP Basic Authentication:**  Use the `auth` parameter with a tuple containing the username and password:
+
+```python
+import requests
+
+response = requests.get('https://api.example.com/data', auth=('username', 'password'))
+print(response.text)
+```
+
+* **OAuth:**  OAuth requires more complex handling, typically involving obtaining an access token first and then including it in the request headers (often as a `Bearer` token):
+
+
+```python
+import requests
+
+access_token = "YOUR_ACCESS_TOKEN"  #Obtain this through the OAuth flow.
+headers = {'Authorization': f'Bearer {access_token}'}
+response = requests.get('https://api.example.com/data', headers=headers)
+print(response.text)
+```
+
+The specific implementation depends on the OAuth provider.
+
+* **Other methods:**  Other authentication methods (like Digest, API keys in headers, etc.) require adapting the request according to the API's specification.
+
+
+### Using Proxies
+
+To use a proxy server, use the `proxies` parameter with a dictionary specifying the proxy for each protocol (HTTP and HTTPS):
+
+```python
+import requests
+
+proxies = {
+    'http': 'http://user:password@proxy.example.com:8080',
+    'https': 'http://user:password@proxy.example.com:8080',
+}
+
+response = requests.get('https://www.example.com', proxies=proxies)
+print(response.text)
+```
+
+Replace placeholders with your proxy server details.  If you don't need authentication, omit the `user:password@` part.
+
+
+### Setting Timeouts
+
+To prevent requests from hanging indefinitely, set timeouts using the `timeout` parameter (in seconds):
+
+```python
+import requests
+
+try:
+    response = requests.get('https://www.example.com', timeout=5)  # 5-second timeout
+    print(response.text)
+except requests.exceptions.Timeout:
+    print("Request timed out")
+except requests.exceptions.RequestException as e:
+    print(f"An error occurred: {e}")
+
+```
+
+You can specify a tuple for separate connect and read timeouts: `timeout=(connect_timeout, read_timeout)`.
+
+
+### Handling SSL Certificates
+
+For self-signed or untrusted certificates, you may need to disable SSL verification or provide a custom certificate bundle:
+
+```python
+import requests
+
+# Disable SSL verification (INSECURE - ONLY FOR DEVELOPMENT/TESTING!)
+response = requests.get('https://selfsigned.example.com', verify=False)
+
+#Use a custom CA bundle (more secure than verify=False)
+response = requests.get('https://selfsigned.example.com', verify='/path/to/my/ca.pem')
+
+print(response.text)
+
+```
+
+**Warning:** Disabling SSL verification (`verify=False`) is highly discouraged in production environments as it compromises security.  Use a custom CA bundle whenever possible for secure handling of self-signed certificates.
+
+
+### Working with Sessions
+
+`requests.Session()` objects persist cookies, headers, and other settings across multiple requests, making them efficient for interacting with websites or APIs that require authentication or state management.
+
+```python
+import requests
+
+session = requests.Session()
+session.auth = ('username', 'password')
+
+response1 = session.get('https://api.example.com/login')
+response2 = session.get('https://api.example.com/data') # Authentication from response1 is reused.
+
+print(response2.text)
+```
+
+The session automatically handles cookies and other persistent data.
+
+
+### Using Custom Adapters
+
+Requests uses adapters to handle connections.  You can create custom adapters for special needs (e.g., handling specific protocols or proxies):
+
+
+```python
+import requests
+
+class MyAdapter(requests.adapters.HTTPAdapter):
+    def send(self, request, **kwargs):
+        # Add custom logic here (e.g., modify the request before sending)
+        return super().send(request, **kwargs)
+
+session = requests.Session()
+session.mount('http://', MyAdapter()) #Mount the adapter for http:// URLs
+session.mount('https://', MyAdapter())#Mount the adapter for https:// URLs
+
+
+response = session.get('https://www.example.com')
+print(response.text)
+```
+
+Custom adapters provide powerful control over the underlying HTTP connection handling.  This is advanced usage and requires a good understanding of HTTP and Requests' internals.
+
+
+## Best Practices and Security
+
+### Security Considerations
+
+* **Never hardcode sensitive information (API keys, passwords) directly into your code.** Use environment variables or configuration files to store and access secrets securely.
+* **Always verify SSL certificates (`verify=True`).**  Avoid disabling SSL verification (`verify=False`) except for explicit testing purposes in controlled environments.
+* **Validate user inputs carefully** to prevent injection attacks (like SQL injection or cross-site scripting).  Sanitize any data received from external sources before using it in your requests.
+* **Be aware of potential vulnerabilities** in the APIs you interact with.  Check the API documentation for security best practices and any known vulnerabilities.
+* **Use HTTPS** whenever possible to encrypt communication between your application and the server.
+* **Regularly update the Requests library** to benefit from the latest security patches and bug fixes.
+
+
+### Error Handling and Logging
+
+* **Always check the response status code** to ensure the request was successful.  Handle non-2xx status codes appropriately.
+* **Use `try...except` blocks** to catch potential exceptions (`requests.exceptions.RequestException`, `requests.exceptions.HTTPError`, etc.).  Log errors for debugging and monitoring.
+* **Implement robust logging** to track requests, responses, errors, and other relevant information.  This helps in debugging, monitoring, and auditing.  Use a logging library like Python's built-in `logging` module.  Include relevant details like timestamps, URLs, status codes, and error messages.
+
+Example using Python's `logging` module:
+
+```python
+import logging
+import requests
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+try:
+    response = requests.get('https://api.example.com/data')
+    response.raise_for_status()
+    logging.info(f"Request successful. Status code: {response.status_code}")
+    #Process successful response
+except requests.exceptions.RequestException as e:
+    logging.error(f"Request failed: {e}")
+```
+
+
+### Efficient Request Handling
+
+* **Use sessions (`requests.Session()`)** for multiple requests to the same server.  Sessions reuse connections and manage cookies efficiently, reducing overhead.
+* **Use connection pooling:**  Requests automatically handles connection pooling to improve performance.
+* **Avoid unnecessary requests:**  Optimize your code to make only the necessary requests.  Batch requests when possible.
+* **Handle rate limits:**  Respect API rate limits to avoid being blocked.
+
+
+### Rate Limiting and Throttling
+
+Many APIs implement rate limiting to prevent abuse.  If you exceed the rate limit, your requests might be temporarily blocked.
+
+* **Check the API documentation** to understand the rate limits.
+* **Implement mechanisms to handle rate limits:**  This might involve adding delays between requests using `time.sleep()`, using a queue to manage requests, or using a dedicated rate-limiting library.
+* **Monitor your request rate** to stay within the limits.  Log the number of requests made and the time taken.  Alerting systems can trigger warnings or actions if the rate exceeds a threshold.
+
+
+Example of adding a delay to handle rate limiting:
+
+```python
+import time
+import requests
+
+rate_limit = 1  # requests per second
+time_between_requests = 1/rate_limit
+
+for i in range(10):
+    response = requests.get('https://api.example.com/data')
+    if response.status_code == 200:
+        #Process the response
+        pass
+    else:
+        print(f"Request failed with status code: {response.status_code}")
+    time.sleep(time_between_requests)
+
+```
+
+
+## Working with Different APIs
+
+### RESTful APIs
+
+RESTful APIs are the most common type of web API.  They use standard HTTP methods (GET, POST, PUT, DELETE) to interact with resources.  Requests is well-suited for working with RESTful APIs.
+
+**Example:**  Fetching data from a REST API using a GET request:
+
+```python
+import requests
+
+url = "https://api.example.com/users/123"
+response = requests.get(url)
+
+if response.status_code == 200:
+    data = response.json()
+    print(data)
+else:
+    print(f"Error: {response.status_code}")
+
+```
+
+This example makes a GET request to retrieve user data.  The response is assumed to be JSON.  Error handling is essential; always check the status code.  For POST, PUT, and DELETE requests, use the appropriate `requests` method (`requests.post`, `requests.put`, `requests.delete`), providing the data in the request body as needed (often as JSON using the `json` parameter).  Remember to handle different response status codes and potential errors.  The specific details depend on the API's documentation.
+
+
+### GraphQL APIs
+
+GraphQL APIs use a query language to specify exactly the data needed.  Requests can be used with GraphQL by sending a POST request with the query in the request body.  You'll typically need to handle the JSON response appropriately.
+
+**Example:** Making a GraphQL query:
+
+```python
+import requests
+
+url = "https://api.example.com/graphql"
+query = """
+    query GetUser($id: ID!) {
+        user(id: $id) {
+            id
+            name
+            email
+        }
+    }
+"""
+variables = {"id": "123"}
+
+response = requests.post(url, json={"query": query, "variables": variables})
+
+if response.status_code == 200:
+    data = response.json()
+    print(data['data']['user'])
+else:
+    print(f"Error: {response.status_code}")
+
+```
+
+This example sends a GraphQL query to fetch user data.  The `query` and `variables` are sent as JSON.  The response contains the data in the `data` field. Error handling and checking the response structure are vital.  Always consult the GraphQL API's documentation for specific query structures and response formats.
+
+
+### Other API types
+
+Requests can be used with other API types as well, though the specifics will depend on the API's communication protocol and data format.  This might include:
+
+* **SOAP APIs:** SOAP APIs typically use XML for communication.  You would send XML requests and parse XML responses.  Libraries like `zeep` build upon Requests to simplify interaction with SOAP APIs.
+* **gRPC APIs:** gRPC uses Protocol Buffers for data serialization.  Dedicated gRPC libraries in Python (like `grpcio`) are generally preferred for working with gRPC services.
+* **WebSockets:** For real-time communication, WebSockets are used.  Dedicated WebSocket libraries are recommended over using Requests directly for this type of interaction.
+
+
+For any API type beyond the most common RESTful APIs, referring to the API's specific documentation is crucial to understand the correct request format (headers, body, authentication, etc.) and how to correctly parse the response.  Requests provides the fundamental HTTP capabilities, but often, additional libraries or techniques are needed for seamless interaction with more specialized APIs.
+
+
+## Appendix
+
+### Glossary of Terms
+
+* **API (Application Programming Interface):** A set of rules and specifications that software programs can follow to communicate with each other.
+* **HTTP (Hypertext Transfer Protocol):** The foundation protocol for data communication on the World Wide Web.
+* **GET Request:** An HTTP method used to retrieve data from a server.
+* **POST Request:** An HTTP method used to send data to a server, often to create or update resources.
+* **PUT Request:** An HTTP method used to update an existing resource on a server.
+* **DELETE Request:** An HTTP method used to delete a resource on a server.
+* **Status Code:** A three-digit number indicating the outcome of an HTTP request (e.g., 200 OK, 404 Not Found, 500 Internal Server Error).
+* **Header:** Metadata included in an HTTP request or response, providing additional information (e.g., Content-Type, User-Agent).
+* **Payload:** The data sent in the body of an HTTP request (e.g., JSON data, form data).
+* **JSON (JavaScript Object Notation):** A lightweight data-interchange format.
+* **XML (Extensible Markup Language):** A markup language for encoding documents in a format that is both human-readable and machine-readable.
+* **Proxy Server:** A server that acts as an intermediary between a client and another server.
+* **SSL/TLS (Secure Sockets Layer/Transport Layer Security):** Protocols that provide secure communication over a computer network.
+* **Cookie:** A small piece of data stored by a website on a user's computer.
+* **Session:** A mechanism for managing cookies and other state information across multiple requests.
+* **Rate Limiting:** A mechanism to control the number of requests an API client can make within a given time period.
+
+
+### Common Error Messages and Solutions
+
+* **`requests.exceptions.RequestException`:** This is a base exception for all requests exceptions.  Check the specific exception type (e.g., `requests.exceptions.ConnectionError`, `requests.exceptions.Timeout`, `requests.exceptions.HTTPError`) for more detail. Solutions depend on the specific error; common causes include network problems, server issues, incorrect URLs, or timeouts.
+* **`requests.exceptions.ConnectionError`:**  A connection problem. Check your network connection, the server's availability, and the URL for typos.
+* **`requests.exceptions.Timeout`:** The request timed out. Increase the `timeout` parameter in your request or investigate potential server-side performance issues.
+* **`requests.exceptions.HTTPError`:**  The server returned an HTTP error status code (4xx or 5xx).  Examine the response status code and details (e.g., `response.text`, `response.json()`) for more information.  Address the underlying issue reported by the server (e.g., incorrect authentication, missing data).
+* **`requests.exceptions.SSLError`:**  An SSL/TLS error. Ensure the SSL certificate is valid. If it's self-signed, you might need to disable verification (`verify=False` – use with extreme caution!) or provide a custom certificate authority bundle.
+* **`requests.exceptions.JSONDecodeError`:** The server returned invalid JSON. Check the server's response and the API documentation.  Ensure the server is sending valid JSON data.
+
+
+### Useful Resources and Links
+
+* **Official Requests Documentation:** [https://requests.readthedocs.io/en/latest/](https://requests.readthedocs.io/en/latest/) – The most comprehensive resource for learning about Requests.
+* **Requests GitHub Repository:** [https://github.com/psf/requests](https://github.com/psf/requests) –  For bug reports, feature requests, and contributing to the project.
+* **Python Documentation (HTTP):**  [https://docs.python.org/3/library/http.client.html](https://docs.python.org/3/library/http.client.html) –  For understanding the underlying HTTP concepts.
+* **Stack Overflow:** Search for "Python Requests" to find solutions to common problems and helpful discussions.
+
+

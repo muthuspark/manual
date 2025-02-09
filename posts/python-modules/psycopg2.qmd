@@ -1,0 +1,634 @@
+---
+title: "psycopg2 - Documentation"
+categories: [ "Python Modules" ]
+---
+
+
+### What is psycopg2?
+
+psycopg2 is a popular PostgreSQL adapter for Python.  It's a fully compliant, mature, and feature-rich library that allows Python programs to interact with PostgreSQL databases.  It provides a simple and efficient way to execute SQL queries, fetch results, and manage database connections. psycopg2 is known for its performance, stability, and extensive support for PostgreSQL features, including advanced features like transactions, prepared statements, and notifications.
+
+### Why use psycopg2?
+
+Several factors make psycopg2 a preferred choice for PostgreSQL interaction in Python:
+
+* **Performance:** psycopg2 is optimized for speed, minimizing overhead and maximizing the efficiency of database operations.  It employs binary data transfer for faster data exchange.
+* **Stability:** As a mature and widely used library, psycopg2 benefits from extensive testing and a large community, resulting in high stability and reliability.
+* **Feature completeness:** psycopg2 supports virtually all PostgreSQL features, including advanced functionalities like cursors, transactions, connection pooling, and asynchronous operations (with `asyncpg` for true async).
+* **Ease of use:**  While powerful, psycopg2 offers a relatively straightforward API that is easy to learn and use, even for developers new to PostgreSQL or database programming.
+* **Large community and support:** A large and active community provides ample resources, documentation, and support for resolving issues.
+
+
+### Installation and Setup
+
+psycopg2 is typically installed using pip, the Python package installer:
+
+```bash
+pip install psycopg2-binary
+```
+
+The `psycopg2-binary` package is recommended as it includes pre-built wheels for faster installation.  If you encounter issues or require compiling from source, you might need to install the `psycopg2` package instead (this requires development tools including PostgreSQL's development libraries).  Refer to the psycopg2 documentation for platform-specific instructions if needed.  Ensure you have the correct PostgreSQL client libraries installed for your operating system.
+
+### System Requirements
+
+The core requirement is Python 3.7 or higher.  To use psycopg2, you'll also need to have PostgreSQL installed on your system, along with the appropriate client libraries. These libraries depend on your operating system:
+
+* **Linux:**  Usually installed via your distribution's package manager (e.g., `apt-get install libpq-dev` on Debian/Ubuntu, `yum install postgresql-devel` on Red Hat/CentOS).
+* **macOS:**  Can be installed through Homebrew (`brew install postgresql`).
+* **Windows:**  Download and install the PostgreSQL installer from the official PostgreSQL website, ensuring the development libraries are included during installation.
+
+
+### Connecting to PostgreSQL
+
+Connecting to your PostgreSQL database using psycopg2 involves creating a connection object using the `connect()` function:
+
+```python
+import psycopg2
+
+try:
+    conn = psycopg2.connect(
+        host="your_db_host",
+        database="your_db_name",
+        user="your_db_user",
+        password="your_db_password",
+        port="your_db_port"  # Optional, defaults to 5432
+    )
+    print("Connected to PostgreSQL successfully!")
+
+    # ... further database operations ...
+
+    conn.close()
+
+except psycopg2.Error as e:
+    print(f"PostgreSQL error: {e}")
+```
+
+Replace the placeholders (`your_db_host`, `your_db_name`, etc.) with your actual database credentials.  The `port` parameter is optional and defaults to 5432, the standard PostgreSQL port.  Error handling is crucial; the `try...except` block catches potential `psycopg2.Error` exceptions during the connection process.  Always close the connection using `conn.close()` when finished.
+
+
+## Basic Usage
+
+### Connecting to a Database
+
+Connecting to a PostgreSQL database is the first step in any psycopg2 application.  This is done using the `psycopg2.connect()` function, which takes several keyword arguments specifying the database connection parameters:
+
+```python
+import psycopg2
+
+try:
+    conn = psycopg2.connect(
+        host="your_db_host",
+        database="your_db_name",
+        user="your_db_user",
+        password="your_db_password",
+        port=5432  # Optional, defaults to 5432
+    )
+    print("Connected to PostgreSQL successfully!")
+except psycopg2.Error as e:
+    print(f"Error connecting to PostgreSQL: {e}")
+    exit(1) #Exit with error code
+```
+
+Replace the placeholder values with your database server's host, database name, username, and password. The `port` argument specifies the port number the database server listens on; it defaults to 5432.  Robust error handling is essential; the `try...except` block catches potential connection errors.
+
+### Creating a Cursor
+
+Before executing SQL queries, you need to create a cursor object. A cursor acts as an interface to the database, allowing you to execute queries and fetch results.  You create a cursor using the `cursor()` method of the connection object:
+
+```python
+cur = conn.cursor()
+```
+
+This creates a standard cursor. For enhanced performance with multiple queries, consider using `conn.cursor('server_side')` for server-side cursors.  See the psycopg2 documentation for details on cursor types.
+
+### Executing Queries
+
+To execute an SQL query, use the `execute()` method of the cursor object.
+
+```python
+cur.execute("SELECT version()")
+```
+
+This executes the `SELECT version()` query.  For queries with parameters (to prevent SQL injection vulnerabilities), use parameterized queries:
+
+```python
+cur.execute("SELECT * FROM users WHERE username = %s", ("johndoe",))
+```
+
+Note the use of a tuple, even for a single parameter.
+
+### Fetching Data
+
+After executing a query that returns data, you can fetch the results using methods like `fetchone()`, `fetchmany()`, or `fetchall()`:
+
+
+```python
+#Fetch one row
+row = cur.fetchone()
+print(row)
+
+#Fetch multiple rows (e.g., 100 rows at a time)
+rows = cur.fetchmany(100)
+for row in rows:
+    print(row)
+
+#Fetch all remaining rows
+rows = cur.fetchall()
+for row in rows:
+    print(row)
+
+```
+Remember that  `fetchone()` returns a single row (or `None` if no more rows exist), `fetchmany()` returns a list of rows (up to the specified number), and `fetchall()` retrieves all remaining rows at once.
+
+
+### Handling Errors
+
+psycopg2 raises exceptions when errors occur.  Use `try...except` blocks to gracefully handle these errors:
+
+```python
+try:
+    cur.execute("INVALID SQL QUERY")
+except psycopg2.Error as e:
+    print(f"Database error: {e}")
+    conn.rollback() # Rollback transaction if necessary
+```
+
+The `conn.rollback()` method is important if an error occurs within a transaction, ensuring data consistency.  Inspect the exception object (`e`) for details about the error.
+
+### Closing Connections and Cursors
+
+It's crucial to close both the cursor and the connection when you're finished with them to release resources:
+
+```python
+cur.close()
+conn.close()
+```
+
+Failure to close connections can lead to resource leaks and database connection problems.  The `with` statement provides a convenient way to ensure proper closure even if exceptions occur:
+
+```python
+with psycopg2.connect(...) as conn:
+    with conn.cursor() as cur:
+        # Database operations here...
+        # conn and cur are automatically closed when exiting the 'with' block
+```
+
+This approach guarantees that the connection and cursor are always closed, regardless of whether exceptions are raised during database operations.
+
+
+## Working with Data
+
+### Inserting Data
+
+Inserting data into a PostgreSQL table involves using an `INSERT INTO` statement.  Parameterization is crucial to prevent SQL injection vulnerabilities:
+
+```python
+import psycopg2
+
+with psycopg2.connect(...) as conn:
+    with conn.cursor() as cur:
+        data = ("Jane Doe", 30, "jane.doe@example.com")
+        cur.execute("INSERT INTO users (name, age, email) VALUES (%s, %s, %s)", data)
+        conn.commit() # Commit changes to the database
+```
+
+The `conn.commit()` method saves the changes to the database.  Without `commit()`, the insertion is only temporary within the current transaction.  If an error occurs, `conn.rollback()` will undo any changes.
+
+
+### Updating Data
+
+Updating existing data uses the `UPDATE` statement:
+
+```python
+with psycopg2.connect(...) as conn:
+    with conn.cursor() as cur:
+        cur.execute("UPDATE users SET age = %s WHERE email = %s", (35, "jane.doe@example.com"))
+        conn.commit()
+```
+
+This updates the age of the user with the email address "jane.doe@example.com".  Always include a `WHERE` clause to specify which rows to update to prevent accidental modifications of unintended data.
+
+
+### Deleting Data
+
+Deleting data uses the `DELETE` statement:
+
+```python
+with psycopg2.connect(...) as conn:
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM users WHERE email = %s", ("jane.doe@example.com",))
+        conn.commit()
+```
+
+This deletes the user with the specified email address.  Again, a `WHERE` clause is essential for precise deletion.
+
+
+### Retrieving Data with Different Methods
+
+psycopg2 offers various ways to retrieve data, depending on your needs:
+
+* **`fetchone()`:** Retrieves a single row.
+* **`fetchmany(size)`:** Retrieves multiple rows (up to `size`).  Useful for processing large datasets in chunks.
+* **`fetchall()`:** Retrieves all remaining rows at once.  Can be memory-intensive for very large result sets.
+
+Example using `fetchmany()` for efficient processing of a large table:
+
+```python
+with psycopg2.connect(...) as conn:
+    with conn.cursor() as cur:
+        cur.execute("SELECT * FROM large_table")
+        while True:
+            rows = cur.fetchmany(1000)  # Fetch 1000 rows at a time
+            if not rows:
+                break  # Exit the loop when no more rows are available
+            for row in rows:
+                # Process each row
+                print(row)
+```
+
+
+### Data Types and Mapping
+
+psycopg2 automatically handles type mapping between Python and PostgreSQL data types.  Generally, it maps Python types to their PostgreSQL equivalents. For example, Python `int` maps to PostgreSQL `INTEGER`, Python `str` maps to PostgreSQL `TEXT`, etc. Consult the psycopg2 documentation for a complete mapping.  For custom mappings or complex types, you might need to use `adapt()` and `register_adapter()` functions.
+
+
+### Handling NULL values
+
+PostgreSQL's `NULL` values are represented as `None` in Python when fetched using psycopg2.
+
+```python
+with psycopg2.connect(...) as conn:
+    with conn.cursor() as cur:
+        cur.execute("SELECT name, age FROM users WHERE id = 1")
+        row = cur.fetchone()
+        name = row[0]
+        age = row[1] #age will be None if the age is NULL in database
+
+        if age is None:
+            print("Age is not specified for this user.")
+        else:
+            print(f"User's age: {age}")
+
+```
+
+Always check for `None` when dealing with database fields that can potentially have `NULL` values to avoid errors.  Remember to handle `None` appropriately in your application logic.
+
+
+## Advanced Techniques
+
+### Transactions
+
+Transactions ensure data integrity by grouping multiple database operations into a single unit of work.  If all operations succeed, the changes are committed; otherwise, they're rolled back, maintaining consistency.  Psycopg2 supports transactions using the `conn.commit()` and `conn.rollback()` methods:
+
+```python
+with psycopg2.connect(...) as conn:
+    cur = conn.cursor()
+    try:
+        cur.execute("BEGIN") # Start a transaction
+
+        cur.execute("UPDATE accounts SET balance = balance - 100 WHERE id = 1")
+        cur.execute("UPDATE accounts SET balance = balance + 100 WHERE id = 2")
+
+        conn.commit() # Commit the transaction if successful
+    except psycopg2.Error as e:
+        conn.rollback() # Rollback if any error occurs
+        print(f"Transaction failed: {e}")
+    finally:
+        cur.close()
+```
+
+The `BEGIN` statement starts a transaction.  `commit()` saves changes; `rollback()` undoes them.  The `try...except...finally` block ensures that the cursor is always closed, regardless of success or failure.  `AUTOCOMMIT` is off by default in psycopg2; you must explicitly manage transactions.
+
+
+### Prepared Statements
+
+Prepared statements enhance performance and security by pre-compiling SQL queries. They prevent SQL injection and reduce parsing overhead for repeated queries with varying parameters:
+
+```python
+with psycopg2.connect(...) as conn:
+    cur = conn.cursor()
+    cur.prepare("select_user", "SELECT * FROM users WHERE id = %s")
+    cur.execute("select_user", (1,))
+    user = cur.fetchone()
+    print(user)
+
+```
+Here, "select_user" is the prepared statement name, and  `%s` acts as a placeholder.  psycopg2 handles parameter binding securely and efficiently.  Consider prepared statements for queries executed repeatedly with different inputs.
+
+
+### Working with Binary Data
+
+psycopg2 efficiently handles binary data (e.g., images, files). Use the `psycopg2.Binary` adapter to send binary data to the database:
+
+```python
+with psycopg2.connect(...) as conn:
+    cur = conn.cursor()
+    with open("image.jpg", "rb") as f:
+        binary_data = f.read()
+    cur.execute("INSERT INTO images (image_data) VALUES (%s)", (psycopg2.Binary(binary_data),))
+    conn.commit()
+```
+
+`psycopg2.Binary()` wraps the binary data, ensuring correct transmission to PostgreSQL.  Retrieving binary data involves reading it from the result set and converting it back as needed.
+
+
+### Using COPY
+
+The `COPY` command provides a highly efficient way to import/export large amounts of data to/from PostgreSQL. Psycopg2 offers support for it through the `copy_expert()` method:
+
+```python
+with psycopg2.connect(...) as conn:
+    cur = conn.cursor()
+    with open("data.csv", "r") as f:
+        cur.copy_expert("COPY my_table FROM STDIN WITH CSV HEADER DELIMITER AS ','", f)
+    conn.commit()
+
+```
+
+This copies data from `data.csv` into `my_table`. `copy_expert` allows fine-grained control over the `COPY` command options.  Refer to PostgreSQL documentation for options like `DELIMITER`, `HEADER`, etc.
+
+
+### Asynchronous Operations
+
+For high-throughput applications requiring concurrent database access, consider using `asyncpg`, a fully asynchronous PostgreSQL driver built on top of `asyncio`.  While not directly part of psycopg2, `asyncpg` provides asynchronous operations that avoid blocking the event loop, leading to improved performance in asynchronous environments.
+
+### Connection Pooling
+
+Connection pooling is crucial for efficient database access in multi-threaded or multi-process applications.  It reduces the overhead of establishing new connections for each request by reusing connections from a pool.  Psycopg2 itself doesn't include a built-in connection pool, but you can use third-party libraries like `psycopg2-pool` or `sqlalchemy`'s connection pooling features for managing a pool of connections.  This can significantly improve performance, especially in high-concurrency scenarios.
+
+
+## Error Handling and Debugging
+
+### Common Errors
+
+Several common errors can arise when using psycopg2.  Understanding these helps in quicker debugging:
+
+* **`psycopg2.OperationalError`:** This indicates problems with the database connection, such as incorrect credentials, network issues, or the database server being unavailable. Check your connection parameters and ensure the database server is running.
+
+* **`psycopg2.ProgrammingError`:**  This usually signifies an error in your SQL query syntax or a problem with the query's structure (e.g., incorrect number of parameters). Carefully review your SQL code.
+
+* **`psycopg2.IntegrityError`:** This points to constraint violations, such as trying to insert a duplicate key or violating a `UNIQUE` constraint.  Inspect your data to identify the conflict.
+
+* **`psycopg2.DataError`:**  This occurs when there's an issue with the data type of values being inserted or fetched (e.g., trying to insert a string into a numeric column). Verify that your data types match the database schema.
+
+* **`psycopg2.InternalError`:** This is a generic error indicating an internal problem within psycopg2 or the PostgreSQL server.  It's often accompanied by a more specific error message.
+
+
+### Debugging Techniques
+
+Effective debugging strategies for psycopg2 applications include:
+
+* **Print Statements:**  Strategic `print()` statements can show the flow of execution and the values of variables.  Print the SQL queries being executed to verify their correctness.
+
+* **Logging:** Use Python's `logging` module to record events, errors, and warnings.  This provides a more organized and persistent record of application behavior.
+
+* **Inspecting Exceptions:** When an exception occurs, examine the exception object to retrieve detailed information about the error (e.g., error code, error message).
+
+* **Using a Debugger:** Employ a Python debugger (like pdb) to step through your code line by line, inspect variables, and understand the flow of execution.  Set breakpoints where necessary.
+
+* **PostgreSQL Logs:** Examine the PostgreSQL server logs for potential errors or hints related to the interaction with your Python application.
+
+
+### Exception Handling
+
+Robust exception handling is vital in psycopg2 applications. Use `try...except` blocks to gracefully handle errors and prevent application crashes:
+
+
+```python
+try:
+    with psycopg2.connect(...) as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM non_existent_table")  # Potential error
+            rows = cur.fetchall()
+except psycopg2.ProgrammingError as e:
+    print(f"SQL error: {e}")
+except psycopg2.OperationalError as e:
+    print(f"Connection error: {e}")
+except Exception as e: #Catch any other exceptions
+    print(f"An unexpected error occurred: {e}")
+finally:
+  # Always close the connection and cursor.
+  if 'conn' in locals() and conn: conn.close()
+  if 'cur' in locals() and cur: cur.close()
+```
+
+This example demonstrates handling specific psycopg2 exceptions and a general `Exception` to catch other potential issues. The `finally` block guarantees resource cleanup.
+
+
+### Logging
+
+The `logging` module provides a structured way to record events.  This is especially valuable for tracking errors, debugging, and monitoring in production environments:
+
+```python
+import logging
+
+logging.basicConfig(filename='app.log', level=logging.ERROR, 
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+try:
+    # ... your database interaction code ...
+except psycopg2.Error as e:
+    logging.error(f"Database error: {e}")
+```
+
+This configures logging to write error messages to `app.log`.  Adjust the `level` and `format` parameters as needed.  Logging facilitates post-mortem analysis and troubleshooting.
+
+
+## Security Considerations
+
+### Password Management
+
+Never hardcode database passwords directly into your Python code. This poses a significant security risk.  Use environment variables or a secure configuration management system to store and retrieve passwords.  Here's how to use environment variables:
+
+```python
+import os
+import psycopg2
+
+db_password = os.environ.get("POSTGRES_PASSWORD")
+
+if db_password is None:
+    print("POSTGRES_PASSWORD environment variable not set!")
+    exit(1)
+
+try:
+    conn = psycopg2.connect(
+        host="your_db_host",
+        database="your_db_name",
+        user="your_db_user",
+        password=db_password,
+        port=5432
+    )
+    # ... your code ...
+except psycopg2.Error as e:
+    print(f"Database connection error: {e}")
+```
+
+This example retrieves the password from the `POSTGRES_PASSWORD` environment variable.  Ensure the environment variable is properly set before running the application.  Consider using a dedicated secrets management solution for enhanced security in production environments.
+
+### SQL Injection Prevention
+
+SQL injection is a serious vulnerability.  Always use parameterized queries or prepared statements to prevent attackers from injecting malicious SQL code into your queries:
+
+**Incorrect (vulnerable to SQL injection):**
+
+```python
+username = input("Enter username: ")
+query = f"SELECT * FROM users WHERE username = '{username}'"  # VERY DANGEROUS!
+cur.execute(query)
+```
+
+**Correct (using parameterized queries):**
+
+```python
+username = input("Enter username: ")
+cur.execute("SELECT * FROM users WHERE username = %s", (username,))
+```
+
+Parameterized queries treat user inputs as data, not as executable code. Psycopg2 handles the proper escaping and sanitization, eliminating the risk of SQL injection.
+
+
+### Secure Connection Configuration
+
+Secure database connection configuration involves several aspects:
+
+* **SSL/TLS:**  Enable SSL/TLS encryption for your database connection to protect data in transit.  This requires configuring both your PostgreSQL server and your client to use SSL.  You can specify SSL parameters in `psycopg2.connect()`:
+
+```python
+conn = psycopg2.connect(
+    ...,
+    sslmode="require", #Enforce SSL connection
+    sslcert='client-cert.pem', # Path to client certificate
+    sslkey='client-key.pem', # Path to client key
+    sslrootcert='server-ca.pem' # Path to server CA certificate
+)
+```
+* **Network Restrictions:** Restrict network access to your PostgreSQL server. Don't expose it directly to the internet; use a firewall or VPN to control access.
+
+* **User Permissions:** Grant only the necessary privileges to database users. Avoid granting excessive permissions that might compromise security.
+
+* **Regular Updates:** Keep your PostgreSQL server and psycopg2 library updated with the latest security patches to address known vulnerabilities.
+
+* **Strong Passwords:** Enforce strong passwords for database users and utilize robust password management practices.
+
+
+By following these security best practices, you can significantly reduce the risk of vulnerabilities in your psycopg2 applications. Remember that security is a continuous process, requiring regular review and updates.
+
+
+## Extending psycopg2
+
+### Extending the library
+
+While psycopg2 is a feature-rich library, there might be situations where you need to extend its functionality.  This can involve adding support for custom data types, creating new connection features, or integrating with other systems.  Extending psycopg2 typically requires a deeper understanding of its internal workings and involves modifying its source code or creating wrapper functions.  The psycopg2 source code is available on GitHub, and the documentation includes information on contributing to the project. Note that extending the core library requires careful testing to ensure compatibility and stability.  It's often simpler to achieve desired functionality through custom adapters or wrapper functions than directly modifying psycopg2's core code.
+
+
+### Creating custom adapters
+
+psycopg2 provides mechanisms for handling custom data types. If you're working with a data type not natively supported by psycopg2, you can create a custom adapter. This adapter defines how the custom type is converted between its Python representation and its PostgreSQL equivalent.  This is often the preferred method for extending data handling within psycopg2 without directly modifying its source.
+
+Example of creating a custom adapter for a `Point` object:
+
+```python
+import psycopg2
+from psycopg2.extensions import register_adapter, AsIs
+
+class Point:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __str__(self):
+        return f"({self.x}, {self.y})"
+
+
+def adapt_point(point):
+    return AsIs(f"POINT({point.x} {point.y})")
+
+register_adapter(Point, adapt_point)
+
+# Usage:
+with psycopg2.connect(...) as conn:
+    cur = conn.cursor()
+    point = Point(10, 20)
+    cur.execute("INSERT INTO points (location) VALUES (%s)", (point,))
+    conn.commit()
+
+```
+This code defines a `Point` class and an `adapt_point` function that converts it into the PostgreSQL `POINT` type.  `register_adapter` registers the adapter with psycopg2.
+
+
+### Using third-party libraries
+
+Several third-party libraries enhance or extend the capabilities of psycopg2.  These libraries often provide additional features, such as connection pooling, ORM integration, or improved asynchronous operations:
+
+
+* **Connection Pooling:**  Libraries like `psycopg2-pool` provide connection pooling, improving performance in multi-threaded or multi-process applications.  They manage a pool of database connections, reducing the overhead of creating new connections for each request.
+
+* **Object-Relational Mappers (ORMs):**  ORMs such as `SQLAlchemy` integrate with psycopg2 to provide a higher-level abstraction for database interaction.  They map Python objects to database tables, simplifying database operations.
+
+* **Asynchronous Support:** As mentioned previously,  `asyncpg` is a powerful asynchronous PostgreSQL driver that offers performance advantages in concurrent environments.
+
+
+Using third-party libraries often simplifies development and improves application performance. Choose libraries that align with your application's needs and architectural considerations.  Always carefully review the documentation and security implications of external libraries before integrating them into your projects.
+
+
+## Appendix
+
+### Glossary of Terms
+
+* **Adapter:** A mechanism in psycopg2 that converts between Python data types and PostgreSQL data types.  Custom adapters can be created to handle non-standard types.
+
+* **Connection:**  A representation of a connection to a PostgreSQL database server.  It's the entry point for all database operations.
+
+* **Cursor:** An object that allows you to execute SQL queries and fetch results from the database.
+
+* **Parameterized Query/Prepared Statement:** A query where parameters are supplied separately, preventing SQL injection vulnerabilities and improving performance.
+
+* **Transaction:** A sequence of database operations treated as a single unit of work.  Either all operations succeed (commit) or none do (rollback), ensuring data consistency.
+
+* **SSL/TLS:** Secure Sockets Layer/Transport Layer Security; encryption protocols that secure database connections.
+
+* **Binary Data:** Raw data represented as bytes (e.g., images, files).  psycopg2 handles binary data using the `psycopg2.Binary` adapter.
+
+
+### List of Exceptions
+
+psycopg2 raises various exceptions to indicate errors. The most common include:
+
+* **`psycopg2.OperationalError`:**  Errors related to database connection issues (e.g., network problems, incorrect credentials).
+
+* **`psycopg2.ProgrammingError`:** Errors in SQL syntax or query structure.
+
+* **`psycopg2.IntegrityError`:** Errors caused by constraint violations (e.g., duplicate key, foreign key constraint).
+
+* **`psycopg2.DataError`:** Errors related to data type mismatches or invalid data values.
+
+* **`psycopg2.InternalError`:** Internal errors within psycopg2 or the PostgreSQL server.
+
+* **`psycopg2.InterfaceError`:** Errors related to the database interface.
+
+* **`psycopg2.NotSupportedError`:** Errors when attempting to use unsupported features.
+
+* **`psycopg2.DatabaseError`:** A base class for all other psycopg2 exceptions.
+
+
+For a complete list and detailed descriptions of exceptions, refer to the official psycopg2 documentation.
+
+
+### Frequently Asked Questions (FAQ)
+
+* **How do I install psycopg2?** Use `pip install psycopg2-binary`.  The `-binary` version is generally recommended for faster installation.
+
+* **Why am I getting a `psycopg2.OperationalError`?** Check your database connection parameters (host, database name, username, password, port).  Ensure the PostgreSQL server is running and accessible from your application. Verify network connectivity.
+
+* **How can I prevent SQL injection?** Always use parameterized queries or prepared statements.  Never directly embed user input into SQL queries.
+
+* **How do I handle NULL values?**  PostgreSQL's `NULL` values are represented as `None` in Python. Check for `None` explicitly in your code.
+
+* **What's the difference between `fetchone()`, `fetchmany()`, and `fetchall()`?**  `fetchone()` returns one row, `fetchmany()` returns multiple rows (up to a specified number), and `fetchall()` returns all remaining rows.  `fetchmany()` is often more efficient for large result sets.
+
+* **How do I use transactions?** Use `conn.cursor()`, `conn.commit()`, and `conn.rollback()` to manage transactions.  Remember to wrap your database operations within a `try...except` block.
+
+* **How do I work with binary data?** Use `psycopg2.Binary()` to handle binary data.
+
+This FAQ covers common questions. For more detailed information, consult the psycopg2 documentation.
+

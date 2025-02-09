@@ -1,0 +1,591 @@
+---
+title: "pytest - Documentation"
+categories: [ "Python Modules" ]
+---
+
+
+### What is pytest?
+
+pytest is a powerful and versatile testing framework for Python. It's known for its ease of use, extensibility, and rich plugin ecosystem.  pytest allows you to write simple, readable tests that scale well from small projects to large, complex applications. Unlike some testing frameworks that require you to inherit from specific base classes or follow rigid structures, pytest emphasizes simplicity and convention over configuration.  It automatically discovers tests and provides a rich set of features for handling assertions, fixtures, parameterization, and more, all while maintaining a clean and concise syntax.
+
+
+### Why use pytest?
+
+Several factors contribute to pytest's popularity:
+
+* **Simplicity:**  pytest's syntax is incredibly straightforward and intuitive, making it easy to learn and use, even for beginners.
+* **Expressiveness:**  You can write tests that closely mirror the logic you're testing, leading to highly readable and maintainable test suites.
+* **Extensibility:**  A vast ecosystem of plugins extends pytest's functionality, enabling integration with various tools and technologies.
+* **Rich Features:**  pytest supports advanced testing techniques like fixtures (for managing test setup and teardown), parameterization (for running tests with multiple inputs), and more.
+* **Detailed Reporting:**  pytest generates clear and informative reports, helping you quickly identify and diagnose failures.
+* **Excellent Community Support:**  A large and active community provides extensive documentation, support, and a wide range of plugins.
+
+
+### Installation and Setup
+
+Installing pytest is straightforward using pip:
+
+```bash
+pip install pytest
+```
+
+That's it!  No further configuration is usually necessary for basic usage.  For more advanced features or plugin integration, you may need to install additional packages.  For example, to use pytest's HTML reporting plugin, you would run:
+
+```bash
+pip install pytest-html
+```
+
+To run your tests, navigate to your project's directory in the terminal and execute:
+
+```bash
+pytest
+```
+
+pytest automatically discovers and runs tests in files matching the `test_*.py` or `*_test.py` naming convention.
+
+
+### Basic Syntax and Usage
+
+The core of pytest is the `assert` statement.  When an assertion fails, pytest will report the failure and provide context information.
+
+A simple test might look like this:
+
+```python
+def add(x, y):
+    return x + y
+
+def test_add():
+    assert add(2, 3) == 5
+    assert add(-1, 1) == 0
+    assert add(0, 0) == 0
+```
+
+To run this test, save it as `test_example.py` and execute `pytest` in your terminal.  pytest will discover and execute `test_add()`.  If all assertions pass, pytest will indicate success. If any assertion fails, pytest will report the failure, including the line number and the assertion that failed.
+
+
+More complex tests can utilize fixtures for setup and teardown, parameterization for running tests with multiple inputs, and other advanced features which are described in later sections of this manual.
+
+
+## Writing Tests with pytest
+
+### Test Functions and Naming Conventions
+
+pytest discovers tests automatically based on naming conventions.  Test functions must be named starting with `test_`.  Test classes (which are less common but can be useful for organization) must be named `Test*` and their methods must also start with `test_`.  Files containing tests should generally follow the naming convention `test_*.py` or `*_test.py`.  This automatic discovery mechanism simplifies test organization and reduces the boilerplate code.  For example:
+
+```python
+# test_mymodule.py
+def test_addition():
+    assert 2 + 2 == 4
+
+class TestSubtraction:
+    def test_subtract_positive(self):
+        assert 5 - 3 == 2
+    def test_subtract_negative(self):
+        assert 1 - 5 == -4
+```
+
+### Assertions and Test Failures
+
+pytest uses Python's built-in `assert` statement for verifying test conditions. When an assertion fails, pytest provides detailed information about the failure, including the failing assertion, the line number, and a traceback.  There is no need for explicit `assertTrue`/`assertFalse` functions commonly used in other testing frameworks.
+
+
+```python
+def test_myfunction():
+    result = my_function(5)
+    assert result == 10  # Passes if result is 10, fails otherwise
+    assert type(result) is int # Checks the type of the result
+
+```
+
+If the assertion fails, pytest provides a clear, concise report explaining the failure.
+
+
+### Fixtures for Test Setup and Teardown
+
+Fixtures provide a mechanism to setup and teardown resources used by your tests.  They help eliminate code duplication and ensure consistent test environments. Fixtures are defined using the `@pytest.fixture` decorator.
+
+```python
+import pytest
+
+@pytest.fixture
+def my_fixture():
+    # Setup code, e.g., create a database connection
+    conn = connect_to_db()
+    yield conn  # Yield the fixture value to the test
+    # Teardown code, e.g., close the database connection
+    conn.close()
+
+def test_using_fixture(my_fixture):
+    # Use the fixture within the test
+    results = my_fixture.execute_query(...)
+    assert results == expected_results
+```
+
+The code after `yield` in the fixture will be executed after the test has finished, regardless of whether it passed or failed. This ensures cleanup (like closing a file or a network connection).
+
+
+### Parametrization for Running Tests with Multiple Inputs
+
+The `@pytest.mark.parametrize` decorator allows you to run the same test function with multiple sets of input values. This significantly reduces code duplication when testing with various inputs.
+
+```python
+import pytest
+
+@pytest.mark.parametrize("input, expected", [(1, 2), (2, 4), (3, 6)])
+def test_double(input, expected):
+    assert double(input) == expected
+
+def double(x):
+  return x * 2
+```
+
+This will run `test_double` three times, once for each input/expected pair.
+
+
+
+### Using Marks to Organize and Control Tests
+
+Markers (created using `@pytest.mark.marker_name`) allow you to categorize and manage your tests.  This is useful for selectively running subsets of tests or for grouping tests based on functionality or feature.
+
+```python
+import pytest
+
+@pytest.mark.slow
+def test_long_running_process():
+  # ...
+
+@pytest.mark.database
+def test_database_interaction():
+  # ...
+```
+
+You can then use the `-m` command-line option to run only tests with specific markers:  `pytest -m slow`  will only run tests marked with `@pytest.mark.slow`.
+
+
+### Working with Test Directories and Modules
+
+pytest automatically discovers tests within a directory structure.  Tests are typically organized into separate files and/or directories to improve maintainability and readability. pytest will recursively search for tests in subdirectories, provided they follow the test naming conventions.  You can control the search scope using command-line options like `pytest ./path/to/tests/`.  To exclude certain directories or files, you can use configuration files (e.g., `pytest.ini`) to define patterns to ignore.  Well organized test directories reflect the structure of your application's codebase, promoting better organization and maintainability.
+
+
+## Advanced Testing Techniques
+
+### Mocking and Patching
+
+Mocking and patching are essential for isolating units of code during testing.  pytest seamlessly integrates with the `unittest.mock` library (or `mock` for older Python versions) to allow mocking of functions, methods, and even entire modules.  This is crucial for testing components that interact with external systems (databases, APIs, file systems) without the need to have those systems available during testing.
+
+```python
+import pytest
+from unittest.mock import patch
+
+def my_function(external_dependency):
+    return external_dependency.get_data()
+
+@patch('my_module.external_dependency.get_data', return_value='mocked data')
+def test_my_function_with_mock(mock_get_data):
+    result = my_function(external_dependency) #external_dependency is mocked
+    assert result == 'mocked data'
+
+```
+
+This example patches the `get_data` method of the `external_dependency` object, replacing it with a mock that returns "mocked data".
+
+
+### Test Coverage
+
+Measuring test coverage helps identify areas of your codebase that are not adequately tested.  Tools like `pytest-cov` provide detailed reports on statement, branch, and other types of code coverage.  To use `pytest-cov`, install it (`pip install pytest-cov`) and then run pytest with the `--cov` and `--cov-report` options:
+
+
+```bash
+pytest --cov=my_module --cov-report term-missing
+```
+
+This will generate a report showing the lines of code in `my_module` that are not covered by tests.
+
+
+### Debugging Tests
+
+When tests fail, it's often necessary to debug the failing test or the code being tested.  Standard Python debugging techniques (using pdb or IDE debuggers) work with pytest. You can add breakpoints directly into your test functions or use the `--pdb` command-line option to automatically drop into the debugger when a test fails.
+
+```python
+import pytest
+import pdb
+
+def test_example():
+  a = 5
+  b = 0
+  pdb.set_trace() #Breakpoint
+  result = a/b
+  assert result == 0 #This will likely trigger an exception before this line.
+
+```
+
+
+### Running Tests in Parallel
+
+Running tests in parallel can significantly reduce the overall testing time, especially for large test suites. pytest-xdist is a popular plugin that enables parallel test execution. Install it (`pip install pytest-xdist`) and run pytest with the `-n` option, specifying the number of processes to use.
+
+```bash
+pytest -n auto  # Use all available CPU cores.
+```
+
+This will distribute tests across multiple processes, speeding up the testing process.
+
+
+### Plugins and Extensions
+
+pytest's extensibility is a key strength.  Numerous plugins extend its functionality to support various needs, such as integration with specific frameworks, generating custom reports, and adding new features.  The plugin ecosystem is vast and well-documented.  To install a plugin, use pip: `pip install pytest-plugin-name`.
+
+
+### Integrating with Continuous Integration (CI)
+
+Continuous integration (CI) systems like GitHub Actions, GitLab CI, Jenkins, and others readily integrate with pytest.  You typically define a CI job that runs pytest. The CI system will provide feedback on test results, automatically reporting successes and failures.  The simplest approach often involves installing pytest and running `pytest` as part of a shell script within your CI configuration.  Many CI systems also offer built-in integrations that simplify this process.
+
+
+## pytest Features and Best Practices
+
+### Managing Test Dependencies
+
+Efficiently managing dependencies is crucial for maintainable test suites.  Avoid tightly coupling tests to each other.  Use fixtures to provide necessary resources to tests, ensuring that each test has the resources it needs without affecting others.  This promotes independence and prevents cascading failures.  For external dependencies (databases, APIs), use mocking or test doubles when possible to isolate your tests from the external system's availability and behavior.
+
+
+### Writing Clean and Readable Tests
+
+Write tests that are easy to understand and maintain. Use descriptive names for test functions and variables.  Keep tests concise and focused on testing a single aspect of the code.  Use meaningful assertions that clearly state what is being tested and the expected outcome.  Avoid overly complex logic within tests – if your test is hard to understand, it's probably time to refactor. Aim for high readability.
+
+
+### Testing Different Code Structures (Classes, Modules)
+
+pytest adapts well to various code structures.  For functions, simple `test_` prefixed functions suffice. For classes, create `Test` prefixed classes where methods are `test_` prefixed.   Organize tests logically, mirroring the structure of your codebase.  Use fixtures to share setup and teardown between tests within a class, or even across different modules.
+
+
+### Handling Exceptions and Errors in Tests
+
+Use `pytest.raises` context manager to assert that a specific exception is raised by a function or block of code.  This allows you to test error handling in your application.
+
+
+```python
+import pytest
+
+def my_function(x):
+    if x < 0:
+        raise ValueError("Input must be non-negative")
+    return x * 2
+
+def test_my_function_raises_exception():
+    with pytest.raises(ValueError) as excinfo:
+        my_function(-1)
+    assert "Input must be non-negative" in str(excinfo.value)
+
+```
+
+This test ensures that `my_function` raises a `ValueError` when the input is negative.
+
+
+### Working with External Libraries and APIs
+
+When testing code that interacts with external systems (databases, APIs, etc.), use mocks and test doubles to isolate your tests.  This ensures your tests are fast, reliable, and don't depend on the availability of external services.  When interacting with real external systems for integration testing, consider using fixtures to manage connections and resources efficiently and cleanly.
+
+
+### Advanced Fixtures Usage
+
+Fixtures can be parameterized (using `@pytest.mark.parametrize`) to provide different values to tests.  You can also define fixtures that depend on other fixtures, creating a hierarchy of setup steps.  Utilize fixture scope (`function`, `class`, `module`, `session`) to control when fixtures are created and destroyed to optimize resource utilization.  Autouse fixtures provide setup automatically to all tests in a module without needing to explicitly pass them as arguments.
+
+
+### Understanding pytest Configuration
+
+pytest supports configuration through command-line options, environment variables, and configuration files (e.g., `pytest.ini`, `tox.ini`).  These allow customizing pytest's behavior to suit your project's needs.  Configuration files define markers, plugins, test selection criteria, and more.  Understanding pytest's configuration mechanisms is key to tailoring its behavior to your specific workflow and project requirements.
+
+
+### Customizing pytest behavior with Plugins
+
+Plugins enhance pytest's capabilities.  They can add new features, extend existing ones, or integrate with other tools.  The plugin ecosystem is a vast resource for customization.  Plugins add reporting functionalities (HTML reports, coverage reports), integrate with other testing tools, support specialized testing techniques, and much more.  Installing plugins via pip and understanding their configuration options is crucial for adapting pytest to complex project needs.
+
+
+## Example Test Cases
+
+### Testing Functions
+
+Let's test a simple function that calculates the square of a number:
+
+```python
+# my_module.py
+def square(x):
+    return x * x
+
+```
+
+```python
+# test_my_module.py
+import my_module
+
+def test_square_positive():
+    assert my_module.square(5) == 25
+
+def test_square_zero():
+    assert my_module.square(0) == 0
+
+def test_square_negative():
+    assert my_module.square(-3) == 9
+
+```
+
+This example demonstrates testing a function with various inputs, including positive, zero, and negative numbers.
+
+
+### Testing Classes
+
+Consider a simple class representing a bank account:
+
+```python
+# bank_account.py
+class BankAccount:
+    def __init__(self, balance=0):
+        self.balance = balance
+
+    def deposit(self, amount):
+        self.balance += amount
+
+    def withdraw(self, amount):
+        if self.balance >= amount:
+            self.balance -= amount
+        else:
+            raise ValueError("Insufficient funds")
+
+```
+
+```python
+# test_bank_account.py
+import pytest
+from bank_account import BankAccount
+
+def test_deposit():
+    account = BankAccount()
+    account.deposit(100)
+    assert account.balance == 100
+
+def test_withdraw():
+    account = BankAccount(100)
+    account.withdraw(50)
+    assert account.balance == 50
+
+def test_withdraw_insufficient_funds():
+    account = BankAccount(50)
+    with pytest.raises(ValueError):
+        account.withdraw(100)
+
+```
+
+This showcases testing class methods, including error handling.
+
+
+### Testing Modules
+
+Testing modules involves testing multiple functions or classes within a module. The structure remains similar to testing individual functions or classes, but might incorporate fixtures for shared setup and teardown across tests within that module.
+
+
+
+### Testing APIs
+
+Testing APIs often involves making requests to an API endpoint and checking the response.  This frequently involves using libraries like `requests`.  Mocking the API might be necessary for unit tests to avoid dependencies on the actual API's availability.
+
+```python
+# test_api.py
+import requests
+import pytest
+
+def test_api_get_request():
+    response = requests.get("https://api.example.com/data")
+    assert response.status_code == 200 #Check for successful response
+    assert response.json()["key"] == "expected_value" #check for expected value in response
+
+```
+
+This example is simplified; real-world API testing often involves more complex assertions and error handling.  Remember to replace `"https://api.example.com/data"` with a real API endpoint, and adjust the assertion to match the expected response structure.
+
+
+### Testing Databases
+
+Database testing often involves setting up a test database and interacting with it.  Fixtures are useful for setting up and tearing down the test database, and using parameterized tests allows for varied data inputs.  Libraries like `psycopg2` (for PostgreSQL) or others appropriate to your database system are necessary.
+
+```python
+# test_database.py
+import pytest
+import psycopg2 #Or appropriate database library
+
+@pytest.fixture
+def db_connection():
+    conn = psycopg2.connect(...) #connection details
+    yield conn
+    conn.close()
+
+def test_database_query(db_connection):
+    cursor = db_connection.cursor()
+    cursor.execute("SELECT 1") #simple query for demonstration
+    result = cursor.fetchone()
+    assert result == (1,)
+```
+
+This is a basic example;  real-world database testing will often involve more complex queries, data manipulation, and error handling.
+
+
+### Comprehensive Example Project
+
+A comprehensive example would involve a larger project with multiple modules, classes, functions, and tests demonstrating the integration of various testing techniques and best practices. Due to its complexity, it’s best created in a separate, dedicated project structure.  A real-world example could include a web application with features tested through end-to-end tests, integration tests focusing on interactions between application components, and unit tests targeting specific functionalities of the individual components.  The tests would use fixtures to manage resources (databases, temporary files), mocks for external dependencies, and parametrization for running tests with various inputs and conditions.  This would be too extensive to be included here, but it represents a realistic goal for a comprehensive pytest-based testing strategy.
+
+
+## Troubleshooting and Common Issues
+
+### Debugging Test Failures
+
+When tests fail, pytest provides a detailed traceback showing the point of failure.  Carefully examine the traceback to identify the root cause.  The error message often points directly to the problem. If the traceback isn't sufficient, consider the following:
+
+* **Use a debugger:**  Integrate a debugger (like `pdb` or your IDE's debugger) into your tests using `pdb.set_trace()` to step through the code line by line and inspect variables at runtime.  The `--pdb` command-line option with pytest will automatically start the debugger upon test failure.
+
+* **Print statements (temporarily):** Strategically placed `print()` statements can help track the values of variables and the execution flow.  Remove these once debugging is complete.
+
+* **Simplify the test:**  If a test is overly complex, break it down into smaller, more focused tests to isolate the problem.
+
+* **Check for side effects:**  Ensure that tests don't modify shared resources in a way that affects subsequent tests.  Use fixtures to manage resources and isolate tests effectively.
+
+* **Inspect logs:**  Check application logs for clues about the error, especially if the failure is related to interactions with external systems.
+
+
+### Resolving Common Errors
+
+Some frequently encountered errors and their solutions include:
+
+* **`ImportError`:** This usually means that pytest cannot find a module.  Double-check the module's name, location, and ensure it's correctly installed in your environment.  Verify that your test files are in the correct directory and that pytest is running from the appropriate project root.
+
+* **`NameError`:** This indicates that a variable or function is not defined. Verify spelling, scope (local vs. global), and that the variable or function is correctly imported.
+
+* **`AssertionError`:** This means that an assertion in your test failed.  Carefully review the assertion and the values being compared to understand why the test failed.  Make sure that expected values match actual values.
+
+* **`TypeError`:** This signifies a type mismatch in an operation or function call.  Check that the data types of the inputs match the expected types.
+
+* **`SyntaxError`:** This points to incorrect syntax in your test code or tested code.  Carefully review the code for syntax errors, common mistakes include missing colons or incorrect indentation.
+
+
+### Understanding pytest Warnings
+
+pytest issues warnings to alert you to potential problems or suboptimal practices in your tests or code.  Pay attention to warnings; they frequently point out potential bugs or areas for improvement. Common warnings include:
+
+* **Unused fixtures:**  These warn about fixtures that are defined but not used in any tests.  Remove unused fixtures to improve code clarity.
+
+* **Unreachable code:** This signals code that is not executed by the test. This can be due to logic errors or incorrect conditional statements.
+
+* **Incorrectly defined markers:**  If a marker is defined incorrectly, pytest will issue a warning. Check the marker syntax and ensure it’s defined correctly.
+
+* **Deprecated features:** Warnings for deprecated features encourage you to update your code to use newer and more supported alternatives.
+
+
+### Troubleshooting Plugin Conflicts
+
+If you encounter problems after installing plugins, a conflict between plugins might be the cause.   Try the following:
+
+* **Uninstall conflicting plugins:**  If you suspect a conflict, temporarily uninstall one or more plugins to see if it resolves the issue.
+
+* **Check plugin documentation:**  Consult the documentation of the plugins to see if there are known compatibility issues or specific configuration requirements.
+
+* **Check pytest version:**  Ensure that your pytest version is compatible with the plugins you're using.
+
+* **Simplify your `pytest.ini`:**  If you use `pytest.ini`, try removing or commenting out any plugins or configurations to determine if a specific configuration is causing the conflict.
+
+
+### Performance Optimization
+
+For large test suites, performance optimization is critical.  Consider these strategies:
+
+* **Parallelization:**  Use `pytest-xdist` to run tests in parallel, significantly reducing overall execution time.
+
+* **Efficient fixtures:**  Design fixtures to minimize setup and teardown overhead.  Only create resources when necessary, and avoid unnecessary operations within fixtures.
+
+* **Optimize test code:**  Avoid redundant calculations or operations within your tests.  Keep tests concise and focused on a single aspect of your code.
+
+* **Profiling:**  Use profiling tools to identify bottlenecks in your test suite.  This allows you to focus optimization efforts where they will have the biggest impact.
+
+* **Avoid I/O-bound operations in tests if possible:**  I/O (network requests, database queries, file access) is often slow. When possible, use mocking to avoid these operations.  For integration tests where this is not feasible, consider caching responses where appropriate.
+
+
+
+## Appendix
+
+### Glossary of Terms
+
+* **Fixture:** A function that provides resources (data, connections, temporary files, etc.) to your tests.  Fixtures ensure consistent setup and teardown for tests.
+
+* **Marker:** A tag applied to tests to categorize them or control their execution.  Markers allow selective test running based on criteria.
+
+* **Assertion:** A statement that checks whether a condition is true.  Assertions are used to verify expected behavior in tests.  Failures in assertions cause test failures.
+
+* **Test Double:** A generic term for any substitute object used in testing (mock, stub, spy, fake).  Test doubles isolate the code under test from external dependencies.
+
+* **Mock:** A test double that simulates the behavior of a real object, allowing you to control its interactions and return values.
+
+* **Stub:** A test double that provides canned answers to calls made during testing.
+
+* **Spy:** A test double that records interactions (calls, arguments) made during testing.
+
+* **Fake:** A simplified, working implementation of a real object used in testing.
+
+* **Test Coverage:** A measure of how much of your codebase is executed by your tests.  High test coverage increases confidence in the quality and correctness of the code.
+
+* **Autouse Fixture:** A fixture automatically used by all tests in a given scope (module, class, etc.) without explicitly specifying it.
+
+
+### Command-line Options Reference
+
+This is a partial list; refer to the official pytest documentation for a complete listing.
+
+* `pytest`: Runs pytest, discovering and executing tests.
+
+* `pytest -v`: Runs pytest in verbose mode, showing more detailed output.
+
+* `pytest -q`: Runs pytest in quiet mode, showing minimal output.
+
+* `pytest -s`: Disables capturing of output from `print()` statements.
+
+* `pytest -x`: Stops running tests after the first failure.
+
+* `pytest -k <expression>`: Runs only tests matching the given expression (e.g., `-k "test_add"`).
+
+* `pytest -m <marker>`: Runs only tests marked with the specified marker (e.g., `-m slow`).
+
+* `pytest --pdb`: Starts the debugger when a test fails.
+
+* `pytest --cov=<package>`: Runs pytest with code coverage measurement.
+
+
+### Configuration File Options
+
+pytest supports configuration through various files (typically `pytest.ini`, `tox.ini`, `setup.cfg`).  These files allow customizing pytest behavior:
+
+* `[pytest]` section: Contains pytest-specific settings.
+
+* `addopts`:  Specifies additional command-line options to be used by default.
+
+* `testpaths`: Specifies directories containing tests.
+
+* `markers`: Defines custom markers to categorize tests.
+
+* `python_files`:  Specifies patterns for files containing tests (default is `test_*.py` and `*_test.py`).
+
+* `python_classes`: Specifies patterns for test classes.
+
+* `python_functions`: Specifies patterns for test functions.
+
+
+Refer to the official pytest documentation for a complete list of configuration options.
+
+
+### Further Reading and Resources
+
+* **Official pytest documentation:**  The primary source for information on pytest.  It contains comprehensive tutorials, API documentation, and guides.
+
+* **pytest plugin index:**  A listing of available pytest plugins, extending pytest functionality.
+
+* **pytest GitHub repository:** The source code and issue tracker for pytest.
+
+* **Online tutorials and blog posts:** Numerous online resources provide examples and explanations of pytest usage and best practices.  Searching for "pytest tutorial" or "pytest best practices" will yield many helpful results.
+
+Remember to always refer to the official documentation for the most up-to-date and accurate information.
+

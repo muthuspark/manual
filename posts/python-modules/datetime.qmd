@@ -1,0 +1,682 @@
+---
+title: "datetime - Documentation"
+categories: [ "Python Modules" ]
+---
+
+
+### What is the datetime module?
+
+Python's `datetime` module is a powerful and versatile built-in library providing classes for manipulating dates and times.  It offers a range of functionalities for creating, comparing, modifying, and formatting date and time objects. This allows developers to handle various time-related tasks, from simple date arithmetic to complex calendar calculations and time zone conversions.  The module's core functionality revolves around the `date`, `time`, `datetime`, `timedelta`, and `tzinfo` classes, each designed to represent specific aspects of date and time information.
+
+
+### Why use the datetime module?
+
+Using the `datetime` module offers several significant advantages:
+
+* **Readability and Maintainability:**  It provides a structured and intuitive way to work with dates and times, making your code cleaner and easier to understand. This is particularly crucial when dealing with complex date and time logic.
+
+* **Accuracy and Reliability:**  The module handles many complexities of date and time calculations automatically (e.g., leap years, daylight saving time), minimizing errors that might occur with manual calculations.
+
+* **Portability:** The `datetime` module is part of Python's standard library, so you don't need to install external dependencies; your code will work consistently across different platforms.
+
+* **Extensive Functionality:**  Beyond basic date and time manipulation, the module offers support for time zones, formatting options, and specialized functions for tasks such as calculating durations or parsing various date and time strings.
+
+
+### Key Concepts: Dates, Times, Timezones
+
+* **`date` objects:** Represent a date (year, month, day), without time information.
+
+* **`time` objects:** Represent a time (hour, minute, second, microsecond), without date information.
+
+* **`datetime` objects:** Combine both date and time information into a single object.
+
+* **`timedelta` objects:** Represent durations, enabling calculations like adding or subtracting time from dates or times.
+
+* **`tzinfo` objects:**  Provide timezone information, essential for handling dates and times across different time zones.  Python's `datetime` module doesn't directly include all timezone data; you'll typically need a third-party library like `pytz` for comprehensive timezone support.
+
+
+### Setting up your environment.
+
+To use the `datetime` module, you don't need any special setup. It's included in Python's standard library, meaning it's readily available once you have Python installed.  No additional packages or installations are required to start using the core functionalities of `datetime`.  For advanced features like timezone handling, you may need to install a library such as `pytz` using pip:  `pip install pytz`.  Remember to consult the documentation for any third-party libraries you decide to integrate with `datetime`.
+
+
+## Working with Dates
+
+### Creating date objects
+
+`date` objects are created using the `date()` constructor from the `datetime` module.  The constructor accepts year, month, and day as arguments.
+
+```python
+from datetime import date
+
+# Create a date object for January 1st, 2024
+d = date(2024, 1, 1)
+print(d)  # Output: 2024-01-01
+
+# Create today's date
+today = date.today()
+print(today) # Output: (Today's date)
+
+#Using the `fromisoformat()` method for parsing ISO formatted dates:
+iso_date_string = "2024-03-15"
+d2 = date.fromisoformat(iso_date_string)
+print(d2) # Output: 2024-03-15
+```
+
+Invalid date components (e.g., February 30th) will raise a `ValueError`.
+
+
+### Date attributes (year, month, day)
+
+Once a `date` object is created, you can access its components using attributes:
+
+```python
+d = date(2024, 5, 10)
+print(d.year)  # Output: 2024
+print(d.month) # Output: 5
+print(d.day)   # Output: 10
+```
+
+
+### Date Formatting and Parsing (strftime, strptime)
+
+The `strftime()` method formats a `date` object into a string representation, while `strptime()` parses a string into a `date` object.  `strftime()` uses format codes (e.g., `%Y` for year, `%m` for month, `%d` for day).
+
+```python
+from datetime import date
+
+d = date(2024, 12, 25)
+
+# Formatting a date
+formatted_date = d.strftime("%Y-%m-%d")  # Output: 2024-12-25
+print(formatted_date)
+
+formatted_date_2 = d.strftime("%B %d, %Y") # Output: December 25, 2024
+print(formatted_date_2)
+
+# Parsing a date string
+date_string = "2023-10-26"
+parsed_date = date.strptime(date_string, "%Y-%m-%d")
+print(parsed_date)  # Output: 2023-10-26
+
+```
+
+Refer to the Python documentation for a complete list of `strftime()` format codes.  Incorrect format codes in `strptime()` will lead to a `ValueError`.
+
+
+### Comparing and manipulating dates
+
+Dates can be compared using standard comparison operators:
+
+```python
+d1 = date(2023, 1, 1)
+d2 = date(2024, 1, 1)
+
+print(d1 < d2)  # Output: True
+print(d1 == d2) # Output: False
+
+```
+
+There's no direct way to *manipulate* a `date` object in-place. Instead, you create a *new* `date` object by adding or subtracting `timedelta` objects (explained in the next section).
+
+
+### Calculating date differences
+
+`timedelta` objects represent time differences. Subtracting two `date` objects results in a `timedelta` representing the difference.
+
+```python
+from datetime import date, timedelta
+
+d1 = date(2024, 3, 15)
+d2 = date(2024, 4, 5)
+
+diff = d2 - d1
+print(diff)  # Output: 21 days, 0:00:00
+print(diff.days) # Output: 21
+
+#Adding a timedelta to a date
+future_date = d1 + timedelta(days=30)
+print(future_date) # Output: 2024-04-14
+
+```
+
+
+### Handling leap years
+
+The `datetime` module automatically handles leap years correctly.  You don't need to write special code to account for them.  The `date` class's validation will prevent you from creating invalid dates, even in leap years.
+
+```python
+#This is valid because 2024 is a leap year
+d = date(2024, 2, 29)
+print(d) #Output: 2024-02-29
+
+
+#This will raise a ValueError because 2023 is not a leap year
+#d = date(2023, 2, 29) 
+```
+
+
+## Working with Times
+
+### Creating time objects
+
+`time` objects represent a time of day, independent of a specific date.  They're created using the `time()` constructor.
+
+```python
+from datetime import time
+
+# Create a time object representing 10:30:00 AM
+t = time(10, 30, 0)
+print(t)  # Output: 10:30:00
+
+#With microseconds:
+t2 = time(14, 45, 30, 123456) #14:45:30.123456
+print(t2)
+
+# Midnight
+midnight = time() #Defaults to 00:00:00
+print(midnight) # Output: 00:00:00
+```
+
+Arguments for `hour`, `minute`, and `second` must be within their valid ranges (0-23, 0-59, 0-59 respectively). Microseconds must be between 0 and 999999.  Invalid values will raise a `ValueError`.
+
+
+### Time attributes (hour, minute, second, microsecond)
+
+Like `date` objects, you can access the components of a `time` object using attributes:
+
+```python
+t = time(14, 22, 55, 123000)
+print(t.hour)       # Output: 14
+print(t.minute)     # Output: 22
+print(t.second)     # Output: 55
+print(t.microsecond) # Output: 123000
+```
+
+
+### Time Formatting and Parsing (strftime, strptime)
+
+Similar to `date` objects, `strftime()` and `strptime()` are used for formatting and parsing `time` objects.  However, you'll use different format codes specific to time components (e.g., `%H` for hour (24-hour clock), `%M` for minute, `%S` for second, `%f` for microseconds).
+
+```python
+from datetime import time
+
+t = time(15, 45, 30)
+
+# Formatting a time
+formatted_time = t.strftime("%H:%M:%S")  # Output: 15:45:30
+print(formatted_time)
+
+formatted_time_12 = t.strftime("%I:%M:%S %p") #Output: 03:45:30 PM (12-hour clock)
+print(formatted_time_12)
+
+# Parsing a time string
+time_string = "22:10:00"
+parsed_time = time.strptime(time_string, "%H:%M:%S")
+print(parsed_time) #Output: time.struct_time(...) (a named tuple)
+
+```
+
+
+### Comparing and manipulating times
+
+`time` objects can be compared using comparison operators (e.g., `<`, `>`, `==`).  However, there's no direct way to "add" or "subtract" from a time object.  You'd usually work with `datetime` objects for operations involving adding time durations.
+
+
+### Calculating time differences
+
+Similar to `date` objects, you cannot directly subtract `time` objects to get a `timedelta`. You'll need to use `datetime` objects for time difference calculations because `timedelta` requires a date component for calculations involving dates and times.
+
+
+### Timezones (basic concepts)
+
+The standard `time` object doesn't inherently handle time zones.  A naive `time` object represents a time of day without timezone information.  To work with time zones, you need to use the `datetime` class combined with a `tzinfo` object (often provided by a third-party library like `pytz`).  This is crucial for accurate calculations and comparisons when dealing with times across different geographical locations.  The `datetime` module itself doesn't provide built-in timezone data.  This aspect is covered more thoroughly in the section on `datetime` objects and timezones.
+
+```python
+#Illustrates the limitation of naive time objects:
+t1 = time(10, 0, 0) #10am in unspecified timezone
+t2 = time(11, 0,0) #11am in unspecified timezone
+
+#The difference is only in terms of local time, lacks timezone awareness.
+print(t2 > t1) #True, but this comparison doesn't consider timezones
+```
+
+
+## Working with Datetime Objects
+
+### Creating datetime objects
+
+`datetime` objects combine both date and time information.  They are created using the `datetime()` constructor.
+
+```python
+from datetime import datetime
+
+# Create a datetime object for a specific date and time
+dt = datetime(2024, 3, 10, 14, 30, 0) #Year, month, day, hour, minute, second
+print(dt)  # Output: 2024-03-10 14:30:00
+
+#Using `now()` to get the current datetime
+now = datetime.now()
+print(now) #Output: (Current datetime)
+
+#Combine date and time objects (less efficient than using datetime directly):
+from datetime import date, time
+d = date(2024, 5, 20)
+t = time(16, 30, 0)
+dt_combined = datetime.combine(d,t)
+print(dt_combined) #Output: 2024-05-20 16:30:00
+
+#Using `fromisoformat()` for parsing ISO formatted datetime strings
+iso_datetime_string = "2024-06-12T18:45:00"
+dt_from_iso = datetime.fromisoformat(iso_datetime_string)
+print(dt_from_iso) #Output: 2024-06-12 18:45:00
+
+```
+
+
+### Combining dates and times
+
+While you can create a `datetime` object from separate `date` and `time` objects using `datetime.combine()`, it's generally more efficient and straightforward to create the `datetime` object directly with all components in the constructor.
+
+
+### Datetime attributes
+
+`datetime` objects have attributes to access their date and time components:
+
+```python
+dt = datetime(2024, 1, 20, 10, 0, 30)
+
+print(dt.year)      # Output: 2024
+print(dt.month)     # Output: 1
+print(dt.day)       # Output: 20
+print(dt.hour)      # Output: 10
+print(dt.minute)    # Output: 0
+print(dt.second)    # Output: 30
+print(dt.microsecond) #Output: 0
+print(dt.date())    #Output: 2024-01-20 (date object)
+print(dt.time())    #Output: 10:00:30 (time object)
+
+```
+
+
+### Datetime Formatting and Parsing
+
+`strftime()` and `strptime()` work similarly to `date` and `time` objects, combining format codes for both date and time components.
+
+```python
+from datetime import datetime
+
+dt = datetime(2024, 10, 26, 18, 50, 0)
+
+formatted_datetime = dt.strftime("%Y-%m-%d %H:%M:%S")  # Output: 2024-10-26 18:50:00
+print(formatted_datetime)
+
+datetime_string = "2023-11-15 09:30:15"
+parsed_datetime = datetime.strptime(datetime_string, "%Y-%m-%d %H:%M:%S")
+print(parsed_datetime) # Output: 2023-11-15 09:30:15
+
+```
+
+
+### Comparing and manipulating datetime objects
+
+`datetime` objects can be compared using comparison operators.  Arithmetic operations are performed using `timedelta` objects.
+
+```python
+dt1 = datetime(2024, 1, 1, 10, 0, 0)
+dt2 = datetime(2024, 1, 10, 12, 0, 0)
+
+print(dt1 < dt2)  # Output: True
+
+```
+
+### Calculating datetime differences
+
+Subtracting two `datetime` objects yields a `timedelta` object.
+
+```python
+from datetime import datetime, timedelta
+
+dt1 = datetime(2024, 2, 1, 10, 0, 0)
+dt2 = datetime(2024, 2, 10, 15, 0, 0)
+
+diff = dt2 - dt1
+print(diff)  # Output: 9 days, 5:00:00
+print(diff.days) #Output: 9
+print(diff.seconds) #Output: 18000 (5 hours in seconds)
+
+
+#Adding a timedelta to a datetime
+future_datetime = dt1 + timedelta(days=7, hours=3)
+print(future_datetime) #Output: 2024-02-08 13:00:00
+
+```
+
+
+### Time deltas
+
+`timedelta` objects represent differences between dates or times.  They can be created by subtracting two `datetime` objects or by specifying days, seconds, microseconds, etc.  They're crucial for performing date and time arithmetic.  See the examples in the previous section for `timedelta` usage.
+
+```python
+from datetime import timedelta
+
+td1 = timedelta(days=5)
+td2 = timedelta(seconds=3600) #1 hour
+td3 = td1 + td2 #timedelta objects can be added
+
+print(td3) #Output: 5 days, 1:00:00
+print(td3.total_seconds()) #Output: 432000.0 (5 days + 1 hour in seconds)
+```
+
+
+
+## Working with Time Zones
+
+### Introduction to time zones
+
+Time zones are geographical regions that observe a standard time.  They're crucial when working with dates and times because different time zones have different offsets from Coordinated Universal Time (UTC).  Ignoring time zones can lead to significant errors in applications that handle data from multiple locations or across different time zones.  Python's standard `datetime` module provides basic support for time zones, but for comprehensive handling, you typically use a third-party library like `pytz`.
+
+
+### Representing time zones (pytz)
+
+The `pytz` library provides a robust way to work with time zones.  It offers access to a large database of time zone information, including historical data for daylight saving time (DST) transitions.
+
+```python
+import pytz
+from datetime import datetime
+
+# Get a timezone object from pytz
+eastern = pytz.timezone('US/Eastern')
+pacific = pytz.timezone('US/Pacific')
+
+
+```
+
+
+### Converting between time zones
+
+`pytz` allows you to convert between time zones using the `localize()` and `astimezone()` methods. `localize()` attaches timezone information to a naive datetime object, while `astimezone()` converts a timezone-aware datetime object to a different timezone.
+
+```python
+import pytz
+from datetime import datetime
+
+eastern = pytz.timezone('US/Eastern')
+pacific = pytz.timezone('US/Pacific')
+
+# Create a naive datetime object (no timezone information)
+naive_dt = datetime(2024, 3, 10, 10, 0, 0)
+
+# Make it timezone-aware using localize()
+eastern_dt = eastern.localize(naive_dt)
+print(eastern_dt) #Output: 2024-03-10 10:00:00-05:00 (timezone info included)
+
+#Convert to a different timezone
+pacific_dt = eastern_dt.astimezone(pacific)
+print(pacific_dt)  #Output: 2024-03-10 07:00:00-08:00 (converted to Pacific time)
+
+
+#Example demonstrating conversion with DST:
+dt_summer = datetime(2024, 6, 15, 10, 0, 0) #Daylight saving time in effect
+eastern_dt_summer = eastern.localize(dt_summer)
+pacific_dt_summer = eastern_dt_summer.astimezone(pacific)
+
+print(eastern_dt_summer)
+print(pacific_dt_summer)
+
+```
+
+### Timezone aware and naive datetime objects
+
+* **Naive datetime objects:** Don't contain timezone information. They represent a time relative to a single, unspecified time zone.  Avoid naive objects in production code when time zones are involved.
+
+* **Timezone-aware datetime objects:**  Include timezone information. They precisely represent a point in time relative to UTC, enabling correct conversions between time zones and handling DST transitions.  Always prefer timezone-aware objects when working with time zones.
+
+
+### Common timezone issues and solutions
+
+* **DST transitions:**  Handling DST transitions correctly is essential.  `pytz` automatically accounts for these transitions when you convert between time zones.
+
+* **Mixing naive and aware objects:** Avoid mixing naive and aware `datetime` objects in calculations. This can lead to incorrect results.  Ensure all your `datetime` objects are timezone-aware if time zones are relevant.
+
+* **Ambiguous times:** During the transition from DST to standard time (fall back), some times might appear twice. `pytz` handles this ambiguity, and in certain cases, you might need to explicitly indicate which instance of an ambiguous time you intend to use.
+
+* **Inconsistent timezone representations:** Always use a standard format for representing timezones (e.g., IANA time zone names like 'America/New_York' with `pytz` rather than abbreviations like 'EST').
+
+
+
+
+## Advanced Techniques
+
+### Using the `timedelta` object
+
+The `timedelta` object is fundamental for performing calculations involving durations.  It allows you to represent differences between dates and times and to add or subtract time from `datetime` and `date` objects.  Key functionalities include:
+
+```python
+from datetime import timedelta, datetime
+
+# Create timedelta objects
+td1 = timedelta(days=10, hours=5, minutes=30)
+td2 = timedelta(seconds=3600) # 1 hour
+
+# Arithmetic operations
+td3 = td1 + td2
+td4 = td1 - td2
+print(td3) #Output: 10 days, 6:30:00
+print(td4) #Output: 10 days, 4:30:00
+
+# Accessing components
+print(td1.days)      # Output: 10
+print(td1.seconds)   # Output: 19800 (5 hours 30 minutes in seconds)
+print(td1.total_seconds()) # Output: 898800.0 (total seconds)
+
+#Using timedeltas with datetime objects
+now = datetime.now()
+future = now + timedelta(weeks=2)
+past = now - timedelta(hours=6)
+print(future)
+print(past)
+```
+
+
+### Working with timestamps
+
+Timestamps represent the number of seconds since the epoch (January 1, 1970, 00:00:00 UTC).  You can convert between `datetime` objects and timestamps using `datetime.timestamp()` and `datetime.fromtimestamp()`.  Remember that `timestamp()` returns seconds *since the epoch in UTC*.
+
+```python
+from datetime import datetime, timezone
+
+# Get the current timestamp
+now = datetime.now(timezone.utc) #important to specify timezone for accuracy
+timestamp = now.timestamp()
+print(timestamp)
+
+# Convert a timestamp back to a datetime object
+dt_from_timestamp = datetime.fromtimestamp(timestamp, tz=timezone.utc)
+print(dt_from_timestamp)
+
+# Example converting a timestamp from a different timezone
+import pytz
+pacific = pytz.timezone('US/Pacific')
+pacific_dt = datetime(2024, 5, 10, 14, 0, 0, tzinfo=pacific)
+pacific_timestamp = pacific_dt.timestamp()
+print(pacific_timestamp) #Note: this will be relative to UTC
+
+utc_dt_from_pacific = datetime.fromtimestamp(pacific_timestamp, tz=timezone.utc)
+print(utc_dt_from_pacific)
+
+```
+
+
+### Formatting and parsing with custom formats
+
+Beyond the standard format codes, you can create custom format strings for `strftime()` and `strptime()` to handle more complex date and time representations.
+
+```python
+from datetime import datetime
+
+dt = datetime(2024, 11, 22, 15, 35, 45)
+
+custom_format = "%Y-%m-%dT%H:%M:%S"
+formatted_dt = dt.strftime(custom_format) #Output: 2024-11-22T15:35:45
+print(formatted_dt)
+
+parsed_dt = datetime.strptime(formatted_dt, custom_format)
+print(parsed_dt) #Output: 2024-11-22 15:35:45
+
+
+#Another custom format
+custom_format_2 = "%A, %B %d, %Y at %I:%M %p"
+formatted_dt_2 = dt.strftime(custom_format_2) #Output: Friday, November 22, 2024 at 03:35 PM
+print(formatted_dt_2)
+```
+
+
+### Locale-aware formatting
+
+For localized date and time formatting, you can use the `locale` module to set the appropriate locale and then use `strftime()`  (although this might not be entirely robust across all systems and locales).  For more reliable internationalization, consider dedicated libraries for i18n/l10n.
+
+```python
+import locale
+from datetime import datetime
+
+# Set the locale (example: US English)
+locale.setlocale(locale.LC_ALL, 'en_US.UTF-8') #Requires appropriate locale to be installed on the system
+
+dt = datetime(2024, 12, 25)
+
+localized_date = dt.strftime("%x") # Locale-specific date format
+print(localized_date) # Output: might vary based on your system's locale settings
+```
+
+
+### Working with different calendar systems
+
+Python's standard `datetime` module primarily works with the Gregorian calendar. For other calendar systems (e.g., Julian), you'll likely need to use third-party libraries or implement custom logic for conversions.  The `calendar` module provides some basic calendar-related functionality, but it does not handle other calendar systems directly.
+
+
+## Best Practices and Common Pitfalls
+
+### Avoiding timezone related errors
+
+* **Always use timezone-aware datetime objects:**  Avoid naive `datetime` objects whenever possible, especially in applications dealing with multiple time zones.  Use `pytz` or a similar library to handle time zones correctly.
+
+* **Be consistent:** Ensure that all your date and time data uses the same timezone representation. Avoid mixing naive and timezone-aware objects in calculations.
+
+* **Handle DST transitions carefully:** Be aware of daylight saving time transitions and how they affect calculations.  Libraries like `pytz` automatically handle these transitions, but you should understand their implications.
+
+* **Explicitly specify timezones:**  When creating `datetime` objects, always explicitly set the timezone using the appropriate timezone object (e.g., `pytz.timezone('America/New_York')`).  Avoid relying on implicit system timezones.
+
+* **Validate input:** Validate all date and time inputs to ensure they're valid and correctly formatted before using them in calculations.
+
+* **Unit test timezone handling:** Thoroughly unit test all parts of your code that handle time zones to ensure they work correctly across different time zones and DST transitions.
+
+
+### Efficient date and time calculations
+
+* **Use `timedelta` objects:** For date and time arithmetic, use `timedelta` objects instead of manually calculating differences or adding durations.
+
+* **Avoid unnecessary conversions:** Minimize conversions between different date and time representations (e.g., timestamps, strings, `datetime` objects) as these can be computationally expensive.
+
+* **Pre-compute values:** If you need to perform the same date or time calculation repeatedly, pre-compute the result to avoid redundant calculations.
+
+* **Use optimized libraries:**  For complex date and time calculations, consider using optimized libraries designed for such tasks.
+
+
+### Choosing appropriate data structures
+
+* **`datetime` objects:**  Suitable for representing specific points in time with date and time information.
+
+* **`date` objects:**  Use when only the date (year, month, day) is relevant.
+
+* **`time` objects:** Use when only the time of day is relevant.
+
+* **`timedelta` objects:**  Use for representing durations.
+
+* **Timestamps:**  Useful for efficient storage and comparison, especially in databases. However, be mindful of timezone considerations when using timestamps.
+
+* **Strings:**  Use for human-readable representation and data exchange.  However, avoid using strings for calculations.
+
+
+### Debugging common datetime issues
+
+* **Check for naive datetime objects:**  Ensure all your `datetime` objects are timezone-aware when time zones are involved.
+
+* **Examine timezone settings:**  Verify that your timezone settings are correct and consistent throughout your code.
+
+* **Use logging:**  Log date and time values at various points in your code to track their values and identify inconsistencies.
+
+* **Print or inspect values:** Print or inspect the values of date and time variables to ensure they are what you expect.
+
+* **Use a debugger:** Utilize a debugger to step through your code and examine the state of variables during execution.
+
+* **Consult the documentation:** The official Python documentation for `datetime` and any third-party libraries you're using provides detailed explanations and examples.
+
+* **Test with boundary conditions:** Test your code with edge cases such as leap years, DST transitions, and other boundary conditions to find potential issues.
+
+* **Validate your results:** Compare your results against known correct values to ensure accuracy.
+
+
+## Appendix: Related Modules
+
+### calendar module
+
+The `calendar` module provides functions for working with calendars.  It's less focused on individual date and time manipulation and more on calendar-related operations like generating calendars, determining weekdays, and checking for leap years. It does not handle time zones.
+
+
+```python
+import calendar
+
+# Create a calendar for a given month and year
+cal = calendar.monthcalendar(2024, 3)
+print(cal) # Output: A list of lists, each representing a week in the month
+
+#Check if a year is a leap year
+is_leap = calendar.isleap(2024)
+print(is_leap) # Output: True
+
+# Get the weekday of a date
+weekday = calendar.weekday(2024, 4, 15) #Monday = 0, Sunday = 6
+print(weekday) # Output: 0
+
+
+#Text based calendar
+print(calendar.calendar(2024)) #Prints a text based calendar for the entire year 2024
+```
+
+
+### time module
+
+The `time` module provides lower-level time-related functions, often dealing with timestamps and time-related system calls. While it offers less structure than the `datetime` module, it's useful for specific tasks like measuring elapsed time, pausing execution, and interacting with time-related system functions. It lacks the sophisticated date and time object handling of `datetime`.
+
+```python
+import time
+
+# Get the current timestamp (seconds since the epoch)
+timestamp = time.time()
+print(timestamp)
+
+# Pause execution for a specified number of seconds
+time.sleep(2)  # Pause for 2 seconds
+
+# Get the local time as a struct_time object
+local_time = time.localtime()
+print(local_time) # Output: A named tuple representing the local time
+
+# Format time
+formatted_time = time.strftime("%Y-%m-%d %H:%M:%S", local_time)
+print(formatted_time) # Output: Current time formatted as a string
+
+
+#Convert from struct_time to seconds since epoch
+seconds = time.mktime(local_time)
+print(seconds)
+
+#Get CPU time
+cpu_time = time.process_time()
+print(cpu_time)
+
+```
+
+The `time` module is often used in performance measurements or situations where low-level interaction with the system clock is needed.  For most date and time manipulation tasks, the `datetime` module is generally preferred for its higher-level abstractions and more user-friendly interface.
+

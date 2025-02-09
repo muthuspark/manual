@@ -1,0 +1,491 @@
+---
+title: "python-dotenv - Documentation"
+categories: [ "Python Modules" ]
+---
+## Introduction
+
+### What is python-dotenv?
+
+`python-dotenv` is a Python library that allows you to access environment variables from a `.env` file.  This file, typically located in the root directory of your project, contains key-value pairs representing your environment variables.  Using `python-dotenv` helps you manage sensitive information like API keys and database credentials securely, outside your version control system.
+
+
+### Why use python-dotenv?
+
+Using `python-dotenv` offers several advantages:
+
+* **Improved Security:**  Avoids hardcoding sensitive data directly into your code.  This prevents accidental exposure through commits or code sharing.
+* **Simplified Configuration:**  Centralizes environment variables, making it easy to manage and switch between different configurations (e.g., development, testing, production).
+* **Environment Isolation:**  Allows you to easily manage environment-specific configurations without modifying your source code.
+* **Improved Collaboration:** Facilitates easier collaboration among developers as they can set up their own local `.env` files without altering shared code.
+* **Easy Deployment:**  Deployment scripts can populate the `.env` file with the appropriate variables for each target environment.
+
+
+### Installation
+
+The simplest way to install `python-dotenv` is using `pip`:
+
+```bash
+pip install python-dotenv
+```
+
+
+### Basic Usage Example
+
+First, create a `.env` file in your project's root directory.  Populate it with your environment variables:
+
+```
+DATABASE_URL=postgres://user:password@host:port/database
+API_KEY=your_api_key_here
+DEBUG=True
+```
+
+Then, in your Python code, load the `.env` file and access the variables:
+
+```python
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Access environment variables
+database_url = os.getenv("DATABASE_URL")
+api_key = os.getenv("API_KEY")
+debug_mode = os.getenv("DEBUG", False) # Provide a default value if variable is not found
+
+print(f"Database URL: {database_url}")
+print(f"API Key: {api_key}")
+print(f"Debug Mode: {debug_mode}") 
+```
+
+Remember to **never** commit your `.env` file to version control (e.g., Git). Add it to your `.gitignore` file.
+
+
+## Core Functionality
+
+### Loading .env files
+
+The primary function of `python-dotenv` is loading environment variables from a `.env` file.  The `load_dotenv()` function handles this:
+
+```python
+from dotenv import load_dotenv
+load_dotenv() # Loads from .env in the current directory by default
+```
+
+This loads variables from `.env` in the current working directory.  For more control, see "Using with different file paths" below.  The function returns `None` and modifies the environment directly. It's generally sufficient to call `load_dotenv()` only once at the beginning of your application.
+
+### Accessing environment variables
+
+Once loaded, environment variables are accessed using the standard `os.getenv()` function:
+
+```python
+import os
+value = os.getenv("MY_VARIABLE")
+print(value)
+```
+
+If the variable "MY_VARIABLE" is not found, `os.getenv()` will return `None`.
+
+### Overriding environment variables
+
+Environment variables set in your system's environment will take precedence over those in the `.env` file.  System environment variables are loaded first, so if a variable exists in both locations, the system value will be used.
+
+### Handling errors
+
+`python-dotenv` provides robust error handling.  If the `.env` file is not found or has parsing errors (e.g., malformed syntax), it will typically raise an `IOError` or a `ValueError`.   It's good practice to wrap `load_dotenv()` in a `try...except` block:
+
+```python
+from dotenv import load_dotenv, load_dotenv_override
+try:
+    load_dotenv()
+except IOError:
+    print("Could not load .env file")
+```
+
+### Setting default values
+
+You can provide default values when accessing environment variables using the second argument of `os.getenv()`:
+
+```python
+database_url = os.getenv("DATABASE_URL", "sqlite:///mydatabase.db") # Uses sqlite if DATABASE_URL isn't found.
+```
+
+This prevents your application from crashing if an expected environment variable is missing.
+
+
+### Using with different file paths
+
+To load from a `.env` file in a different location, specify the `dotenv_path` argument:
+
+```python
+from dotenv import load_dotenv
+load_dotenv(dotenv_path="/path/to/.env") # Path is relative to your script's location unless absolute
+```
+
+You can also pass a list of paths; `load_dotenv` will use the first `.env` it finds:
+
+```python
+from dotenv import load_dotenv
+load_dotenv(dotenv_path=['./.env', '/etc/.env', '/opt/.env'])
+```
+
+### Working with different file formats (e.g., .ini)
+
+`python-dotenv` is primarily designed for `.env` files (key-value pairs).  For other formats like `.ini`, you should consider using dedicated configuration libraries like `configparser`.  `python-dotenv` does not directly support these alternative formats.
+
+
+
+## Advanced Usage
+
+### Using dotenv with frameworks (e.g., Flask, Django)
+
+Integrating `python-dotenv` with web frameworks like Flask and Django is straightforward.  Typically, you'll load the `.env` file early in your application's initialization:
+
+
+**Flask:**
+
+```python
+from flask import Flask
+from dotenv import load_dotenv
+import os
+
+app = Flask(__name__)
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+# ... rest of your Flask app ...
+```
+
+**Django:**
+
+You would typically load the `.env` file in your `settings.py` before other settings are loaded:
+
+```python
+import os
+from dotenv import load_dotenv
+
+# ... other Django imports ...
+
+# Load environment variables before other settings
+load_dotenv()
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
+    }
+}
+
+# ... rest of your Django settings ...
+```
+
+Remember to add `.env` to your `.gitignore` file in both cases.
+
+### Programmatic loading and manipulation of .env
+
+While `load_dotenv()` is convenient, you can also programmatically load and manipulate `.env` data:
+
+```python
+from dotenv import dotenv_values
+
+# Load values from .env file into a dictionary
+env_vars = dotenv_values()
+print(env_vars) # Access as a dictionary
+
+#Modify dictionary
+env_vars['NEW_VAR'] = 'new_value'
+
+#Write back to .env file (careful with sensitive data)
+with open('.env', 'w') as f:
+    for key, value in env_vars.items():
+        f.write(f"{key}={value}\n")
+
+```
+**Caution**: Writing back to `.env` directly is generally discouraged for production environments due to potential security risks. It's recommended for development or specific testing purposes only.
+
+
+### Creating custom loaders and parsers
+
+For highly specialized needs, you can create custom loaders and parsers. This involves using the lower-level functions within `python-dotenv` to handle files differently or to parse files with a non-standard format:
+
+```python
+from dotenv import parse_dotenv, set_key
+
+# Parse your custom file
+data = parse_dotenv(path='/path/to/my/custom_file.txt')
+
+
+# modify the parsed data
+
+set_key(data, 'MY_CUSTOM_KEY', 'MY_CUSTOM_VALUE')
+
+# load modified data into environment
+os.environ.update(data)
+```
+
+
+### Security considerations
+
+* **Never commit `.env` files to version control.** Always add `.env` to your `.gitignore` file.
+* **Use strong passwords and regularly rotate secrets.**
+* **Avoid storing highly sensitive information in `.env` files if possible.** Consider more secure alternatives like dedicated secret management services for production environments.
+* **Validate and sanitize user inputs before using them to update environment variables.**
+* **Restrict access to `.env` files with appropriate file permissions.**
+* **Consider using environment variable injection mechanisms provided by your cloud platform or deployment tools for production deployments.**  These usually provide more robust security features.
+
+
+
+
+## API Reference
+
+### `load_dotenv()` function
+
+Loads environment variables from a `.env` file into `os.environ`.
+
+**Signature:**
+
+```python
+load_dotenv(dotenv_path=None, stream=None, verbose=False, override=False, encoding='utf-8')
+```
+
+**Parameters:**
+
+* `dotenv_path`:  (str or list[str], optional) Path(s) to the `.env` file(s). If not provided, defaults to searching for `.env` in the current working directory. Can be a single path, a list of paths, or None.
+* `stream`: (IO[str], optional) A file-like object to read from instead of a file.  If provided, `dotenv_path` is ignored.
+* `verbose`: (bool, optional) Whether to print messages indicating which files were loaded. Defaults to `False`.
+* `override`: (bool, optional)  Whether to override existing environment variables. Defaults to `False`. If `False`, existing environment variables will take precedence.
+* `encoding`: (str, optional) The encoding of the `.env` file. Defaults to `'utf-8'`.
+
+**Returns:**
+
+`None`.  Modifies `os.environ` directly.
+
+**Raises:**
+
+* `IOError`: If the specified `.env` file cannot be found or opened.
+* `ValueError`: If the `.env` file has parsing errors.
+
+
+### `find_dotenv()` function
+
+Finds the first `.env` file in the search path.  Useful for determining the path to your `.env` file before loading it.
+
+**Signature:**
+
+```python
+find_dotenv(filename=None, raise_error_if_not_found=True, usecwd=True)
+```
+
+**Parameters:**
+
+* `filename`: (str, optional) The filename to search for. Defaults to '.env'.
+* `raise_error_if_not_found`: (bool, optional) Whether to raise an exception if the file is not found. Defaults to `True`.
+* `usecwd`: (bool, optional)  Whether to start the search in the current working directory. Defaults to `True`.
+
+**Returns:**
+
+(str) The path to the found `.env` file.
+
+**Raises:**
+
+* `FileNotFoundError`: If the file is not found and `raise_error_if_not_found` is `True`.
+
+
+### `set_key()` function
+
+Sets a key-value pair in a dictionary.
+
+**Signature:**
+
+```python
+set_key(d, key, value)
+```
+
+**Parameters:**
+
+* `d`: (dict) The dictionary to modify.
+* `key`: (str) The key to set.
+* `value`: (str) The value to set.
+
+**Returns:**
+
+`None`. Modifies the dictionary in place.
+
+
+### `unset_key()` function
+
+Removes a key from a dictionary.
+
+**Signature:**
+
+```python
+unset_key(d, key)
+```
+
+**Parameters:**
+
+* `d`: (dict) The dictionary to modify.
+* `key`: (str) The key to remove.
+
+**Returns:**
+
+`None`. Modifies the dictionary in place.
+
+
+### `get_key()` function
+
+Gets a value from a dictionary, handling missing keys.
+
+**Signature:**
+
+```python
+get_key(d, key, default=None)
+```
+
+**Parameters:**
+
+* `d`: (dict) The dictionary to search.
+* `key`: (str) The key to retrieve.
+* `default`: (any, optional) The value to return if the key is not found. Defaults to `None`.
+
+**Returns:**
+
+The value associated with the key, or the `default` value.
+
+
+### `get()` function
+
+Gets a value from the environment variables or a dictionary, handling missing keys.
+
+
+**Signature:**
+
+```python
+get(d, key, default=None)
+```
+
+**Parameters:**
+
+* `d`: (dict) The dictionary or `os.environ` to search.
+* `key`: (str) The key to retrieve.
+* `default`: (any, optional) The value to return if the key is not found. Defaults to `None`.
+
+**Returns:**
+
+The value associated with the key, or the `default` value.
+
+
+### `dotenv.main` module
+
+This module contains a command-line interface for `python-dotenv`.  It's used primarily for development and debugging purposes.  It's not typically used directly within applications.  The main function can be used for parsing .env files, showing content and allowing the manipulation of its content.
+
+
+## Contributing
+
+We welcome contributions to `python-dotenv`!  Whether it's bug fixes, new features, or improved documentation, your help is appreciated.
+
+### Setting up the development environment
+
+1. **Clone the repository:**
+
+   ```bash
+   git clone https://github.com/theskumar/python-dotenv.git
+   cd python-dotenv
+   ```
+
+2. **Create a virtual environment (recommended):**
+
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   ```
+
+3. **Install dependencies:**
+
+   ```bash
+   pip install -r requirements-dev.txt
+   ```
+
+4. **Install the package in editable mode:**
+
+   ```bash
+   pip install -e .
+   ```
+
+### Running tests
+
+We use `pytest` for testing.  To run the tests:
+
+```bash
+pytest
+```
+
+You can also run specific tests or test files as needed. Refer to the `pytest` documentation for more advanced usage.
+
+### Coding style guide
+
+We follow PEP 8 as closely as possible.  Consistent formatting is important for readability and maintainability.  The `flake8` linter should be used to check your code before submitting a pull request:
+
+```bash
+flake8
+```
+
+
+### Submitting pull requests
+
+1. **Fork the repository** on GitHub.
+2. **Create a new branch** for your feature or bug fix.  Use descriptive branch names (e.g., `fix/bug-in-load_dotenv`, `feature/support-ini-files`).
+3. **Make your changes**, committing them with clear and concise commit messages.
+4. **Run the tests** to ensure everything works correctly (`pytest`).  Address any failures before proceeding.
+5. **Run the linter** to ensure code style compliance (`flake8`).
+6. **Push your branch** to your forked repository.
+7. **Create a pull request** on the main `python-dotenv` repository.  Include a clear description of your changes and address any comments from reviewers.
+
+
+Remember to keep your pull requests focused on a single change. Small, well-tested pull requests are easier to review and merge.
+
+
+## Troubleshooting
+
+### Common errors and solutions
+
+* **`FileNotFoundError: [Errno 2] No such file or directory: '.env'`**: This means `python-dotenv` cannot find a `.env` file in your current working directory.  Make sure you have a `.env` file in the same directory as your Python script, or specify the correct path using the `dotenv_path` argument in `load_dotenv()`.
+
+* **`ValueError: invalid syntax`**: This indicates a problem with the syntax of your `.env` file. Check for typos, ensure key-value pairs are separated by `=`, and avoid spaces around the `=` sign unless they're quoted.  Also, ensure that values are properly quoted if they contain spaces or special characters.
+
+* **Environment variable not loaded**: If you've loaded the `.env` file but a variable isn't available, double-check the spelling in both your `.env` file and your code. System environment variables will override those in `.env`, so check if a system variable with the same name is already set.
+
+
+* **`ImportError: No module named 'dotenv'`**: You haven't installed `python-dotenv`. Install it using `pip install python-dotenv`.
+
+### Debugging tips
+
+* **Print the contents of `os.environ`**: After calling `load_dotenv()`, print `os.environ` to see which variables have been loaded. This helps verify whether your `.env` file is being read correctly and whether variables are being correctly set into the environment.
+
+* **Use a debugger**:  Use a Python debugger (like pdb) to step through your code and inspect the values of variables at different points. This can help pinpoint where problems are occurring.
+
+* **Check your `.gitignore`**: Ensure that `.env` is added to your `.gitignore` file to prevent accidental commits of your sensitive data.
+
+* **Simplify your `.env` file**: If you're having trouble debugging, try creating a minimal `.env` file with only one or two key-value pairs to isolate the issue.
+
+* **Check for encoding issues**: Ensure your `.env` file uses UTF-8 encoding. Incorrect encoding can lead to parsing errors.
+
+
+### FAQ
+
+* **Q: Can I use `python-dotenv` in a production environment?**  A: While `python-dotenv` is convenient for development, for production, consider more robust secret management solutions.  `python-dotenv`'s simplicity makes it prone to security vulnerabilities if not used carefully.
+
+* **Q: Can I use `python-dotenv` with multiple `.env` files?** A: You can specify multiple paths in `dotenv_path` as a list.  The first file found will be loaded.
+
+
+* **Q:  Why are my environment variables not being loaded?** A: Check for typos in your `.env` file and in your code when accessing the variables. Ensure your `.env` file is in the correct location (specified via `dotenv_path` or the current working directory).  Also remember that system environment variables take precedence, potentially overriding those in your `.env` file.
+
+* **Q: How can I handle errors gracefully?** A: Wrap your `load_dotenv()` call in a `try...except` block to catch `IOError` and `ValueError` exceptions and handle them appropriately in your code.  Provide default values for environment variables using `os.getenv(key, default_value)`.
+
+
+* **Q:  Is it safe to write back to the .env file using `dotenv`?** A:  No, it's generally unsafe to write back to the `.env` file directly, especially in production.  It's a potential security risk.  Consider alternative strategies for managing configurations in a production setting.
+

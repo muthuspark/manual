@@ -1,0 +1,329 @@
+---
+title: "NProgress - Documentation"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Getting Started
+
+### Installation
+
+NProgress can be installed via npm or yarn:
+
+```bash
+npm install nprogress
+# or
+yarn add nprogress
+```
+
+Alternatively, you can include it via a CDN.  Add the following `<script>` tag to your HTML file:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.css"/>
+```
+Remember to replace `0.2.0` with the desired version if needed.
+
+
+### Basic Usage
+
+After installation, you can start and stop the progress bar using the following JavaScript functions:
+
+```javascript
+import NProgress from 'nprogress'; // If using npm/yarn
+
+// Start the progress bar
+NProgress.start();
+
+// Simulate some work... (replace with your actual asynchronous operations)
+setTimeout(() => {
+  // Increment the progress bar (optional)
+  NProgress.inc();
+
+  setTimeout(() => {
+    // Complete the progress bar
+    NProgress.done();
+  }, 500);
+}, 1000);
+
+
+//or if using CDN:
+//NProgress.start();
+//setTimeout(function(){ NProgress.done(); }, 1000);
+
+```
+
+This will display a progress bar that starts, optionally increments, and then completes after a specified delay.  Replace the `setTimeout` calls with your actual asynchronous operations (e.g., AJAX requests, file uploads).
+
+
+### Configuration Options
+
+NProgress offers several configuration options to customize its appearance and behavior.  These options can be set globally before starting the progress bar:
+
+```javascript
+NProgress.configure({
+  speed: 500, // Animation speed in milliseconds (default: 200)
+  showSpinner: false, // Whether to show the spinner (default: true)
+  trickleSpeed: 200, // Speed of trickle animation in milliseconds (default: 200)
+  easing: 'ease', // Animation easing function (default: 'ease')
+  minimum: 0.08, // Minimum progress value (default: 0.08)
+  parent: 'body', // Parent element for the progress bar (default: 'body')
+  template: '<div class="bar" role="bar"><div class="peg"></div></div><div class="spinner" role="spinner"><div class="spinner-icon"></div></div>', //Custom HTML template for the bar
+});
+
+NProgress.start();
+// ... your asynchronous operations ...
+NProgress.done();
+
+```
+
+These options allow for fine-grained control over the progress bar's visual style and animation.  Refer to the project's documentation for a complete list of available options and their descriptions.  Note that the `template` option offers significant customization possibilities, allowing for complete control over the HTML structure.
+
+
+## API Reference
+
+### start()
+
+Initiates the progress bar.  If the progress bar is already started, this function does nothing.
+
+```javascript
+NProgress.start();
+```
+
+### set(n)
+
+Manually sets the progress bar's completion percentage.  `n` should be a number between 0 and 1 (inclusive).
+
+```javascript
+// Set progress to 50%
+NProgress.set(0.5);
+```
+
+### inc(n)
+
+Increments the progress bar by a given amount.  `n` is an optional number; if omitted, it defaults to `0.01`. The increment is capped at 1.
+
+```javascript
+// Increment progress by default amount (0.01)
+NProgress.inc();
+
+// Increment progress by 0.1
+NProgress.inc(0.1);
+```
+
+### done()
+
+Completes the progress bar and hides it after a short delay defined by the `speed` configuration option.
+
+```javascript
+NProgress.done();
+```
+
+### remove()
+
+Immediately removes the progress bar from the DOM.  This is useful if you need to completely remove the progress bar without waiting for the animation to complete.
+
+```javascript
+NProgress.remove();
+```
+
+### isStarted()
+
+Returns `true` if the progress bar is currently started, `false` otherwise.
+
+```javascript
+if (NProgress.isStarted()) {
+  console.log('Progress bar is started');
+}
+```
+
+### isStopped()
+
+Returns `true` if the progress bar is currently stopped, `false` otherwise.  This is equivalent to `!NProgress.isStarted()`.
+
+```javascript
+if (NProgress.isStopped()) {
+  console.log('Progress bar is stopped');
+}
+```
+
+
+## Customization
+
+### Styling with CSS
+
+NProgress uses CSS classes to style the progress bar.  You can easily customize its appearance by overriding these classes.  The main classes are:
+
+*   `.nprogress-bar`: The container for the entire progress bar.
+*   `.nprogress-bar .bar`: The progress bar itself.
+*   `.nprogress-bar .peg`: The moving part of the progress bar.
+*   `.nprogress-bar .spinner`: The spinner element (if `showSpinner` is true).
+
+For example, to change the background color of the progress bar:
+
+```css
+.nprogress-bar .bar {
+  background: #ff0000; /* Red */
+}
+```
+
+You can adjust other aspects like height, width, color, and animation using standard CSS properties.  Inspect the default CSS (`nprogress.css`) to see all the available classes and their properties.
+
+### Customizing the Progress Bar
+
+Beyond simple CSS, you can influence NProgress's behavior through configuration options (see the [Configuration Options](Configuration Options section)).  These options allow adjustments to animation speed, spinner visibility, and minimum progress value.
+
+### Template Literals
+
+For more extensive customization of the progress bar's HTML structure, use the `template` configuration option. This allows you to replace the default HTML structure with your own.  You can create a completely custom progress bar using this.
+
+```javascript
+NProgress.configure({
+  template: '<div class="my-custom-bar"><div class="my-custom-peg"></div></div>'
+});
+```
+
+Remember to style your custom elements with CSS to achieve the desired visual effect.
+
+
+### Show/Hide options
+
+The `showSpinner` configuration option controls the visibility of the spinner.  Setting it to `false` will hide the spinner, leaving only the progress bar.  You can also control the display through `NProgress.start()` and `NProgress.done()` methods, although directly manipulating the CSS display property of the bar is generally not recommended because it might interfere with NProgress's internal animation logic.  Instead, control the visibility through the configuration options or by using `NProgress.remove()` if necessary for immediate removal from the DOM.
+
+
+## Advanced Usage
+
+### Integration with Frameworks
+
+Integrating NProgress with various JavaScript frameworks is generally straightforward.  The core functionality relies on simple JavaScript functions (`start()`, `done()`, `inc()`, etc.), making it compatible with most frameworks.  Here's a general approach:
+
+* **React:**  You can use NProgress directly within your React components.  Import `NProgress` and call the functions as needed within lifecycle methods or event handlers.
+
+* **Angular:** Similar to React, import NProgress and use its methods in your Angular services or components, potentially tying them to HTTP request lifecycle events.
+
+* **Vue:**  In Vue, you can use NProgress within your methods or lifecycle hooks.
+
+
+Remember to adjust the timing of `NProgress.start()` and `NProgress.done()` calls to align with your framework's asynchronous operation handling (e.g., around HTTP requests).  Error handling (see below) is crucial for graceful degradation when asynchronous operations fail.
+
+
+### Handling Errors
+
+In real-world applications, asynchronous operations can fail.  You should handle these errors gracefully and ensure that the progress bar is appropriately stopped or removed.  A common approach is to use a `finally` block (or equivalent in your framework) to call `NProgress.done()` regardless of whether the operation succeeds or fails:
+
+```javascript
+$.ajax({
+  url: '/some/url',
+  success: function(data) {
+    // Handle successful response
+  },
+  error: function(error) {
+    // Handle error
+    console.error("Error:", error);
+  },
+  complete: function() {
+    NProgress.done();
+  }
+});
+```
+
+This ensures the progress bar is always completed, preventing it from indefinitely remaining visible on error.
+
+
+### Performance Optimization
+
+For improved performance, especially with many concurrent requests, consider these points:
+
+* **Avoid unnecessary `inc()` calls:** Frequent calls to `NProgress.inc()` can slightly impact performance. Use it judiciously, primarily for longer operations where you want to provide granular progress updates.
+
+* **Batch updates:** For multiple sequential operations, group them and update the progress bar only after completing a logical batch, instead of updating after every single step.
+
+* **Minimize DOM manipulations:** NProgress's performance is relatively unaffected by DOM manipulation, but this is generally good practice for all JavaScript code.
+
+
+### Multiple Progress Bars
+
+NProgress is designed for a single progress bar per page.  While technically you could try to instantiate multiple NProgress instances, this is not officially supported and may lead to unexpected behavior or conflicts.  If you need multiple progress indicators, consider using different visual elements or a different progress library entirely.  You could create custom progress bars using the template option or a separate progress library to handle separate and independent progress indicators for different operations.
+
+
+## Troubleshooting
+
+### Common Issues
+
+* **Progress bar doesn't appear:** Double-check that you've correctly included both the JavaScript and CSS files.  Ensure the paths are accurate and that there are no JavaScript errors preventing NProgress from initializing.  Inspect your browser's developer console for any errors.  If using a bundler, make sure NProgress is properly included in your build process.
+
+* **Progress bar sticks at 0% or 100%:** This often indicates that `NProgress.start()` or `NProgress.done()` are not called at the correct times.  Ensure `NProgress.start()` is called *before* the asynchronous operation begins and `NProgress.done()` is called *after* it completes. If using promises or async/await, make sure `NProgress.done()` is in the `.then()` block or after `await`.
+
+* **Progress bar flickers or jumps:** This might be due to rapid and frequent updates, especially with `NProgress.inc()`.  Consider using fewer `inc()` calls or batching updates for smoother progress visualization.
+
+* **Progress bar styles are not applied:** Make sure that your custom CSS doesn't unintentionally override NProgress's styles.  Check for conflicting selectors or CSS specificity issues.
+
+
+### Debugging Tips
+
+* **Inspect the console:** Use your browser's developer console to check for any JavaScript errors that may be interfering with NProgress.
+
+* **Check the DOM:** Inspect the DOM to ensure that the NProgress elements are correctly added and styled.  Check for any unexpected or missing elements.
+
+* **Simplify your code:**  If you're having trouble with complex implementations, try simplifying your code to isolate the problem.  Test with a minimal example to rule out interactions with other parts of your application.
+
+* **Use the network tab:**  If the issue is related to asynchronous operations (e.g., AJAX requests), use your browser's network tab to investigate the request timing and status.  This helps verify whether the requests are actually completing as expected.
+
+
+### Known Limitations
+
+* **Single progress bar:** NProgress is designed for a single progress bar on a page.  Using multiple instances is not officially supported.
+
+* **Browser compatibility:** While NProgress generally works well across modern browsers, there might be minor inconsistencies or rendering differences across older or less common browsers.  Comprehensive cross-browser testing is recommended for critical applications.
+
+* **Complex animations:**  NProgress's animations are relatively straightforward.  For highly customized or complex animations, you might need to build a custom progress bar or consider a different library providing more animation flexibility.  The `template` option provides some extensibility, but complex animations might require more significant custom development.
+
+* **Accessibility:**  While NProgress visually indicates progress, it may not meet all WCAG (Web Content Accessibility Guidelines) requirements, especially those concerning screen reader compatibility.  Ensure that you incorporate proper ARIA attributes or alternative accessibility solutions if required.
+
+
+## Contributing
+
+We welcome contributions to NProgress!  Here's how you can help:
+
+### Reporting Bugs
+
+When reporting bugs, please provide the following information:
+
+* **NProgress version:** Specify the version of NProgress you're using.
+* **Browser and version:** Indicate the browser and its version where you encountered the bug.
+* **Operating system:** Specify the operating system you're using.
+* **Steps to reproduce:**  Clearly describe the steps needed to reproduce the bug.  Include any relevant code snippets.
+* **Expected behavior:** Describe what you expected to happen.
+* **Actual behavior:** Describe what actually happened.
+* **Screenshots or screen recordings (if applicable):** Visual aids can greatly help in understanding the issue.
+
+The more detailed your report, the easier it will be for us to understand and address the problem.  Please use the issue tracker on the project's GitHub repository to report bugs.
+
+
+### Submitting Pull Requests
+
+Before submitting a pull request, please:
+
+* **Fork the repository:** Create a fork of the NProgress repository on GitHub.
+* **Create a branch:** Create a new branch for your changes.  Use descriptive branch names (e.g., `fix-bug-123`, `feature-new-animation`).
+* **Write tests:**  Add or update tests to cover your changes.  Ensure that all existing tests pass.
+* **Follow the coding style guide (see below):** Maintain consistency with the existing code style.
+* **Update documentation:** If your changes affect the API or usage, update the documentation accordingly.
+* **Submit a pull request:**  Submit a pull request to the main repository, clearly describing your changes and their purpose.
+
+
+We appreciate well-documented and thoroughly tested pull requests.  Be prepared to address any feedback or suggestions from the maintainers.
+
+
+
+### Coding Style Guide
+
+NProgress follows a consistent coding style to improve readability and maintainability.  Please adhere to the following guidelines when contributing code:
+
+* **Indentation:** Use 2 spaces for indentation.  Do not use tabs.
+* **Line length:** Keep lines under 80 characters.
+* **Semicolons:** Use semicolons to terminate statements.
+* **Variable names:** Use descriptive and consistent variable names.  Follow camelCase conventions.
+* **Comments:** Write clear and concise comments to explain complex logic.
+* **Testing:**  All new features and bug fixes should be accompanied by comprehensive unit tests.  Use a testing framework appropriate for the project (details should be available in the project's documentation or `README`).
+
+Adhering to this style guide helps maintain a consistent and readable codebase, making it easier for others to understand and contribute to the project.  Inspect the existing code for examples of proper style and formatting.
+

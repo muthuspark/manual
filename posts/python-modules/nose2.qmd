@@ -1,0 +1,424 @@
+---
+title: "nose2 - Documentation"
+categories: [ "Python Modules" ]
+---
+
+
+### What is nose2?
+
+nose2 is a test runner for Python, inspired by and largely compatible with the original `nose` project.  It provides a flexible and extensible way to discover and run tests written using various styles, including the standard `unittest` module, `pytest` style, and even plain functions. nose2 improves upon its predecessor with enhanced plugin architecture, improved performance, and better support for modern Python features.  It allows you to easily organize and run your tests, providing rich output and reporting features.  Unlike some other testing frameworks, nose2 aims for a lightweight and unobtrusive approach, allowing you to integrate it seamlessly into existing projects without significant code changes.
+
+### Why use nose2?
+
+Several reasons make nose2 a compelling choice for your Python testing needs:
+
+* **Extensibility:** nose2's plugin system allows you to extend its functionality with custom plugins to integrate with various tools and libraries. This makes it highly adaptable to different project requirements and workflows.
+* **Discovery and Organization:** It intelligently discovers tests across your project's directory structure, simplifying the process of running tests across multiple modules and packages.  Advanced discovery patterns allow for highly targeted test execution.
+* **Compatibility:** It supports various testing styles, including `unittest`, making it easy to migrate existing test suites or gradually adopt nose2 without complete rewrites.
+* **Rich Output:**  nose2 provides clear and detailed output, including detailed error messages and test results, facilitating easier debugging and analysis.
+* **Performance:**  Generally speaking, nose2 offers performance improvements over the original `nose` in test discovery and execution.
+* **Ease of Use:** With a simple command-line interface, nose2 is easy to learn and use, even for beginners.
+
+
+### nose2 vs. unittest
+
+While `unittest` is Python's built-in testing framework, nose2 offers several advantages:
+
+* **Simplified Test Discovery:**  `unittest` requires explicit registration of tests. nose2 automatically discovers tests using conventions, reducing boilerplate code.
+* **Enhanced Reporting:** nose2 generally provides more informative and user-friendly test reports than the standard `unittest` output.
+* **Extensibility:**  nose2's plugin architecture provides greater flexibility for customization and integration with other tools.
+* **Support for Multiple Testing Styles:** nose2 handles tests written in multiple styles, while `unittest` is primarily focused on its own style.
+
+
+`unittest` remains a valuable tool, especially for smaller projects or when strict adherence to a specific testing style is desired.  nose2 excels when dealing with larger, more complex projects that benefit from flexible discovery, extensibility, and enhanced reporting features.
+
+
+### Installation and Setup
+
+The simplest way to install nose2 is using pip:
+
+```bash
+pip install nose2
+```
+
+Once installed, you can run your tests from the command line. Navigate to the directory containing your tests and execute:
+
+```bash
+nose2
+```
+
+This will discover and run all tests in the current directory and its subdirectories.  nose2 offers many command-line options for customizing test execution; these are detailed in the command-line options section of this manual.  For more advanced usage and plugin integration, refer to the relevant sections of this manual.
+
+
+## Writing Tests with nose2
+
+### Basic Test Structure
+
+nose2 supports several ways to write tests. The simplest is using plain functions:
+
+```python
+def test_addition():
+    assert 1 + 1 == 2
+
+def test_subtraction():
+    assert 5 - 3 == 2
+```
+
+These functions are automatically discovered and executed by nose2 if their names start with `test_`.  Alternatively, you can use the `unittest` module:
+
+```python
+import unittest
+
+class TestMath(unittest.TestCase):
+    def test_addition(self):
+        self.assertEqual(1 + 1, 2)
+
+    def test_subtraction(self):
+        self.assertEqual(5 - 3, 2)
+```
+
+nose2 seamlessly integrates with `unittest`, allowing you to leverage its features while benefiting from nose2's discovery and reporting capabilities.
+
+
+### Test Discovery
+
+nose2 automatically discovers tests by traversing the file system. By default, it looks for files whose names match the pattern `test*.py` and functions/classes whose names begin with `test_`.  You can modify this behavior using command-line options and plugins.  Tests are discovered recursively within subdirectories.
+
+
+### Test Naming Conventions
+
+For nose2 to automatically detect your tests, follow these naming conventions:
+
+* **Files:** Files containing tests typically start with `test_` (e.g., `test_mymodule.py`).
+* **Functions/Methods:** Test functions and methods should begin with `test_` (e.g., `test_addition`, `test_complex_calculation`).
+* **Classes:**  Test classes should inherit from `unittest.TestCase` (for `unittest` style tests) or implicitly be considered test classes by convention (for other styles).
+
+
+### Using Assertions
+
+nose2 supports various assertion methods:
+
+* **Plain Assertions:** The simplest approach uses Python's `assert` statement (e.g., `assert 1 + 1 == 2`).  If the assertion fails, nose2 reports an error.
+* **unittest Assertions:** If you're using `unittest.TestCase`, utilize its assertion methods such as `assertEqual`, `assertTrue`, `assertFalse`, `assertRaises`, etc.  These provide more descriptive error messages.
+
+
+### setUp and tearDown Methods
+
+For `unittest.TestCase` based tests, use `setUp` and `tearDown` methods to perform setup and teardown operations before and after each test method respectively:
+
+```python
+import unittest
+
+class TestExample(unittest.TestCase):
+    def setUp(self):
+        self.data = []
+
+    def tearDown(self):
+        del self.data
+
+    def test_append(self):
+        self.data.append(1)
+        self.assertEqual(len(self.data), 1)
+```
+
+
+### setUpClass and tearDownClass Methods
+
+For class-level setup and teardown, use `setUpClass` and `tearDownClass` (these are class methods, decorated with `@classmethod`):
+
+
+```python
+import unittest
+
+class TestExample(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Setup that runs once before all tests in the class
+        print("Setting up class...")
+
+    @classmethod
+    def tearDownClass(cls):
+        # Teardown that runs once after all tests in the class
+        print("Tearing down class...")
+
+    def test_one(self):
+        pass
+
+    def test_two(self):
+        pass
+```
+
+
+### Test Fixtures
+
+While not a built-in feature of nose2 itself, plugins (like the `nose2-fixture` plugin) can provide fixture management similar to those found in pytest.  This enables setup and teardown at various scopes (module, class, function).  Consult the documentation of such plugins for details.
+
+### Parametrized Tests
+
+Libraries like `parameterized` can be used to run the same test with multiple input values.  This requires installation of the `parameterized` library separately.   An example is shown below:
+
+```python
+from parameterized import parameterized
+import unittest
+
+class TestParametrized(unittest.TestCase):
+    @parameterized.expand([
+        (1, 2, 3),
+        (4, 5, 9),
+        (10, 20, 30)
+    ])
+    def test_addition(self, a, b, expected):
+        self.assertEqual(a + b, expected)
+```
+
+### Skipping Tests
+
+You can skip tests conditionally using `unittest.skip` or `unittest.skipIf`:
+
+```python
+import unittest
+
+class TestExample(unittest.TestCase):
+    @unittest.skip("Skipping this test")
+    def test_skipped(self):
+        pass
+
+    @unittest.skipIf(True, "Skipping conditionally")
+    def test_conditionally_skipped(self):
+        pass
+```
+
+### Expected Failures
+
+Mark tests that are expected to fail using `unittest.expectedFailure`:
+
+```python
+import unittest
+
+class TestExample(unittest.TestCase):
+    @unittest.expectedFailure
+    def test_expected_failure(self):
+        self.assertEqual(1, 2)
+```
+
+A failing test marked as `expectedFailure` will be reported differently than a regular failing test.
+
+
+### Test Suites and Test Collections
+
+nose2 automatically discovers and groups tests.  While explicit test suites are not a mandatory part of nose2's workflow, if you need more fine-grained control over test ordering or grouping, you can use `unittest.TestSuite` and run it with nose2.  Remember that nose2's discovery will still find and run other tests not explicitly included in the TestSuite.
+
+
+## Advanced nose2 Features
+
+### Plugins
+
+nose2's architecture relies heavily on plugins. Plugins extend nose2's functionality, adding support for various features, such as different assertion styles, test result reporting formats, and integration with external tools.  Plugins are loaded automatically based on their presence in the system's plugin path.
+
+### Extending nose2
+
+Extending nose2 involves writing custom plugins or modifying existing ones.  This allows you to tailor nose2 to your specific needs, integrating it with custom tools or adapting its behavior to match your project's conventions.  Extending nose2 often involves creating classes that implement specific interfaces or hook points within the nose2 plugin system.
+
+
+### Customizing Test Runners
+
+While nose2 provides a default test runner, you can customize its behavior through plugins.  This lets you change how tests are discovered, executed, and reported.  A custom runner might alter the order of test execution, provide specialized output formats, or integrate with a continuous integration system.
+
+
+### Working with Plugins
+
+Plugins typically provide additional command-line options or configuration settings that modify nose2's behavior. To use a plugin, ensure it's installed (usually via pip) and potentially enabled through command-line arguments or configuration files (see below).  Consult the plugin's documentation for specifics on how to utilize its functionality.
+
+
+### Writing Custom Plugins
+
+Creating a nose2 plugin involves writing a Python package conforming to nose2's plugin API. This typically involves subclassing appropriate classes from the `nose2` API and defining methods that intercept or extend core functionality.  This may involve implementing plugin hooks at different phases of the testing process.  Refer to the nose2 source code and plugin examples for guidance.
+
+
+### Command-Line Options
+
+nose2 provides numerous command-line options to control various aspects of test execution.  These options allow for selecting specific tests, controlling verbosity, specifying output formats, and managing plugin behavior.  Common options include:
+
+* `-v` (or `--verbose`): Increases verbosity.
+* `-s` (or `--no-capture`): Disables stdout/stderr capture.
+* `-w` (or `--where`): Specifies the directories to search for tests.
+* `-A` (or `--all-modules`): Runs tests in all modules, not just those named `test*`.
+* Plugin-specific options: Many plugins add their own command-line options.
+
+
+Run `nose2 --help` to see a complete list of available options.
+
+
+### Configuration Files
+
+nose2 can be configured using configuration files (typically `nose2.cfg` in the project root or any parent directory). These files use a simple INI-like format to specify settings such as plugins to load, additional paths, or command-line option defaults.  This allows for consistent test execution across different environments.
+
+
+### Running Tests in Parallel
+
+While not built-in, plugins are available to run tests in parallel (for example, using `pytest-xdist` although it may require adaptation). Parallel execution significantly reduces testing time for larger test suites but may require consideration for shared resources or test dependencies.
+
+
+### Code Coverage
+
+Code coverage analysis measures the percentage of your codebase executed during testing. Tools like `coverage.py` can be integrated with nose2 (often through a plugin) to generate reports showing which parts of your code are covered by tests.
+
+
+### Generating Reports
+
+nose2 plugins allow generating various test reports, such as XML (for CI systems), HTML (for visual summaries), or plain text reports with varying levels of detail.  These reports often summarize test results, including failures, successes, and durations.  Use plugins or command-line options to specify desired report types and formats.
+
+
+## Integrating nose2 with Other Tools
+
+### Integration with IDEs
+
+Many popular IDEs (Integrated Development Environments) provide built-in support for running tests using various frameworks, including nose2.  These integrations typically allow you to run tests directly from within the IDE, view test results in a dedicated panel, and navigate to failing tests for debugging.  Specific instructions for integration will depend on the IDE used (e.g., PyCharm, VS Code, Eclipse).  Commonly, you'll need to configure a run/debug configuration within the IDE, specifying the path to your tests and the nose2 executable.
+
+### Integration with CI/CD Systems
+
+Continuous Integration/Continuous Delivery (CI/CD) systems such as Jenkins, Travis CI, GitLab CI, and GitHub Actions readily support nose2.  Integration typically involves adding a build step that executes the `nose2` command.  Often, you'll want to configure nose2 to generate structured output (like JUnit XML reports) to provide feedback to your CI/CD system.  These systems then use this output to determine build success or failure.  The details of this integration will be specific to the CI/CD system used.
+
+### Generating HTML Reports
+
+While nose2's default output is text-based, generating HTML reports provides a more user-friendly and visually appealing way to review test results.  This typically requires using a plugin, such as one that leverages an existing reporting library (e.g., a plugin that generates reports compatible with a library like `HTMLTestRunner`).  These plugins will generate an HTML file detailing the test execution, including which tests passed, failed, or were skipped. The path to the generated HTML file might be specified via a configuration option or command-line argument in the plugin.
+
+
+### Using nose2 with other testing frameworks
+
+nose2 is designed to be compatible with various testing frameworks, most notably `unittest`. You can mix and match test styles within your project.  For example, you can have tests written using `unittest.TestCase` alongside tests defined as plain functions or using other testing styles supported by nose2.  The discovery mechanism will automatically find tests regardless of their specific structure as long as they conform to naming conventions or are explicitly identified by nose2 plugins.  However, while nose2 handles tests written with other frameworks, some advanced features (like fixtures) found in frameworks like `pytest` might require specialized plugins or adaptations to be fully utilized in a nose2-based testing setup.
+
+
+## Troubleshooting and Best Practices
+
+### Common Errors and Solutions
+
+Several common issues arise when using nose2. Here are some solutions:
+
+* **`ModuleNotFoundError`:** This indicates nose2 can't find a required module. Verify the module is installed (`pip install <module_name>`) and that the import paths are correct.  Ensure the module is accessible within your project's environment.
+
+* **Test discovery failures:** If nose2 doesn't find your tests, double-check the file and function/method naming conventions (`test*.py`, `test_function_name`). Verify that the test files are located in directories nose2 searches; use the `-w` command line option to explicitly specify paths if necessary.
+
+* **Assertion errors:** Review the assertion messages carefully to pinpoint the cause of failure.  Ensure your assertions accurately reflect the expected behavior. Use the detailed error messages to guide debugging.
+
+* **Plugin loading issues:** If a plugin fails to load, check its installation (`pip show <plugin_name>`), ensure it's compatible with your nose2 version, and verify that it's correctly enabled (through command-line options or configuration files).
+
+* **Unexpected behavior:** If tests behave unexpectedly, isolate the issue by running individual tests or subsets of tests. Examine the test environment for potential conflicts or incorrect setup.
+
+
+### Debugging Tests
+
+Use standard Python debugging techniques:
+
+* **Print statements:** Strategically placed `print()` statements can provide insights into variable values and program flow during test execution.
+
+* **Logging:**  Use the Python `logging` module for more structured logging during tests, especially helpful for complex scenarios or long-running operations.
+
+* **Debuggers:** Use a Python debugger (such as `pdb`) to step through the code line by line, inspecting variables and examining the execution path.  You can integrate debuggers with your IDE for more convenient debugging.
+
+* **Inspecting test output:** Analyze the detailed output provided by nose2 after test execution.  Thoroughly check error messages and stack traces to identify the root cause.
+
+
+
+### Writing Clean and Maintainable Tests
+
+* **Keep tests concise:** Each test should focus on a single aspect of the code's behavior.  Avoid overly long or complex tests.
+
+* **Use descriptive names:** Test names should clearly indicate what is being tested.  This improves readability and makes it easier to understand the purpose of each test.
+
+* **Organize tests logically:** Structure your tests into modules and directories reflecting the codebase's structure.  Use descriptive naming for test files and directories.
+
+* **Avoid code duplication:**  Refactor repetitive code into helper functions or setup methods to improve maintainability.
+
+* **Use fixtures (when available):** If using plugins providing fixtures, use them for setting up and tearing down resources to improve test clarity and reduce code duplication.
+
+* **Document your tests:** Use docstrings to describe the purpose and functionality of each test.
+
+
+### Best Practices for Test Design
+
+* **Test-driven development (TDD):**  Write tests *before* writing the code they're intended to test.  This helps clarify requirements and ensure testability.
+
+* **Focus on edge cases:** Pay close attention to boundary conditions and exceptional situations that might cause unexpected behavior.
+
+* **Aim for high coverage:** Strive for comprehensive test coverage to ensure that all aspects of your code are thoroughly tested. However, prioritize testing critical functionality over complete coverage.
+
+* **Use mocking:**  When testing components that interact with external systems (databases, network services), use mocking to isolate the component under test from external dependencies.  This improves test reliability and speed.
+
+
+### Performance Optimization Tips
+
+* **Use fixtures efficiently:** If employing fixtures, carefully manage resource allocation and cleanup to avoid unnecessary overhead.
+
+* **Run tests in parallel:** For large test suites, using plugins to parallelize test execution can significantly reduce the overall testing time.
+
+* **Profile your tests:** Use Python profiling tools to identify performance bottlenecks in your tests.
+
+* **Minimize I/O operations:**  Reduce interactions with the file system or network during tests, as these operations can be time-consuming.
+
+* **Use efficient data structures:**  Choosing appropriate data structures can enhance performance, especially when dealing with large datasets.
+
+
+
+
+## Appendix
+
+### Glossary of Terms
+
+* **Fixture:** A mechanism for providing setup and teardown actions for tests.  In nose2, fixtures are often provided by plugins.
+
+* **Plugin:** An extension module that adds functionality to nose2.  Plugins modify test discovery, execution, or reporting.
+
+* **Test Suite:** A collection of tests.  While not explicitly required in nose2, `unittest.TestSuite` can be used to group tests.
+
+* **Test Runner:** The program that discovers, executes, and reports the results of tests.  nose2 itself is a test runner.
+
+* **Assertion:** A statement that verifies an expected condition within a test.  Failure of an assertion indicates a test failure.
+
+* **Hook:** A point in nose2's execution where plugins can intervene and modify behavior.
+
+* **Test Discovery:** The process by which nose2 locates test files and functions/methods.
+
+
+### Command-Line Reference
+
+This section provides a concise reference to the most common nose2 command-line options.  For a complete list, execute `nose2 --help`.
+
+
+* `nose2`: Runs all tests discovered in the current directory and its subdirectories.
+
+* `nose2 -v`: Increases verbosity.
+
+* `nose2 -s`: Disables standard output and standard error capture.
+
+* `nose2 -w <directory>`: Specifies the directories to search for tests.
+
+* `nose2 -A`: Runs tests in all modules, even those not starting with `test_`.
+
+* `nose2 -m <pattern>`: Runs only tests matching the given pattern.
+
+* `nose2 --plugin <plugin_name>`: Enables the specified plugin.
+
+* `nose2 --config <config_file>`: Specifies the path to a nose2 configuration file.
+
+
+Many plugins add their own command-line options. Check their documentation for details.
+
+
+### Plugin API Reference
+
+The nose2 plugin API allows extension of nose2's functionality.  This section would detail the interfaces and classes that plugins should implement or subclass.  Because a full API reference is extensive and would depend on the specific version of nose2, this section will only provide a conceptual overview.
+
+A plugin typically defines one or more classes that implement specific `IPlugin` interfaces.  These interfaces define methods which act as "hooks" during various phases of the test execution process.  For example, there might be hooks related to:
+
+* **Test discovery:**  Modifying how tests are discovered and selected.
+* **Test loading:** Interacting with and configuring the tests before they are run.
+* **Test running:**  Customizing test execution behavior.
+* **Test reporting:**  Modifying how results are reported.
+* **Environment setup:**  Setting up or modifying the execution environment before the tests run.
+
+Each hook method receives specific arguments related to the context (e.g., a test object, a session object). By overriding these methods, plugins can modify standard behavior.
+
+
+To write a plugin, you would typically create a Python package that includes classes implementing the needed plugin interfaces and registering them using the nose2 plugin mechanism.  Consult the nose2 source code and provided examples for specific implementation details related to the version of nose2 you are using.
+

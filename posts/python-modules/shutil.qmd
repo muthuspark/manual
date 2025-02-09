@@ -1,0 +1,636 @@
+---
+title: "shutil - Documentation"
+categories: [ "Python Modules" ]
+---
+
+
+### What is shutil?
+
+The `shutil` module in Python provides a set of high-level file operations.  Unlike lower-level modules like `os`, which offer granular control over individual file system interactions, `shutil` offers convenience functions for common tasks such as copying files and directories, archiving, deleting, and manipulating file permissions.  These functions abstract away many of the platform-specific details, making your code more portable and easier to read.
+
+### Why use shutil?
+
+Using `shutil` offers several advantages:
+
+* **Readability:** `shutil` functions have clear, descriptive names making code easier to understand and maintain.  Operations like copying directories recursively are handled with a single function call, rather than needing to write custom recursive logic with `os` functions.
+* **Portability:** `shutil` handles platform-specific differences (e.g., how file paths are represented on Windows vs. Unix-like systems).  This allows you to write code that works consistently across different operating systems without needing conditional logic for each platform.
+* **Efficiency:**  While it builds upon lower-level modules, `shutil` often optimizes common tasks, potentially leading to improved performance compared to manually implementing equivalent functionality.
+* **Error Handling:** `shutil` functions typically include built-in error handling, making your code more robust.  For example, they might handle permission errors or situations where files already exist.
+
+
+### shutil vs. other modules (os, pathlib)
+
+While `os` and `pathlib` provide fundamental file system operations, `shutil` builds upon them to offer higher-level functionality.
+
+* **`os`:** Provides low-level, granular control over the file system. It’s more powerful but requires more code to accomplish common tasks.  `shutil` often uses `os` internally.
+* **`pathlib`:** Offers an object-oriented approach to file system manipulation, improving code readability. `shutil` doesn't directly interact with `pathlib` objects but works well alongside it; you can easily convert `pathlib.Path` objects to strings for use with `shutil` functions.
+
+`shutil` is ideal for everyday file operations. For highly specialized or low-level tasks, `os` might be necessary.  `pathlib` improves the structure and readability of file path manipulation but does not directly replace `shutil`'s higher-level functions.
+
+
+### Setting up your environment
+
+`shutil` is a standard Python library, meaning it's included by default in all Python installations.  There's no additional setup required to use it. To begin using `shutil`, simply import it into your Python script:
+
+```python
+import shutil
+```
+
+You can then start using the functions provided by the `shutil` module.  No specific environment variables or external packages need to be configured.
+
+
+## High-level Operations
+
+### copyfile()
+
+Copies the contents of the source file to the destination file.  It will overwrite the destination if it already exists.  It does *not* preserve metadata (timestamps, permissions, etc.).
+
+```python
+shutil.copyfile(src, dst) 
+```
+
+* `src`: Path to the source file.
+* `dst`: Path to the destination file.
+
+**Example:**
+
+```python
+shutil.copyfile("my_document.txt", "my_document_copy.txt")
+```
+
+### copy()
+
+Copies the source file to the destination.  It handles both files and symbolic links. If the destination is a directory, it copies the file into that directory. It does *not* preserve metadata.
+
+```python
+shutil.copy(src, dst)
+```
+
+* `src`: Path to the source file.
+* `dst`: Path to the destination file or directory.
+
+**Example:**
+
+```python
+shutil.copy("my_image.jpg", "backup_folder/")  #Copies to backup_folder/my_image.jpg
+```
+
+
+### copy2()
+
+Similar to `copy()`, but also preserves metadata (timestamps, permissions). This is generally preferred over `copy()` unless metadata preservation isn't necessary.
+
+```python
+shutil.copy2(src, dst)
+```
+
+* `src`: Path to the source file.
+* `dst`: Path to the destination file or directory.
+
+**Example:**
+
+```python
+shutil.copy2("important_file.cfg", "/tmp/")
+```
+
+
+### copytree()
+
+Recursively copies an entire directory tree and its contents to a destination. It creates the destination directory if it doesn't exist.  Preserves metadata (using `copy2` behavior).
+
+```python
+shutil.copytree(src, dst, symlinks=False, ignore=None, copy_function=<function copy2>, ignore_dangling_symlinks=False)
+```
+
+* `src`: Path to the source directory.
+* `dst`: Path to the destination directory.
+* `symlinks`: If `True`, symbolic links are copied as symbolic links (default is `False`, where they are copied as files).
+* `ignore`: A function that takes a directory path and returns a list of files/subdirectories to ignore. This is useful for excluding unwanted files from the copy.
+* `copy_function`: The function used to copy individual files (defaults to `copy2`).
+* `ignore_dangling_symlinks`: If `True`, ignores dangling symbolic links (links pointing to non-existent files/directories).
+
+
+**Example:**
+
+```python
+shutil.copytree("my_project", "my_project_backup")
+```
+
+
+### move()
+
+Moves a file or directory from the source to the destination.  If the destination exists and is a file, it will be overwritten.  If the destination is a directory, the source will be moved into that directory.  Handles cross-device moves.
+
+```python
+shutil.move(src, dst)
+```
+
+* `src`: Path to the source file or directory.
+* `dst`: Path to the destination file or directory.
+
+**Example:**
+
+```python
+shutil.move("temp_file.dat", "/data/archive/")
+```
+
+
+### rmtree()
+
+Deletes an entire directory tree recursively.  Use with caution, as this operation is irreversible.
+
+```python
+shutil.rmtree(path, ignore_errors=False, onerror=None)
+```
+
+* `path`: Path to the directory to be deleted.
+* `ignore_errors`: If `True`, errors during deletion are ignored (default is `False`).
+* `onerror`:  A function that is called when an error occurs during deletion.
+
+
+**Example:**
+
+```python
+shutil.rmtree("temp_directory")  #Deletes temp_directory and all its contents.
+```
+
+**Caution:** Always double-check the path before using `rmtree()` to avoid accidental data loss.
+
+
+## File and Directory Management
+
+### rmtree(): Deleting directories recursively
+
+The `rmtree()` function recursively deletes a directory and all its contents.  This is a powerful but potentially dangerous function, so exercise caution.  It handles errors differently depending on the `ignore_errors` and `onerror` parameters.  If `ignore_errors` is `True`, errors during deletion are simply ignored (e.g., permission errors). The `onerror` parameter allows you to specify a custom error handling function.
+
+```python
+shutil.rmtree(path, ignore_errors=False, onerror=None)
+```
+
+* `path`: Path to the directory to remove.
+* `ignore_errors`: Boolean; if `True`, ignores errors.
+* `onerror`: A callable taking (func, path, exc_info) arguments.
+
+
+### copytree(): Copying directory trees
+
+`copytree()` recursively copies a directory and all its contents to a new location. It preserves metadata (timestamps, permissions) by default, using the `copy2()` function for individual file copies.  It offers options to control how symbolic links are handled and to specify files or directories to ignore.
+
+```python
+shutil.copytree(src, dst, symlinks=False, ignore=None, copy_function=<function copy2>, ignore_dangling_symlinks=False)
+```
+
+* `src`: Source directory path.
+* `dst`: Destination directory path.
+* `symlinks`: If `True`, copies symbolic links as links; otherwise, copies their contents.
+* `ignore`: A callable that takes a path and returns a list of items to ignore.
+* `copy_function`: Function used to copy files (defaults to `copy2`).
+* `ignore_dangling_symlinks`: If `True`, ignores broken symlinks.
+
+
+### ignore_patterns() in copytree()
+
+The `ignore` parameter in `copytree()` can be a callable that takes a directory path and returns a list of patterns to ignore within that directory.  For convenience, `shutil.ignore_patterns()` creates such a callable, allowing you to specify patterns using glob-style matching:
+
+```python
+shutil.copytree("source_dir", "dest_dir", ignore=shutil.ignore_patterns("*.tmp", "Thumbs.db"))
+```
+This would ignore all files ending in `.tmp` and any file named `Thumbs.db` during the copy.
+
+
+### make_archive(): Creating archive files
+
+Creates an archive file (e.g., zip, tar, tar.gz) from a directory.  It supports various archive formats.
+
+```python
+shutil.make_archive(base_name, format, root_dir=None, base_dir=None, verbose=0, dry_run=0, owner=None, group=None)
+```
+
+* `base_name`: Base name of the archive file (without extension).
+* `format`: Archive format ('zip', 'tar', 'gztar', 'bztar', 'xztar').
+* `root_dir`: Root directory from which relative paths are calculated.
+* `base_dir`: Directory within `root_dir` to archive.
+* `verbose`: Verbosity level.
+* `dry_run`: If `True`, simulates the archiving process without actually creating files.
+* `owner`, `group`: User and group ownership (Unix-like systems).
+
+
+### get_archive_formats(): Listing supported archive formats
+
+Returns a list of archive formats supported by `make_archive()` and `unpack_archive()`.
+
+```python
+supported_formats = shutil.get_archive_formats()
+```
+
+
+### unpack_archive(): Unpacking archive files
+
+Extracts the contents of an archive file.  Supports various archive formats.  Handles errors gracefully.
+
+```python
+shutil.unpack_archive(filename, extract_dir=None, format=None)
+```
+
+* `filename`: Path to the archive file.
+* `extract_dir`: Directory to extract files into (defaults to current directory).
+* `format`: Archive format (auto-detected if not specified).
+
+
+
+### register_archive_format(): Registering custom archive formats
+
+Allows you to add support for custom archive formats to `make_archive()` and `unpack_archive()`.  You provide functions to create and extract archives for your custom format.
+
+```python
+shutil.register_archive_format(format, function, description)
+```
+
+
+### disk_usage(): Checking disk usage
+
+Returns disk usage statistics for a given path.  Provides total, used, and free space.
+
+```python
+total, used, free = shutil.disk_usage(path)
+```
+
+* `path`: Path to the directory to check.
+
+
+### chown(): Changing file ownership (Unix-like systems)
+
+Changes the owner and/or group of a file or directory.  Only works on Unix-like systems.
+
+```python
+shutil.chown(path, user=None, group=None)
+```
+
+* `path`: Path to the file or directory.
+* `user`: New owner (user ID or name).
+* `group`: New group (group ID or name).
+
+
+### which(): Finding executable files
+
+Locates an executable file in the system's PATH environment variable.
+
+```python
+executable_path = shutil.which("my_program")
+```
+
+* Returns the full path to the executable if found, otherwise `None`.
+
+
+
+## Advanced Usage and Best Practices
+
+### Error Handling and Exception Management
+
+`shutil` functions can raise exceptions (like `shutil.Error`, `IOError`, `OSError`, etc.) if operations fail (e.g., insufficient permissions, file not found).  Always wrap `shutil` calls in `try...except` blocks to handle potential errors gracefully:
+
+
+```python
+try:
+    shutil.copytree("source", "destination")
+except shutil.Error as e:
+    print(f"Error copying directory: {e}")
+except OSError as e:
+    print(f"Operating system error: {e}")
+except Exception as e: # Catch other unexpected errors
+    print(f"An unexpected error occurred: {e}")
+```
+
+Be specific in your `except` blocks to catch the relevant exceptions and handle them appropriately.  Logging errors is crucial for debugging.
+
+
+### Handling Permissions and Access Control
+
+Ensure your script has the necessary permissions to perform operations on files and directories.  Problems often arise from insufficient read, write, or execute permissions.  You might need to use `os.chmod()` before using `shutil` to adjust permissions. If errors occur due to permissions, handle them using error handling (as shown in the previous section) and inform the user accordingly.
+
+
+### Optimizing shutil for large files and directories
+
+For extremely large files or directories, the default `shutil` operations might be slow. Consider these optimizations:
+
+* **Chunking:** For copying large files, use a buffer to copy data in chunks instead of all at once. This reduces memory usage and might increase performance, especially over network file systems.
+* **Parallelism:** For copying multiple files or directories, explore using multiprocessing or threading to perform operations concurrently, potentially reducing overall processing time. Libraries such as `multiprocessing` can be combined with `shutil`.
+* **Specialized Libraries:** For very large-scale operations or specific requirements (e.g., highly efficient file transfers over networks), consider specialized libraries such as `rsync` (often wrapped in a Python library).
+
+
+### Working with symbolic links
+
+`shutil` handles symbolic links differently depending on the function.  `copytree()` has the `symlinks` parameter to control whether links are copied as links or as the target files.  Other functions might follow system defaults or raise errors depending on the link's status.  Always check how a specific function interacts with symbolic links in its documentation. Ensure that your handling of symbolic links is robust and that it addresses potential security vulnerabilities (see Security Considerations).
+
+
+### Using shutil with different file systems
+
+`shutil` generally strives for cross-platform compatibility but might behave differently depending on the underlying file system (e.g., NTFS, ext4, network shares).  Be aware that certain operations (like setting extended attributes or specific permissions) might not be portable across all file systems.  Thorough testing on your target systems is essential.
+
+
+### Security Considerations
+
+* **Input Validation:** Carefully validate all file paths passed to `shutil` functions to prevent directory traversal attacks.  Never directly use user-supplied input without proper sanitization.
+* **Permission Checks:** Verify that your script has the necessary permissions before performing operations.  Avoid accidentally giving unintended access to sensitive files.
+* **`rmtree()` Caution:** Use `rmtree()` extremely carefully.  Always double-check the target path and consider adding safeguards (like confirmations or logging) to prevent accidental deletion of critical directories.
+* **Symbolic Links:**  Be mindful of symbolic links.  Malicious symbolic links might lead to unintended file access or modification.  Implement thorough checks and validation to mitigate these risks.
+
+
+### Common Pitfalls and Troubleshooting
+
+* **Incorrect Paths:** The most frequent problem is using incorrect file paths.  Double-check paths for typos, absolute vs. relative paths, and proper separators (`/` or `\` depending on the system).
+* **Permissions Errors:**  Insufficient permissions frequently lead to errors.  Ensure your script has the necessary read and write access to all involved files and directories.
+* **Overwriting Files:**  Many `shutil` functions overwrite existing files without warning.  Implement checks or use alternative approaches if overwriting needs to be avoided.
+* **Unexpected Exceptions:** Handle exceptions gracefully.  Use `try...except` blocks and log errors for debugging.  Pay close attention to the error messages for clues.
+* **Large Files/Directories:** For very large files or directories, consider optimizations as described earlier to improve performance and resource utilization.
+
+
+
+
+## Examples and Use Cases
+
+### Basic file copying
+
+This example demonstrates basic file copying using `shutil.copyfile()`.  Note that metadata (like timestamps) is *not* preserved.
+
+```python
+import shutil
+import os
+
+# Create a dummy file
+with open("source_file.txt", "w") as f:
+    f.write("This is some text.")
+
+shutil.copyfile("source_file.txt", "destination_file.txt")
+
+print(f"File 'source_file.txt' copied to 'destination_file.txt'")
+os.remove("source_file.txt") #Clean up
+```
+
+
+### Copying with metadata preservation
+
+This example uses `shutil.copy2()` to copy a file while preserving metadata.
+
+```python
+import shutil
+import os
+import time
+
+# Create a dummy file
+with open("source_file.txt", "w") as f:
+    f.write("This is some text.")
+
+#Get the creation time for demonstration
+creation_time = os.path.getctime("source_file.txt")
+
+shutil.copy2("source_file.txt", "destination_file2.txt")
+
+print(f"File 'source_file.txt' copied to 'destination_file2.txt' with metadata.")
+print(f"Original creation time: {time.ctime(creation_time)}")
+print(f"Copied file creation time: {time.ctime(os.path.getctime('destination_file2.txt'))}")
+
+os.remove("source_file.txt") #Clean up
+os.remove("destination_file2.txt") #Clean up
+
+```
+
+
+### Creating and extracting zip archives
+
+This example demonstrates creating and extracting zip archives.
+
+```python
+import shutil
+import os
+import zipfile
+
+# Create a directory and a file for demonstration
+os.makedirs("my_directory", exist_ok=True)
+with open("my_directory/my_file.txt", "w") as f:
+    f.write("Hello, world!")
+
+shutil.make_archive("my_archive", 'zip', "my_directory")
+print("Zip archive created: my_archive.zip")
+
+
+shutil.unpack_archive("my_archive.zip", "extracted_directory")
+print("Zip archive extracted to extracted_directory")
+
+# Clean up
+shutil.rmtree("my_directory")
+os.remove("my_archive.zip")
+shutil.rmtree("extracted_directory")
+
+```
+
+
+### Moving files and directories
+
+This example shows moving a file and a directory.
+
+```python
+import shutil
+import os
+
+# Create dummy file and directory
+os.makedirs("my_dir", exist_ok=True)
+with open("my_file.txt", "w") as f:
+    f.write("Some content.")
+
+shutil.move("my_file.txt", "my_dir/")
+print("'my_file.txt' moved to 'my_dir'")
+
+shutil.move("my_dir", "moved_dir") # Move the whole directory
+print("'my_dir' moved to 'moved_dir'")
+
+shutil.rmtree("moved_dir") #Clean up
+
+```
+
+
+### Deleting directories and their contents
+
+This example deletes a directory and its contents recursively using `shutil.rmtree()`.  **Use with extreme caution!**
+
+```python
+import shutil
+import os
+
+# Create a dummy directory and file
+os.makedirs("dir_to_delete/subdir", exist_ok=True)
+with open("dir_to_delete/file1.txt", "w") as f:
+    f.write("Some text")
+
+shutil.rmtree("dir_to_delete")
+print("'dir_to_delete' and its contents deleted.")
+
+```
+
+
+### Real-world application examples
+
+* **Backup scripts:**  Use `shutil.copytree()` or `shutil.make_archive()` to create backups of directories or files. Implement proper error handling and logging.
+* **Deployment tools:**  Use `shutil.copytree()` and `shutil.move()` to deploy files and directories to different locations.
+* **File management utilities:** Create command-line tools that use `shutil` for file copying, moving, and deletion.
+* **Data processing pipelines:**  Use `shutil` functions to manage temporary files and directories within data processing workflows.  Ensure that temporary files are cleaned up correctly.
+* **Software installers:**  `shutil` can be used within installers to copy files and create directories during the installation process.  Error handling is critical in this context.
+
+Remember that robust error handling and input validation are crucial for all real-world applications.  Always handle potential exceptions and avoid security vulnerabilities.
+
+
+## Reference
+
+### Module functions: Alphabetical Listing with detailed explanations and examples for each function.
+
+This section provides an alphabetical listing of the functions in the `shutil` module, along with detailed explanations and examples.  Note that the full functionality and nuances of each function may require consulting the official Python documentation for the most up-to-date and complete information.
+
+
+**1. `copyfile(src, dst[, *, follow_symlinks=True])`**
+
+Copies the contents of the source file (`src`) to the destination file (`dst`).  Overwrites `dst` if it exists.  Does *not* preserve metadata (timestamps, permissions).  `follow_symlinks` controls whether symbolic links are followed (default is `True`).
+
+```python
+import shutil
+shutil.copyfile("my_file.txt", "my_copy.txt")
+```
+
+**2. `copyfileobj(fsrc, fdst[, length=16384])`**
+
+Copies data from file-like object `fsrc` to file-like object `fdst`, in chunks of size `length` (default 16KB). Useful for efficient copying of large files.
+
+```python
+import shutil
+with open("source.txt", "rb") as fsrc, open("destination.txt", "wb") as fdst:
+    shutil.copyfileobj(fsrc, fdst)
+```
+
+
+**3. `copymode(src, dst)`**
+
+Copies the file mode (permissions) from `src` to `dst`.
+
+```python
+import shutil
+shutil.copymode("source.txt", "destination.txt")
+```
+
+
+**4. `copystat(src, dst)`**
+
+Copies all file metadata (mode, access/modification times) from `src` to `dst`.
+
+```python
+import shutil
+shutil.copystat("source.txt", "destination.txt")
+```
+
+
+**5. `copytree(src, dst[, symlinks=False, ignore=None, copy_function=<function copy2>, ignore_dangling_symlinks=False])`**
+
+Recursively copies a directory tree from `src` to `dst`.  Preserves metadata. `symlinks` controls symbolic link handling. `ignore` is a callable that filters files/directories.  `copy_function` specifies the function used to copy individual files (default: `copy2`). `ignore_dangling_symlinks` controls handling of broken symlinks.
+
+
+```python
+import shutil
+shutil.copytree("my_directory", "my_backup")
+```
+
+
+**6. `copy(src, dst)`**
+
+Copies `src` to `dst`. Handles files and symbolic links. If `dst` is a directory, the file is copied into that directory. Does not preserve metadata.
+
+```python
+import shutil
+shutil.copy("myfile.txt", "backup_dir/")
+```
+
+
+**7. `copy2(src, dst)`**
+
+Similar to `copy()`, but preserves metadata (timestamps, permissions).
+
+```python
+import shutil
+shutil.copy2("important_file.txt", "backup_dir/")
+```
+
+
+**8. `disk_usage(path)`**
+
+Returns disk usage statistics (total, used, free) for the given path.
+
+
+```python
+import shutil
+total, used, free = shutil.disk_usage(".")
+print(f"Disk usage: Total={total}, Used={used}, Free={free}")
+
+```
+
+**9. `get_archive_formats()`**
+
+Returns a list of supported archive formats.
+
+
+**10. `make_archive(base_name, format[, root_dir=None, base_dir=None, verbose=0, dry_run=0, owner=None, group=None])`**
+
+Creates an archive file (zip, tar, etc.) from the given directory.  Requires a specified `format` (e.g., 'zip', 'tar', 'gztar').
+
+
+
+**11. `move(src, dst)`**
+
+Moves a file or directory from `src` to `dst`.  Handles cross-device moves.
+
+```python
+import shutil
+shutil.move("my_file.txt", "/tmp/my_file.txt")
+```
+
+
+**12. `register_archive_format(format, function, description)`**
+
+Registers a custom archive format handler.
+
+
+**13. `rmtree(path[, ignore_errors=False, onerror=None])`**
+
+Recursively deletes a directory tree.  Use with extreme caution!  `ignore_errors` controls error handling.  `onerror` allows specification of a custom error handler.
+
+
+```python
+import shutil
+shutil.rmtree("temp_dir") # Be VERY careful using this!
+```
+
+
+**14. `unpack_archive(filename[, extract_dir=None, format=None])`**
+
+Extracts an archive file to the specified directory.  `format` can be specified or auto-detected.
+
+
+
+**15. `chown(path, user=None, group=None)`**
+
+Changes ownership (user/group) of a file or directory.  Only available on Unix-like systems.
+
+
+**16. `which(cmd[, mode=os.F_OK | os.X_OK])`**
+
+Locates an executable file in the system's PATH.
+
+
+**17. `ignore_patterns(*patterns)`**
+
+Creates an ignore function for use with `copytree()` to exclude files matching specified patterns.
+
+```python
+import shutil
+shutil.copytree("source", "dest", ignore=shutil.ignore_patterns("*.tmp", "Thumbs.db"))
+```
+
+
+This reference provides a concise overview. Always refer to the official Python documentation for the most complete and up-to-date information, including detailed explanations of parameters, return values, and potential exceptions for each function.
+

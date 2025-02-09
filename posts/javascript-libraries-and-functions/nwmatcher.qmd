@@ -1,0 +1,439 @@
+---
+title: "NWMatcher - Documentation"
+categories: [ "JavaScript Libraries and Functions" ]
+---
+## Introduction
+
+### What is NWMatcher?
+
+NWMatcher is a powerful and flexible pattern matching library designed for efficient and expressive matching of network data.  It provides a concise and intuitive syntax for defining complex matching rules against various network elements such as IP addresses, ports, protocols, and more. NWMatcher is built for speed and scalability, making it suitable for high-volume network monitoring, analysis, and security applications.  It allows developers to easily create and manage sophisticated matching logic without the complexities of manually writing intricate regular expressions or conditional statements.
+
+
+### Key Features and Benefits
+
+* **Expressive Pattern Language:** Define complex matching rules using a clear and readable syntax. Supports wildcard characters, range specifications, and logical operators for precise matching.
+* **High Performance:** Optimized for speed and efficiency, handling large datasets and high-throughput scenarios.
+* **Extensible:** Easily add support for new network elements and matching criteria.
+* **Platform Agnostic:** Designed to be portable across different operating systems and environments.
+* **Simplified Development:** Reduces development time and complexity compared to manual pattern matching implementations.
+* **Improved Accuracy:** Minimizes the risk of human error associated with complex manual pattern definition.
+
+
+### Target Audience
+
+NWMatcher is primarily aimed at network engineers, security professionals, and software developers working on network-related projects.  Its ease of use and powerful features make it beneficial for both experienced developers and those new to network data processing. Anyone needing to perform efficient and accurate pattern matching on network data will find NWMatcher valuable.
+
+
+### Installation and Setup
+
+The installation process for NWMatcher depends on your chosen environment and package manager.  Below are instructions for common scenarios:
+
+
+**Using pip (Python):**
+
+1. Open your terminal or command prompt.
+2. Execute the following command:  `pip install nwmatcher`
+
+**From Source:**
+
+1. Clone the NWMatcher repository from [GitHub repository link].
+2. Navigate to the project directory in your terminal.
+3. Run `python setup.py install`  (You may need to adjust this based on your Python environment).
+
+
+**Note:**  Ensure you have the necessary dependencies installed.  The `README` file in the repository provides a complete list of dependencies and detailed instructions for various installation methods.  After successful installation, you can import and utilize the NWMatcher library in your Python code.  Examples are provided in the "Usage Examples" section of this manual.
+
+
+## Core Concepts
+
+### Matching Algorithms
+
+NWMatcher employs a hybrid approach to pattern matching, combining optimized Trie structures with advanced filtering techniques for high-performance matching.  The core algorithm works as follows:
+
+1. **Trie Construction:**  Upon initialization with a set of patterns, NWMatcher builds a Trie data structure. This efficiently indexes the patterns, allowing for rapid prefix matching.
+
+2. **Filtering:**  When a network data element (e.g., an IP address, port number) is provided for matching, NWMatcher first applies efficient filtering techniques based on basic characteristics (e.g., IP address range checks). This significantly reduces the number of patterns that need to be evaluated using the Trie.
+
+3. **Trie Traversal:**  The filtered patterns are then traversed within the Trie. This process rapidly identifies matching patterns.  The Trie's structure ensures that only relevant branches are explored, further optimizing performance.
+
+4. **Result Aggregation:**  Matching results are aggregated and returned to the user.  This may include a list of matching patterns, scores (if weighting is applied), or other relevant metadata.
+
+
+### Data Structures
+
+NWMatcher utilizes several key data structures to achieve its efficiency and flexibility:
+
+* **Trie:** A prefix tree used for indexing and efficiently searching the patterns. This allows for rapid matching against a large number of patterns.
+
+* **Pattern Object:** An internal representation of each pattern, including its components, weights (if any), and metadata.
+
+* **Result Object:**  A data structure to encapsulate the results of a matching operation, including matching patterns, scores, and potentially other information.
+
+* **Filter Structures:**  Internal structures optimized for quickly discarding non-matching elements based on basic characteristics (e.g., IP address ranges).
+
+These data structures are optimized for memory usage and performance in high-throughput scenarios.
+
+
+### Pattern Syntax
+
+NWMatcher uses a flexible and expressive pattern syntax.  Patterns are defined as strings that can incorporate wildcard characters and logical operators.
+
+* **Wildcard Characters:** `*` matches any sequence of characters, while `?` matches a single character.
+
+* **Range Specifications:**  Ranges can be defined using square brackets `[ ]`, for example `[100-200]` matches numbers between 100 and 200 (inclusive).
+
+* **Logical Operators:**  Patterns can be combined using logical AND (`&&`), OR (`||`), and NOT (`!`) operators.  Parentheses `()` can be used to control the order of operations.
+
+* **Specific Element Designators:**  Patterns can include specific elements, for example, IP address ranges (`192.168.1.*`), port numbers (`80`, `443`), or protocol names (`TCP`, `UDP`). The specific elements supported depend on the specific configuration.
+
+**Example:**
+
+`192.168.1.* && (TCP || UDP)` matches any IP address in the 192.168.1.x range using either TCP or UDP.
+
+
+### Weighting and Scoring
+
+NWMatcher supports assigning weights to patterns, allowing for prioritized matching and scoring.  Each pattern can be assigned a numerical weight reflecting its relative importance or relevance. During the matching process, the scores of matching patterns are summed to produce an overall score. This allows the user to determine which patterns are most significant based on a weighted evaluation of the matched elements.  The scoring mechanism can be customized to fit specific needs.  For example, a higher weight could be assigned to security-related patterns.
+
+
+## API Reference
+
+### Constructor
+
+```python
+NWMatcher(patterns=None, default_options=None)
+```
+
+Initializes a new NWMatcher instance.
+
+* **`patterns` (list, optional):** A list of patterns to be added initially.  Each pattern should be a string conforming to the NWMatcher pattern syntax. Defaults to an empty list.
+
+* **`default_options` (dict, optional):** A dictionary of default options to configure the matcher. This can include settings such as case sensitivity,  weighting schemes, etc.  See `setDefaultOptions()` for details on available options. Defaults to an empty dictionary.
+
+
+### `match(text, pattern)`
+
+```python
+match(text, pattern) -> bool
+```
+
+Checks if the given `text` matches the provided `pattern`.
+
+* **`text` (str):** The input text to match against.
+
+* **`pattern` (str):** The pattern to match.  Must conform to NWMatcher's pattern syntax.
+
+* **Returns:** `True` if the text matches the pattern, `False` otherwise.
+
+
+### `score(text, pattern)`
+
+```python
+score(text, pattern) -> float
+```
+
+Returns the score of matching `text` against the given `pattern`.  This assumes that weights have been set using `setWeights()`.  A score of 0.0 indicates no match.
+
+* **`text` (str):** The input text to match against.
+
+* **`pattern` (str):** The pattern to score against.
+
+
+* **Returns:** A floating-point number representing the match score.
+
+
+### `getMatches()`
+
+```python
+getMatches() -> list
+```
+
+Returns a list of tuples, where each tuple contains a matched pattern and its associated score (if weighting is enabled).  This method returns all matches found since the last call to `getMatches()` or since the instantiation of `NWMatcher`.
+
+* **Returns:** A list of `(pattern, score)` tuples.
+
+
+### `setWeights(weights)`
+
+```python
+setWeights(weights) -> None
+```
+
+Sets the weights for the patterns.
+
+* **`weights` (dict):** A dictionary where keys are patterns (strings) and values are their corresponding weights (numeric).
+
+
+### `setDefaultOptions(options)`
+
+```python
+setDefaultOptions(options) -> None
+```
+
+Sets default options for the matcher.
+
+* **`options` (dict):** A dictionary of options.  Possible options (implementation-specific):
+
+    * `case_sensitive`: (bool) Whether matching should be case-sensitive.  Defaults to `False`.
+    * `weighting_scheme`: (str) Specifies the weighting scheme used.  (e.g., 'linear', 'exponential').  Defaults to 'linear'.
+    * ... (Other options may be added depending on the specific implementation)
+
+
+
+### Events
+
+NWMatcher may optionally support custom events. (Implementation-specific).  These events could be used to notify the user of certain actions, such as a match found or a pattern added.  Refer to the specific documentation for available events and how to subscribe to them.  Example:  `onMatchFound`.
+
+
+
+
+## Advanced Usage
+
+### Customizing Matching Algorithms
+
+While NWMatcher provides a highly optimized default matching algorithm, advanced users may need to customize it for specific needs.  This might involve modifying the Trie structure, implementing alternative filtering strategies, or adding support for new data types.  To achieve this, you will typically need to extend the core NWMatcher class or utilize its internal components.  Access to internal components might be provided through protected methods or by leveraging the library's extensibility features. The specifics of customization will depend on the library's internal architecture and will be detailed in the advanced developer documentation or API specification.  Consider contributing your custom algorithm back to the project if it has broader applicability.
+
+
+### Handling Complex Patterns
+
+NWMatcher is designed to handle complex patterns efficiently, but the performance and clarity can be impacted by overly convoluted or inefficiently structured patterns. For best results:
+
+* **Modularize Complex Logic:** Break down highly complex matching requirements into smaller, more manageable sub-patterns.  Use logical operators (`&&`, `||`, `!`) to combine these sub-patterns.
+
+* **Optimize Pattern Order:**  The order of patterns (especially when using logical operators) can significantly affect performance. Arrange patterns from most specific to least specific for optimal efficiency.
+
+* **Avoid Excessive Wildcards:**  Overuse of wildcard characters (`*`, `?`) can lead to slower matching.  Be specific when possible to reduce the search space.
+
+* **Use Range Specifications Effectively:** Employ range specifications `[ ]` when appropriate to constrain matching within specific ranges, improving performance.
+
+* **Profiling and Testing:** Use profiling tools to identify performance bottlenecks in your patterns.  Thorough testing ensures that complex patterns behave as intended.
+
+
+### Performance Optimization
+
+For optimal performance, consider these strategies:
+
+* **Efficient Data Structures:** NWMatcher's internal data structures are optimized.  Avoid unnecessary data copying or manipulation during matching operations.
+
+* **Batch Processing:** Process data in batches whenever possible instead of individual elements to improve throughput.
+
+* **Caching:** If matching is performed repeatedly against the same set of patterns, consider implementing caching mechanisms to reduce redundant computation.
+
+* **Asynchronous Operations:** If dealing with large datasets or high-throughput scenarios, consider using asynchronous operations (if supported by the library) to improve responsiveness and concurrency.
+
+* **Pre-compilation:** Some implementations may allow pre-compiling patterns, improving subsequent matching performance. Consult the library documentation for such features.
+
+* **Hardware Acceleration:**  Explore opportunities for hardware acceleration (e.g., using GPUs) if your application requires extremely high performance.
+
+
+### Integration with other libraries
+
+NWMatcher can be readily integrated with other network analysis or security libraries.  Examples include:
+
+* **Network Monitoring Tools:** Integrate NWMatcher with tools like tcpdump or Wireshark to perform advanced filtering and analysis on captured network traffic.
+
+* **Security Information and Event Management (SIEM) Systems:** Integrate NWMatcher into SIEM systems to enhance threat detection capabilities by enabling more sophisticated pattern matching.
+
+* **Data Processing Frameworks:** Use NWMatcher within data processing frameworks such as Apache Spark or Hadoop to efficiently process large-scale network datasets.
+
+* **Custom Applications:** Integrate NWMatcher into your custom applications to add sophisticated pattern-matching capabilities to network-related functions.
+
+Remember to consult the documentation of other libraries to understand their APIs and best practices for integration with NWMatcher.  Ensure compatibility of data formats and interfaces between the libraries.
+
+
+## Examples
+
+### Basic Matching
+
+This example demonstrates basic pattern matching using NWMatcher:
+
+```python
+from nwmatcher import NWMatcher
+
+matcher = NWMatcher()
+matcher.add_pattern("192.168.1.*")
+matcher.add_pattern("10.0.0.1")
+
+print(matcher.match("192.168.1.100"))  # Output: True
+print(matcher.match("10.0.0.1"))       # Output: True
+print(matcher.match("172.16.0.1"))     # Output: False
+
+matches = matcher.getMatches()
+print(matches) # Output:  A list of matched patterns (implementation specific output format)
+
+```
+
+### Fuzzy Matching
+
+(Note:  If NWMatcher doesn't inherently support fuzzy matching, this section should be adapted or removed.  Fuzzy matching typically requires a separate library or algorithm.)
+
+This example demonstrates fuzzy matching (assuming NWMatcher is extended or integrates with a fuzzy matching library):
+
+```python
+from nwmatcher import NWMatcher # Assume NWMatcher supports fuzzy matching
+
+matcher = NWMatcher(fuzzy_matching=True) # Enabling fuzzy matching (implementation specific)
+matcher.add_pattern("example.com")
+
+print(matcher.match("example.com"))     # Output: True
+print(matcher.match("exmaple.com"))    # Output: Possibly True (depending on fuzzy matching tolerance)
+print(matcher.match("example.co"))     # Output: Possibly True (depending on fuzzy matching tolerance)
+
+```
+
+
+### Regex Matching
+
+(Note: If NWMatcher doesn't directly support regular expressions, this section should be removed or adapted to show how to integrate with a regular expression library.)
+
+This example shows integration with the `re` module for regular expression matching (assuming NWMatcher doesn't natively handle regex):
+
+```python
+import re
+from nwmatcher import NWMatcher
+
+matcher = NWMatcher()
+
+pattern = r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$" # Example IP address regex
+
+ip_address = "192.168.1.100"
+
+if re.match(pattern, ip_address):
+    print(f"IP address {ip_address} matches the pattern")
+else:
+    print(f"IP address {ip_address} does not match the pattern")
+
+```
+
+### Weighted Matching
+
+This example showcases how to assign weights to patterns and retrieve weighted scores:
+
+```python
+from nwmatcher import NWMatcher
+
+matcher = NWMatcher()
+matcher.setWeights({"192.168.1.*": 2.0, "10.0.0.1": 1.0})
+matcher.add_pattern("192.168.1.*")
+matcher.add_pattern("10.0.0.1")
+
+print(matcher.score("192.168.1.100"))  # Output: 2.0
+print(matcher.score("10.0.0.1"))       # Output: 1.0
+print(matcher.score("172.16.0.1"))     # Output: 0.0
+
+matches = matcher.getMatches()
+print(matches) # Output:  A list of (pattern, score) tuples
+
+```
+
+
+### Practical Applications
+
+* **Network Intrusion Detection:**  Identify malicious network activity by matching network traffic against known attack patterns.
+
+* **Log Analysis:**  Analyze log files to detect errors, security breaches, or other anomalies by matching log entries against predefined patterns.
+
+* **Network Monitoring:**  Monitor network devices and traffic for performance issues or unusual behavior using pattern matching on network statistics.
+
+* **Data Cleaning:**  Identify and correct inconsistencies or errors in network datasets by applying pattern matching rules to clean the data.
+
+
+Remember to replace placeholder comments with actual code and adjust the examples to match the specific functionality and API of your NWMatcher implementation.
+
+
+## Troubleshooting
+
+### Common Errors
+
+* **`PatternSyntaxError`:** This error indicates that a pattern does not conform to the NWMatcher pattern syntax.  Carefully review the pattern syntax rules in the documentation and ensure that your patterns are correctly formatted. Pay attention to the use of wildcards, range specifications, and logical operators.
+
+* **`InvalidWeightError`:** This error occurs if an attempt is made to set weights using non-numeric values.  Ensure that the weights provided to `setWeights()` are numeric (integers or floats).
+
+* **`NoMatchesFoundError`:** This might indicate that no patterns match the provided input text. Double check your patterns and input data for correctness and ensure that the patterns are comprehensive enough to cover the expected input.
+
+* **Performance Issues:** If matching is slow, examine the complexity of your patterns and the size of your input data. Optimize patterns as discussed in the "Advanced Usage" section, consider batch processing, and profile your code to pinpoint performance bottlenecks.
+
+* **Import Errors:** Ensure that NWMatcher is correctly installed and that all necessary dependencies are met. Check your Python environment and the installation instructions in the NWMatcher documentation.
+
+
+### Debugging Techniques
+
+* **Print Statements:**  Use `print()` statements strategically to inspect the values of variables, the patterns being used, and the intermediate steps in the matching process.  This helps trace the flow of execution and identify the source of errors.
+
+* **Logging:** Implement logging to record events and errors during the runtime of your application. Configure logging levels (e.g., DEBUG, INFO, WARNING, ERROR) to capture different levels of detail.
+
+* **Debuggers:** Utilize a Python debugger (like pdb) to step through your code line by line, inspecting variables and the program's state at various points. This enables you to identify precisely where errors occur and understand the context in which they happen.
+
+* **Unit Tests:** Create unit tests to verify that individual components of your code are working correctly.  Well-structured unit tests make it easier to isolate and identify the source of bugs.
+
+* **Inspecting Intermediate Data Structures:**  If you have advanced knowledge of the NWMatcher internal workings, inspect the Trie data structure or other internal representations to understand how patterns are indexed and matched.  This is only feasible if the internal data structures are accessible or exposed through the API.
+
+
+### Frequently Asked Questions (FAQ)
+
+* **Q:  What is the maximum number of patterns NWMatcher can handle?**
+    * A: The maximum number of patterns depends on available memory and the complexity of the patterns.  NWMatcher is designed to handle a large number of patterns, but extremely large pattern sets might impact performance.
+
+* **Q:  How can I add support for new network elements (e.g., specific protocols)?**
+    * A:  This typically involves extending the library or creating custom pattern handlers. Refer to the advanced developer documentation or API specification for guidance.
+
+* **Q:  Is NWMatcher thread-safe?**
+    * A:  The thread safety depends on the specific implementation. Consult the documentation to verify thread safety. If not inherently thread-safe, you will need to implement appropriate locking mechanisms.
+
+* **Q:  How can I contribute to the NWMatcher project?**
+    * A:  Check the project's repository for contribution guidelines.  Bug reports, feature requests, and code contributions are usually welcome.
+
+* **Q:  Where can I find more advanced usage examples?**
+    * A: The advanced usage examples and tutorials might be found on the project's website or within the documentation accompanying the library.
+
+
+This FAQ section should be expanded based on the specific features and common issues encountered with your NWMatcher implementation.  Add more questions and answers as needed to address the most common queries from users.
+
+
+## Contributing
+
+We welcome contributions to NWMatcher!  Whether you're fixing bugs, adding features, or improving documentation, your help is valuable.  Please follow these guidelines to ensure a smooth and efficient contribution process.
+
+
+### Code Style Guide
+
+We adhere to the PEP 8 style guide for Python code.  Consistency in code style is crucial for readability and maintainability.  Before submitting any code changes, ensure that your code conforms to the PEP 8 guidelines.  You can use tools like `autopep8` or `flake8` to automatically check and fix style issues.
+
+* **Indentation:** Use 4 spaces for indentation.
+* **Line Length:** Keep lines under 79 characters.
+* **Naming Conventions:** Follow Python's naming conventions (e.g., snake_case for variables and functions, CamelCase for classes).
+* **Docstrings:** Write clear and concise docstrings for all functions and classes.
+* **Comments:** Use comments to explain complex logic or non-obvious code.
+
+
+### Testing
+
+Thorough testing is essential to ensure the quality and stability of NWMatcher.  All new features and bug fixes should be accompanied by comprehensive unit tests.  We use [Testing Framework Name - e.g., pytest] for testing.
+
+* **Unit Tests:** Write unit tests to verify the correctness of individual functions and classes.
+* **Integration Tests:**  Test the integration of different components of NWMatcher.
+* **Test Coverage:**  Strive for high test coverage to ensure that most parts of the codebase are thoroughly tested.
+* **Test-Driven Development (TDD):**  We encourage the use of TDD where possible, writing tests before implementing the corresponding code.
+
+
+### Submitting Pull Requests
+
+1. **Fork the Repository:** Create a fork of the NWMatcher repository on GitHub.
+2. **Create a Branch:** Create a new branch for your changes.  Use descriptive branch names (e.g., `feature/add-fuzzy-matching`, `bugfix/resolve-pattern-error`).
+3. **Make Your Changes:** Make your code changes, following the code style guide and adding comprehensive tests.
+4. **Commit Your Changes:** Commit your changes with clear and concise commit messages.
+5. **Push Your Branch:** Push your branch to your forked repository.
+6. **Create a Pull Request:** Create a pull request from your branch to the main branch of the original NWMatcher repository.
+7. **Address Feedback:**  Address any feedback or suggestions from the maintainers.  Be prepared to make further changes based on code reviews.
+
+
+Before submitting a pull request, ensure that:
+
+* Your code passes all tests.
+* Your code conforms to the code style guide.
+* Your changes are well-documented.
+* Your commit messages are clear and informative.
+
+
+We appreciate your contributions and look forward to working with you to improve NWMatcher!
+

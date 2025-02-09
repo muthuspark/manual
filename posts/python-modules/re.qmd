@@ -1,0 +1,517 @@
+---
+title: "re - Documentation"
+categories: [ "Python Modules" ]
+---
+
+
+### What is Regular Expressions?
+
+Regular expressions (regex or regexp) are powerful tools for pattern matching within text.  They provide a concise and flexible way to search for, extract, and manipulate specific sequences of characters within a larger string.  A regular expression is essentially a pattern described using a formal language that can be interpreted by a regular expression engine (like Python's `re` module). This pattern can include literal characters, metacharacters (special characters with specific meanings), and quantifiers (specifying how many times a part of the pattern should occur).
+
+### Why Use Regular Expressions?
+
+Regular expressions offer several advantages:
+
+* **Conciseness:**  They provide a compact way to express complex search patterns that would be difficult or impossible to achieve with standard string methods.
+* **Flexibility:** They can handle a wide variety of patterns, including variations in word casing, whitespace, and character sequences.
+* **Efficiency:**  Regular expression engines are optimized for pattern matching, often providing significantly faster search performance than custom-built string manipulation functions, especially for complex patterns.
+* **Reusability:** Once a regular expression is created, it can be reused multiple times with different input strings.
+* **Standardization:**  Regular expression syntax is largely standardized across programming languages, making it easier to transfer knowledge and code between different environments.
+
+
+### The `re` Module in Python
+
+Python's `re` module provides an interface to the regular expression engine. It offers functions for compiling regular expressions into pattern objects, performing searches, substitutions, and splitting strings based on those patterns. This module is essential for tasks such as data cleaning, text parsing, web scraping, and log file analysis.  It's built-in, so no additional installation is required.
+
+
+### Basic Syntax and Terminology
+
+Regular expressions use a combination of literal characters and metacharacters.  Here are some fundamental concepts:
+
+* **Literal Characters:**  These are characters that match themselves (e.g., "a", "1", "$").
+
+* **Metacharacters:** These are special characters that have specific meanings within a regular expression. Some common metacharacters include:
+    * `.` (dot): Matches any single character (except newline).
+    * `^`: Matches the beginning of a string.
+    * `$`: Matches the end of a string.
+    * `*`: Matches zero or more occurrences of the preceding character or group.
+    * `+`: Matches one or more occurrences of the preceding character or group.
+    * `?`: Matches zero or one occurrence of the preceding character or group.
+    * `[]`: Defines a character set.  For example, `[abc]` matches "a", "b", or "c".
+    * `[^...]`: Defines a negated character set.  For example, `[^abc]` matches any character except "a", "b", or "c".
+    * `\`: Escapes a metacharacter or represents special character sequences (e.g., `\d` for digits, `\s` for whitespace, `\w` for alphanumeric characters).
+    * `()`: Creates a capturing group, allowing you to extract specific parts of the matched string.
+    * `|`: Acts as an "or" operator, matching either the expression before or after it.
+
+
+Understanding these basic elements is the key to writing effective regular expressions.  More advanced concepts, such as lookarounds and backreferences, will be covered in later sections.
+
+
+## Basic Regular Expression Patterns
+
+### Matching Literal Characters
+
+The simplest regular expression patterns match literal characters.  For example, the pattern `"hello"` will only match the string `"hello"`.  Case sensitivity matters; `"hello"` will not match `"Hello"` or `"HELLO"`.  To match a literal metacharacter (like `.`, `*`, `+`, `?`, `[`, `]`, `(`, `)`, `|`, `\`, `^`, `$`), you must escape it using a backslash (`\`). For example, to match a literal dot (.), you would use the pattern `"\."`.
+
+
+### Character Classes
+
+Character classes define a set of characters that can match at a particular position. They are enclosed in square brackets `[]`.
+
+* **Simple Character Sets:** `[abc]` matches "a", "b", or "c".  `[0-9]` matches any digit from 0 to 9. `[a-zA-Z]` matches any uppercase or lowercase letter.  Ranges can be combined: `[a-zA-Z0-9]` matches alphanumeric characters.
+
+* **Negated Character Sets:** `[^abc]` matches any character *except* "a", "b", or "c".  `[^0-9]` matches any non-digit character.
+
+* **Predefined Character Classes:** Python provides shorthand character classes:
+    * `\d`: Matches any digit (equivalent to `[0-9]`).
+    * `\D`: Matches any non-digit character (equivalent to `[^0-9]`).
+    * `\s`: Matches any whitespace character (space, tab, newline).
+    * `\S`: Matches any non-whitespace character.
+    * `\w`: Matches any alphanumeric character (letters, numbers, and underscore).
+    * `\W`: Matches any non-alphanumeric character.
+
+
+### Quantifiers
+
+Quantifiers specify how many times a preceding element should occur in the match.
+
+* `*`: Zero or more occurrences.  `"a*"` matches "", "a", "aa", "aaa", etc.
+* `+`: One or more occurrences.  `"a+"` matches "a", "aa", "aaa", etc., but not "".
+* `?`: Zero or one occurrence. `"colou?r"` matches both "color" and "colour".
+* `{n}`: Exactly *n* occurrences.  `"a{3}"` matches "aaa".
+* `{n,}`: At least *n* occurrences.  `"a{2,}"` matches "aa", "aaa", "aaaa", etc.
+* `{n,m}`: Between *n* and *m* occurrences (inclusive). `"a{2,4}"` matches "aa", "aaa", and "aaaa".
+
+
+### Anchors
+
+Anchors match positions within a string, not characters.
+
+* `^`: Matches the beginning of the string.  `"^Hello"` only matches strings starting with "Hello".
+* `$`: Matches the end of the string. `"World$"` only matches strings ending with "World".
+
+
+### Alternation
+
+The pipe symbol `|` acts as an "or" operator.  `"cat|dog"` matches either "cat" or "dog".
+
+
+### Grouping and Capturing
+
+Parentheses `()` are used for grouping and capturing.
+
+* **Grouping:**  They allow you to apply quantifiers or other operators to multiple elements as a unit.  `"(ab){2}"` matches "abab".
+
+* **Capturing:**  Each set of parentheses creates a capturing group.  The matched substrings corresponding to each capturing group can be retrieved after a successful match.  This is crucial for extracting specific parts of the matched text.  For example, in the pattern `"(hello) (world)"`, the first capturing group would contain "hello" and the second would contain "world".  Capturing groups are accessed via the `match.groups()` method or using backreferences within the pattern itself (covered in a later section).
+
+
+## Advanced Regular Expression Techniques
+
+### Lookarounds (Lookahead and Lookbehind)
+
+Lookarounds assert the presence or absence of a pattern *without* including it in the match.  They are zero-width assertions, meaning they don't consume characters in the string.
+
+* **Lookahead Assertions:**
+    * `(?=pattern)`: Positive lookahead.  The match succeeds only if the pattern is present *after* the current position.  Example: `\d+(?=\.)` matches one or more digits that are followed by a dot (`.`), but the dot is not included in the match.
+    * `(?!pattern)`: Negative lookahead. The match succeeds only if the pattern is *not* present after the current position. Example: `\b\w+(?!\.com)\b` matches whole words that do not end with ".com".
+
+* **Lookbehind Assertions:**
+    * `(?<=pattern)`: Positive lookbehind. The match succeeds only if the pattern is present *before* the current position. Example: `(?<=\$)\d+` matches one or more digits that are preceded by a dollar sign (`$`), but the dollar sign is not included in the match.  Note: Lookbehind assertions have some limitations depending on the regex engine;  Python's `re` module has restrictions on the complexity of lookbehind patterns (they generally must have a fixed length).
+    * `(?<!pattern)`: Negative lookbehind. The match succeeds only if the pattern is *not* present before the current position.  Example: `(?<!http://)\w+` matches words that aren't preceded by "http://".  Similar restrictions as positive lookbehind apply.
+
+
+### Non-capturing Groups
+
+Non-capturing groups are used for grouping parts of a regex without creating capturing groups. They are defined using `(?:pattern)`.  This is useful for applying quantifiers or alternation to a group without needing to access the matched substring later.  For example, `(?:red|blue|green)\s+car` matches "red car", "blue car", or "green car", but only the color and the car part are matched (no separate capturing groups for the color).
+
+
+### Backreferences
+
+Backreferences allow you to refer to previously captured groups within the same regular expression. They are denoted by `\1`, `\2`, `\3`, etc., where `\1` refers to the first capturing group, `\2` to the second, and so on.  This is very useful for finding repeated patterns or ensuring consistency.  For example, `(\w+)\s+\1` matches a word followed by whitespace and then the same word again (e.g., "hello hello").
+
+
+### Special Character Escaping
+
+As mentioned previously, many characters have special meanings within regular expressions.  To match these characters literally, they must be escaped using a backslash (`\`).  This applies to metacharacters like `.`, `*`, `+`, `?`, `[`, `]`, `(`, `)`, `|`, `\`, `^`, `$`, and also to characters that have special meaning in string literals (like `"` or `'`).  For example, to match a literal backslash, you would use `\\`.
+
+
+### Flags and Modifiers
+
+Flags modify the behavior of the regular expression engine.  They are passed as optional arguments to the `re` module functions (e.g., `re.search`, `re.compile`).  Common flags include:
+
+* `re.IGNORECASE` (or `re.I`):  Performs case-insensitive matching.
+* `re.MULTILINE` (or `re.M`):  Makes `^` and `$` match the beginning and end of each line, rather than just the beginning and end of the entire string.
+* `re.DOTALL` (or `re.S`): Makes the `.` character match any character, including newline characters.
+
+
+Using flags significantly enhances the flexibility and power of regular expressions.  Combining multiple flags is also possible (e.g., `re.IGNORECASE | re.MULTILINE`).
+
+
+## Working with the `re` Module Functions
+
+### `re.compile()`
+
+The `re.compile()` function compiles a regular expression pattern into a pattern object. This object can then be used with other `re` module functions for multiple searches or replacements, improving efficiency, especially when the same pattern is used repeatedly.
+
+```python
+import re
+
+pattern = re.compile(r"\d+")  # Compiles the pattern r"\d+" (one or more digits)
+
+match = pattern.search("There are 123 apples and 456 oranges.")
+print(match.group(0))  # Output: 123
+
+match = pattern.search("Next number is 789")
+print(match.group(0)) # Output: 789
+```
+
+### `re.search()`
+
+The `re.search()` function scans the input string for the first occurrence of the pattern. It returns a match object if found, otherwise it returns `None`.
+
+```python
+import re
+
+match = re.search(r"apple", "I like apples and apple pies.")
+if match:
+    print(match.group(0))  # Output: apple
+else:
+    print("No match found.")
+```
+
+### `re.match()`
+
+The `re.match()` function only matches at the beginning of the string.  If the pattern is found at the start, it returns a match object; otherwise, it returns `None`.
+
+```python
+import re
+
+match = re.match(r"apple", "apple pie")  # Matches
+if match:
+    print(match.group(0)) # Output: apple
+
+match = re.match(r"pie", "apple pie")  # No match
+if match:
+    print(match.group(0))
+else:
+    print("No match found.") # Output: No match found.
+```
+
+### `re.findall()`
+
+The `re.findall()` function finds all non-overlapping occurrences of the pattern in the string and returns them as a list of strings.
+
+```python
+import re
+
+numbers = re.findall(r"\d+", "123 abc 456 def 789")
+print(numbers)  # Output: ['123', '456', '789']
+```
+
+### `re.finditer()`
+
+Similar to `re.findall()`, `re.finditer()` finds all non-overlapping occurrences, but returns an iterator of match objects. This allows access to more information about each match (start/end positions, captured groups, etc.).
+
+
+```python
+import re
+
+matches = re.finditer(r"\d+", "123 abc 456 def 789")
+for match in matches:
+    print(f"Found '{match.group(0)}' at position {match.start()}-{match.end()}")
+
+```
+
+### `re.sub()`
+
+The `re.sub()` function replaces all occurrences of the pattern with a specified replacement string.
+
+```python
+import re
+
+new_string = re.sub(r"\d+", "number", "There are 123 apples and 456 oranges.")
+print(new_string)  # Output: There are number apples and number oranges.
+```
+
+
+### `re.split()`
+
+The `re.split()` function splits the string at each occurrence of the pattern.
+
+
+```python
+import re
+
+words = re.split(r"\s+", "This is a sample string.")
+print(words)  # Output: ['This', 'is', 'a', 'sample', 'string.']
+
+```
+
+### Using Compiled Patterns for Efficiency
+
+For improved performance, especially when using the same pattern repeatedly, compile the pattern using `re.compile()` and use the resulting pattern object.  This avoids recompiling the pattern each time it's used.
+
+
+```python
+import re
+
+pattern = re.compile(r"\d+")  # Compile the pattern once
+
+text1 = "123 abc 456"
+text2 = "789 def 101112"
+
+numbers1 = pattern.findall(text1)
+numbers2 = pattern.findall(text2)
+
+print(numbers1)  # Output: ['123', '456']
+print(numbers2)  # Output: ['789', '101112']
+
+```
+
+This approach is significantly faster than repeatedly calling `re.findall(r"\d+", text)` for multiple strings with the same pattern.
+
+
+## Practical Examples and Use Cases
+
+### Email Validation
+
+Regular expressions are commonly used to validate email addresses.  While a perfectly comprehensive email validation regex is extremely complex due to the intricacies of the email specification, a reasonably robust regex can be used to catch many invalid formats.  Note that this is not a foolproof method for validating all possible valid emails, as the standard allows for considerable flexibility:
+
+```python
+import re
+
+email_regex = r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+
+email = "test@example.com"
+if re.fullmatch(email_regex, email):
+    print("Valid email")
+else:
+    print("Invalid email")
+
+email = "invalid-email"
+if re.fullmatch(email_regex, email):
+    print("Valid email")
+else:
+    print("Invalid email") # Output: Invalid email
+
+```
+`re.fullmatch()` ensures the *entire* string matches the pattern, preventing partial matches.  Remember to consult the email specification for a more rigorous validation if needed.
+
+
+### Data Extraction from Text
+
+Regular expressions excel at extracting specific data from unstructured text. For instance, let's extract phone numbers from a text:
+
+```python
+import re
+
+text = "My phone number is +1-555-123-4567, and my office number is 555-987-6543."
+phone_numbers = re.findall(r"\+\d{1,3}-\d{3}-\d{3}-\d{4}|\d{3}-\d{3}-\d{4}", text)
+print(phone_numbers) # Output: ['+1-555-123-4567', '555-987-6543']
+```
+This regex handles both international and domestic formats.
+
+
+### Web Scraping
+
+Web scraping involves extracting data from websites. Regular expressions are helpful in parsing the HTML or other data retrieved.  (Note: Always respect a website's `robots.txt` file and terms of service before scraping.)  This example extracts links from a simplified HTML snippet:
+
+
+```python
+import re
+
+html = "<a href='https://www.example.com'>Example</a> <a href='https://anothersite.net'>Another</a>"
+links = re.findall(r"href='(.*?)'", html)
+print(links) # Output: ['https://www.example.com', 'https://anothersite.net']
+```
+
+This is a simplified example; real-world web scraping often requires more robust techniques and potentially libraries like Beautiful Soup to handle complex HTML structures more effectively.
+
+
+### Log File Parsing
+
+Regular expressions can efficiently parse log files to extract relevant information.  For example, extracting timestamps and error messages:
+
+```python
+import re
+
+log_line = "2024-10-27 10:30:00 ERROR: File not found"
+match = re.search(r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) (ERROR|WARNING|INFO): (.*)", log_line)
+if match:
+    timestamp, level, message = match.groups()
+    print(f"Timestamp: {timestamp}, Level: {level}, Message: {message}")
+```
+
+This extracts the timestamp, log level, and error message from a log line.
+
+
+### Text Cleaning and Preprocessing
+
+Regular expressions are invaluable for cleaning and preprocessing text data for natural language processing (NLP) tasks.  For example, removing punctuation or converting text to lowercase:
+
+```python
+import re
+
+text = "This, is; a. sample! string?"
+cleaned_text = re.sub(r"[^\w\s]", "", text).lower() #Removes punctuation, lowercases
+print(cleaned_text) # Output: this is a sample string
+```
+
+This removes punctuation and converts the string to lowercase.  More complex cleaning tasks might involve removing stop words, handling stemming, and lemmatization, potentially requiring additional libraries beyond the `re` module.
+
+
+
+## Error Handling and Troubleshooting
+
+### Common Errors and Pitfalls
+
+Several common issues arise when working with regular expressions:
+
+* **Incorrect Metacharacter Usage:**  Forgetting to escape metacharacters or misusing them leads to unexpected behavior.  For example, using `.` without `re.DOTALL` will not match newline characters.
+
+* **Unescaped Special Characters in Strings:** If you're constructing regex patterns from user input or variables, make sure to properly escape special characters within those strings to prevent unexpected interpretation as regex metacharacters.
+
+* **Quantifier Misuse:** Incorrectly specifying quantifiers (`*`, `+`, `?`, `{n}`, etc.) can lead to unintended matches or failures.  Pay close attention to whether you want zero, one, or multiple occurrences of a pattern.
+
+* **Ambiguous or Overly Complex Patterns:**  Extremely long or overly complex regexes can be difficult to read, debug, and maintain.  Consider breaking them down into smaller, more manageable parts.
+
+* **Incorrect use of Anchors (`^` and `$`):** Forgetting or misplacing anchors (`^` for beginning of string, `$` for end of string) results in unintended matches of substrings instead of whole strings.
+
+* **Lookaround Issues (especially lookbehind):** Python's lookbehind assertions have limitations regarding the complexity of the pattern; using variable-length lookbehinds where they're not supported will result in errors.
+
+
+### Debugging Regular Expressions
+
+Debugging regular expressions can be challenging. Here are some strategies:
+
+* **Print Statements:** Insert `print()` statements to display intermediate results, such as the matched substrings or the parts of the regex that are being executed.
+
+* **Online Regex Testers:** Use online regex testers (many are available) to visualize how your regex interacts with sample strings, highlighting the matched parts.  These testers often provide debugging aids such as stepping through the matching process.
+
+* **Simplify the Pattern:**  Break down a complex regex into smaller, simpler components to identify the source of problems.
+
+* **Use Comments:**  Add comments to your regex code to explain the purpose and behavior of different parts of the expression. This will make it easier for you (and others) to understand it later.
+
+* **Check for typos:** Carefully review your regular expression for any spelling mistakes or incorrect character usage.
+
+
+### Understanding Error Messages
+
+Python's `re` module will raise exceptions such as `re.error` if the regex pattern is invalid. These error messages usually provide helpful information about the location and nature of the problem.  Pay close attention to the specific error message, which often indicates the line number and the problematic part of your regular expression.
+
+
+### Testing and Validating Regular Expressions
+
+Thorough testing is crucial.
+
+* **Unit Tests:**  Use unit tests (e.g., using the `unittest` module) to verify that your regexes behave correctly with a variety of valid and invalid inputs.
+
+* **Test Cases:** Create a comprehensive set of test cases, including edge cases and boundary conditions, to ensure robustness.
+
+* **Code Reviews:** Have another developer review your regular expressions for correctness, readability, and efficiency.  Sometimes a fresh pair of eyes can spot errors easily.
+
+By using these strategies, you can efficiently debug and validate your regular expressions, creating reliable and maintainable code.
+
+
+## Advanced Topics and Considerations
+
+### Performance Optimization
+
+For optimal performance, especially when dealing with large amounts of text or complex patterns:
+
+* **`re.compile()`:** Always compile your regular expressions using `re.compile()` before using them repeatedly. This avoids the overhead of recompiling the pattern for each search or replacement.
+
+* **Avoid Unnecessary Backtracking:**  Overly complex or ambiguous regular expressions can lead to excessive backtracking, significantly slowing down the matching process. Carefully design your patterns to minimize backtracking.  Using character classes and quantifiers efficiently can help.
+
+* **Optimize Quantifiers:**  Be mindful of the order and use of quantifiers.  Greedy quantifiers (`*`, `+`, `?`) can sometimes cause unnecessary backtracking.  Consider using non-greedy quantifiers (`*?`, `+?`, `??`) if appropriate, or explicitly specify the range of repetitions using `{n,m}` to limit the search space.
+
+* **Profiling:** If performance is a critical concern, use profiling tools to identify bottlenecks in your code related to regular expression processing.
+
+* **Alternative approaches:** For very large datasets or highly performance-critical applications, consider alternative approaches like finite automata or specialized libraries optimized for pattern matching, depending on the specific problem.
+
+
+### Security Considerations
+
+Regular expressions, while powerful, can introduce security vulnerabilities if not handled carefully:
+
+* **ReDoS (Regular Expression Denial of Service):**  Carelessly crafted regular expressions can lead to ReDoS attacks.  These attacks exploit the backtracking behavior of regex engines to cause excessive CPU consumption, potentially leading to a denial-of-service condition.  Avoid overly complex or ambiguous patterns that may trigger exponential backtracking.  If user-supplied input is used to construct regular expressions, carefully validate and sanitize that input to prevent malicious patterns from being injected.
+
+* **Input Sanitization:** Never directly use unsanitized user input to construct regular expression patterns. Always validate and escape special characters to prevent injection attacks.
+
+* **Limited Regex Functionality:**  If you can achieve the desired outcome with simpler string operations (e.g., `startswith`, `endswith`, `find`, `replace`), using those is usually faster and safer than more complex regex solutions.
+
+
+
+### Unicode Support
+
+Python's `re` module provides excellent Unicode support.  By default, it handles Unicode characters correctly.  Ensure that your input strings and patterns are correctly encoded as Unicode (UTF-8 is recommended).  Be aware that character classes like `\w` may have different meanings depending on the locale and Unicode character properties. Consider using explicit character sets (`[a-zA-Z0-9]` etc.) for greater control if needed.
+
+
+
+### Alternatives to Regular Expressions
+
+For certain tasks, alternatives to regular expressions might be more appropriate or efficient:
+
+* **Simple String Methods:** For simple pattern matching, built-in string methods like `startswith()`, `endswith()`, `find()`, `replace()`, and `split()` might suffice and often offer better performance.
+
+* **Finite Automata:** For complex patterns or high-performance requirements, consider using finite automata libraries.
+
+* **Parsing Libraries:** For structured data (e.g., XML, JSON), use dedicated parsing libraries instead of regular expressions.  They offer more robust and efficient solutions for structured data parsing.
+
+
+Choosing the right tool depends on the specific task and the performance constraints.  Regular expressions are very powerful and versatile, but it's vital to understand their limitations and the potential for performance or security issues and choose the best approach for each case.
+
+
+## Appendix: Regular Expression Cheat Sheet
+
+### Summary of Metacharacters
+
+| Metacharacter | Description                                      | Example             |
+|---------------|--------------------------------------------------|----------------------|
+| `.`           | Matches any character (except newline)            | `a.c` matches "abc", "a#c" |
+| `^`           | Matches the beginning of a string                | `^abc` matches "abc" at the start |
+| `$`           | Matches the end of a string                      | `abc$` matches "abc" at the end |
+| `*`           | Matches zero or more occurrences of the preceding | `a*` matches "", "a", "aa" |
+| `+`           | Matches one or more occurrences of the preceding  | `a+` matches "a", "aa" |
+| `?`           | Matches zero or one occurrence of the preceding   | `colou?r` matches "color", "colour" |
+| `[]`          | Defines a character set                         | `[abc]` matches "a", "b", "c" |
+| `[^...]`      | Defines a negated character set                  | `[^abc]` matches anything but "a", "b", "c" |
+| `()`          | Creates a capturing group                        | `(abc)` captures "abc" |
+| `(?:...)`     | Creates a non-capturing group                     | `(?:abc)` groups but doesn't capture |
+| `\|`          | Acts as an "or" operator                         | `a\|b` matches "a" or "b" |
+| `{}`          | Specifies the number of repetitions             | `a{2,4}` matches "aa", "aaa", "aaaa" |
+| `\b`          | Matches a word boundary                          | `\bword\b` matches "word" as a whole word |
+| `\B`          | Matches a non-word boundary                       | `\Bword\B` matches "word" within a word |
+| `\d`          | Matches any digit (0-9)                         | `\d+` matches one or more digits |
+| `\D`          | Matches any non-digit character                  | `\D+` matches one or more non-digits |
+| `\s`          | Matches any whitespace character                 | `\s+` matches one or more whitespace characters |
+| `\S`          | Matches any non-whitespace character             | `\S+` matches one or more non-whitespace characters |
+| `\w`          | Matches any alphanumeric character (a-z, A-Z, 0-9, _) | `\w+` matches one or more alphanumeric characters |
+| `\W`          | Matches any non-alphanumeric character            | `\W+` matches one or more non-alphanumeric characters |
+| `\\`          | Escapes a metacharacter                          | `\.` matches a literal dot |
+
+
+### Commonly Used Patterns
+
+| Pattern         | Description                               | Example Match(es)      |
+|-----------------|-------------------------------------------|------------------------|
+| `\d+`           | One or more digits                         | "123", "4567"          |
+| `\w+`           | One or more alphanumeric characters        | "hello", "variable123" |
+| `\s+`           | One or more whitespace characters         | " ", "\t", "\n\n"      |
+| `[a-zA-Z]+`     | One or more letters (case-sensitive)      | "abc", "XYZ"           |
+| `\b\w+\b`       | A whole word                               | "word", "anotherWord"   |
+| `^.+`           | The entire line                            | "This is a line."      |
+| `\d{3}-\d{3}-\d{4}` | Phone number (XXX-XXX-XXXX) format     | "123-456-7890"        |
+| `\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b` | Simple email format (basic check) | "test@example.com"     |
+
+
+### Character Sets and Classes
+
+* **Simple Character Sets:** `[abc]`, `[0-9]`, `[a-z]`, `[A-Z]`
+* **Negated Character Sets:** `[^abc]` (matches anything *except* a, b, or c)
+* **Ranges:** `[a-z]` (matches lowercase letters a through z), `[0-9]` (matches digits 0 through 9)
+* **Predefined Character Classes:** `\d`, `\D`, `\s`, `\S`, `\w`, `\W`  (See metacharacter table above)
+
+
+This cheat sheet provides a quick reference; consult the full `re` module documentation for complete details and advanced features.
+

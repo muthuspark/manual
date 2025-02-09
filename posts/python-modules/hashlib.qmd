@@ -1,0 +1,521 @@
+---
+title: "hashlib - Documentation"
+categories: [ "Python Modules" ]
+---
+
+
+### What is hashlib?
+
+The `hashlib` module in Python provides a way to create one-way hash functions.  A hash function takes an input (of any size) and produces a fixed-size output, called a hash or digest.  This output is deterministic, meaning the same input will always produce the same hash.  Crucially, it's computationally infeasible to determine the original input from its hash (hence "one-way").  `hashlib` offers a consistent interface to various cryptographic hash algorithms, making it easy to securely generate and verify hashes in your Python applications.
+
+### Why use hashlib?
+
+`hashlib` is essential for various security-related tasks:
+
+* **Data Integrity Verification:**  You can use a hash to verify if a file has been altered.  If the hash of the downloaded file matches the expected hash provided by the source, you know the file hasn't been tampered with.
+* **Password Storage:**  Never store passwords directly in a database. Instead, store their hashes.  If a database is compromised, the attacker won't have access to the actual passwords.  (Note:  Always use a strong, well-salted and ideally keyed hashing mechanism like PBKDF2_HMAC or Argon2 for password hashing.)
+* **Digital Signatures:** Hashing is a crucial part of digital signature schemes, providing a condensed representation of the data that's signed.
+* **Data Deduplication:** Hashing can efficiently identify duplicate files by comparing their hashes.
+* **Checking data integrity in distributed systems:**  Ensuring consistency across various nodes.
+
+### Hashing algorithms supported by hashlib
+
+`hashlib` supports a range of algorithms, each with its own strengths and weaknesses regarding speed, security, and output size.  The available algorithms may vary slightly depending on your Python installation and the underlying operating system. Common algorithms include:
+
+* **MD5:**  (Generally considered insecure for cryptographic purposes due to known vulnerabilities.)
+* **SHA1:**  (Also considered cryptographically weak and should generally be avoided in new applications.)
+* **SHA256:** A widely used and secure algorithm. Produces a 256-bit hash.
+* **SHA384:** Another secure algorithm, offering a larger hash size (384 bits) than SHA256.
+* **SHA512:**  Provides the largest hash size (512 bits) among the common SHA algorithms.
+* **blake2b:** A fast and secure algorithm.  A good alternative to SHA-2 family.
+* **blake2s:**  A fast and secure algorithm optimized for smaller hash sizes.
+
+
+### Choosing the right hashing algorithm
+
+The selection of a hash algorithm depends on your specific needs and security requirements.  Consider the following:
+
+* **Security:** Prioritize algorithms known to be cryptographically strong and resistant to collision attacks (like SHA-256, SHA384, SHA512, blake2b/s).  Avoid MD5 and SHA1 for security-sensitive applications.
+* **Performance:**  Some algorithms are faster than others.  If performance is critical, you might benchmark different algorithms to find the optimal balance between speed and security.
+* **Hash size:** Larger hash sizes provide greater collision resistance but require more storage.
+* **Compatibility:**  Ensure that the chosen algorithm is widely supported by other systems or applications if interoperability is a requirement.
+
+For most new applications requiring cryptographic security, SHA-256 or SHA512 are excellent choices.  For high-speed applications where security is still important, consider blake2b/s.  For password hashing, use a key derivation function like PBKDF2_HMAC or Argon2 which are specifically designed to resist brute-force attacks.  Never use MD5 or SHA1 for new security-critical applications.
+
+
+## Core hashlib functions
+
+### Creating hash objects: `hashlib.new()`
+
+The primary way to create a hash object is using `hashlib.new()`.  This function takes the name of the desired hashing algorithm as its first argument (e.g., "sha256", "md5", "sha512").  It returns a hash object ready to accept data for hashing.  Optionally, you can provide a second argument, `data`, which initializes the hash object with this data.  If `data` is not provided, you'll need to use the `update()` method (described below).
+
+
+```python
+import hashlib
+
+# Create a SHA256 hash object
+hash_object = hashlib.new('sha256')  
+
+# Create a SHA256 hash object and initialize it with data
+hash_object = hashlib.new('sha256', b'This is some data') #Data should be bytes
+
+# Create a MD5 hash object
+md5_hash = hashlib.new('md5') 
+```
+
+### Updating hash objects with data: `update()`
+
+The `update()` method adds more data to the hash object.  You can call `update()` multiple times; the hash will cumulatively process all the data provided.  The argument to `update()` *must* be bytes-like object (bytes, bytearray).  If you have a string, use `.encode()` to convert it to bytes first.
+
+```python
+import hashlib
+
+hash_object = hashlib.new('sha256')
+hash_object.update(b'Hello')
+hash_object.update(b' world!')  #Data is appended
+```
+
+### Getting the hash digest: `hexdigest()` and `digest()`
+
+Once you've added all the data you want to hash, you can retrieve the resulting hash digest using either `hexdigest()` or `digest()`.
+
+* `hexdigest()`: Returns the hash digest as a hexadecimal string.  This is often the most convenient representation for storage or transmission.
+
+* `digest()`: Returns the hash digest as a bytes object.  This is useful if you need to perform further operations on the raw binary data.
+
+
+```python
+import hashlib
+
+hash_object = hashlib.new('sha256', b'This is a test')
+hex_digest = hash_object.hexdigest()
+print(f"Hex digest: {hex_digest}")
+
+digest = hash_object.digest()
+print(f"Digest (bytes): {digest}")
+```
+
+### Common use cases and examples
+
+**File Hashing:**
+
+```python
+import hashlib
+
+def hash_file(filename):
+    hasher = hashlib.sha256()
+    with open(filename, 'rb') as file:
+        while True:
+            chunk = file.read(4096) # Read in chunks to avoid memory issues with large files
+            if not chunk:
+                break
+            hasher.update(chunk)
+    return hasher.hexdigest()
+
+file_hash = hash_file("my_file.txt")
+print(f"SHA256 hash of my_file.txt: {file_hash}")
+```
+
+**Simple String Hashing:**
+
+```python
+import hashlib
+
+data = "This is a test string".encode('utf-8') #Encode to bytes
+hash_object = hashlib.sha256(data) #Direct initialization with data
+hex_digest = hash_object.hexdigest()
+print(f"SHA256 hash: {hex_digest}")
+
+```
+
+
+### Handling different data types
+
+As mentioned earlier, the `update()` method and the direct initialization of `hashlib.new()` requires bytes-like objects.  If you have data in a different format (e.g., a string, an integer), you must convert it to bytes before using it with `hashlib`.
+
+* **Strings:** Use the `.encode()` method with a specified encoding (e.g., 'utf-8') to convert a string to bytes.
+
+* **Integers:**  Convert the integer to its byte representation using the `int.to_bytes()` method.  Specify the number of bytes and byte order (e.g., 'big' or 'little').
+
+
+```python
+import hashlib
+
+my_string = "Hello"
+my_integer = 12345
+
+#String to bytes
+string_bytes = my_string.encode('utf-8')
+hash_object_string = hashlib.sha256(string_bytes)
+print(f"Hash of string: {hash_object_string.hexdigest()}")
+
+#Integer to bytes
+integer_bytes = my_integer.to_bytes(4, byteorder='big') # 4 bytes, big-endian
+hash_object_integer = hashlib.sha256(integer_bytes)
+print(f"Hash of integer: {hash_object_integer.hexdigest()}")
+
+```
+Remember to handle encoding consistently to prevent unexpected results. Using UTF-8 is generally recommended for string encoding.
+
+
+## Specific Hash Algorithms
+
+### MD5
+
+MD5 (Message Digest Algorithm 5) produces a 128-bit hash.  **It is cryptographically broken and should not be used for security-sensitive applications.**  Collisions (different inputs producing the same hash) are easily found, making it unsuitable for tasks requiring strong collision resistance, such as digital signatures or password hashing.  Its inclusion in `hashlib` is primarily for backward compatibility with older systems.
+
+
+### SHA-1
+
+SHA-1 (Secure Hash Algorithm 1) produces a 160-bit hash.  Similar to MD5, **SHA-1 is considered cryptographically weak and should be avoided for new applications.** While not as readily broken as MD5, practical collision attacks exist, compromising its security for critical uses.
+
+
+### SHA-224
+
+SHA-224 is part of the SHA-2 family of algorithms. It produces a 224-bit hash.  It's generally considered secure, though SHA-256 is often preferred due to its slightly larger output size.
+
+
+### SHA-256
+
+SHA-256 (Secure Hash Algorithm 256-bit) is a widely used and robust algorithm producing a 256-bit hash. It's considered secure for most applications requiring cryptographic hashing.  It offers a good balance between security and performance.
+
+
+### SHA-384
+
+SHA-384 is another SHA-2 algorithm generating a 384-bit hash.  It provides even greater collision resistance than SHA-256, at the cost of slightly reduced performance.  It's a suitable choice for applications demanding very high security.
+
+
+### SHA-512
+
+SHA-512 produces a 512-bit hash, offering the highest collision resistance among the SHA-2 family. Its performance is generally comparable to SHA-384.  It is suitable for applications where maximum security is paramount.
+
+
+### blake2b
+
+blake2b is a fast and secure hashing algorithm that offers variable-length output. It's designed for speed and efficiency while maintaining strong cryptographic properties.  It's a good alternative to SHA-2 algorithms for applications that require both high speed and security.
+
+
+### blake2s
+
+blake2s is similar to blake2b but is optimized for smaller hash sizes (e.g., 128-bit, 256-bit), making it suitable for resource-constrained environments. Like blake2b, it offers a good speed/security tradeoff.
+
+
+### Choosing the right algorithm for security
+
+The choice of algorithm depends heavily on your security requirements and the context of its use.  **Avoid MD5 and SHA-1 entirely for any new security-sensitive applications.**
+
+For most applications needing robust security, SHA-256 is a strong and practical choice, offering a balance between speed and collision resistance. If higher collision resistance is critical, SHA-384 or SHA-512 provide increased security, though with a slight performance trade-off.  If speed is paramount, but security is still vital, blake2b is an excellent option; for resource-constrained situations, blake2s is suitable.
+
+Remember that the security of your application also depends on proper implementation.  Using a strong algorithm is only part of the equation; you also need to implement it securely, protecting it from vulnerabilities like padding oracle attacks or length extension attacks.  Consider using established security libraries and best practices.  For password hashing, always use a key derivation function (KDF) like PBKDF2_HMAC or Argon2 instead of directly using a hash function.
+
+
+## Advanced Usage and Considerations
+
+### Salting and peppering for password hashing
+
+Never store passwords directly; always hash them.  However, simply hashing a password is insufficient.  **Salting** involves adding a random value (the salt) to the password before hashing. This prevents attackers from pre-computing hashes for common passwords.  Each password should have a unique salt.  **Peppering** adds a secret, server-side value (the pepper) to the password *before* salting and hashing.  This adds an extra layer of protection, even if the database containing the salted hashes is compromised.  The pepper is a secret that should never be stored in the database or revealed.
+
+
+```python
+import hashlib
+import os
+
+def hash_password(password, salt, pepper):
+    combined = pepper.encode('utf-8') + password.encode('utf-8') + salt.encode('utf-8')
+    hashed = hashlib.pbkdf2_hmac('sha256', combined, salt.encode('utf-8'), 100000) # Use a KDF!
+    return salt, hashed
+
+#Example Usage
+pepper = os.environ.get("PEPPER") #Get pepper from environment variable
+salt = os.urandom(16).hex() #Generate random salt
+password = "mysecretpassword"
+salt, hashed_password = hash_password(password, salt, pepper) 
+print(f"Salt: {salt}")
+print(f"Hashed password: {hashed_password.hex()}")
+
+#Verification should be done in the same manner:
+#...
+```
+
+### Key derivation functions (KDFs)
+
+KDFs, such as PBKDF2_HMAC and Argon2, are specifically designed for deriving keys from passwords. They are computationally expensive, making brute-force attacks significantly harder.  Avoid using a hash function directly for password storage; always use a KDF.  `hashlib` provides `pbkdf2_hmac`.  For stronger security, consider using Argon2, which is often preferred over PBKDF2. Argon2 is not directly available in `hashlib` and will usually require a separate library.
+
+### HMAC (Hash-based Message Authentication Code)
+
+HMAC provides message authentication, ensuring both data integrity and authenticity. It uses a secret key along with a hash function to generate a tag.  `hashlib` supports HMAC using `hashlib.hmac`.
+
+```python
+import hashlib
+import hmac
+
+message = b"This is the message"
+key = b"MySecretKey" #Keep this secret!
+
+h = hmac.new(key, message, hashlib.sha256)
+signature = h.hexdigest()
+print(f"HMAC signature: {signature}")
+
+#Verification
+h_verify = hmac.new(key, message, hashlib.sha256)
+h_verify.hexdigest() == signature #True if the signature is valid
+```
+
+### Handling large files efficiently
+
+For hashing large files, avoid loading the entire file into memory at once. Process the file in chunks using the `update()` method repeatedly.
+
+```python
+import hashlib
+
+def hash_large_file(filename):
+    hasher = hashlib.sha256()
+    with open(filename, 'rb') as file:
+        while True:
+            chunk = file.read(4096) #Adjust chunk size as needed
+            if not chunk:
+                break
+            hasher.update(chunk)
+    return hasher.hexdigest()
+```
+
+### Performance considerations
+
+Algorithm choice impacts performance. MD5 and SHA-1 are generally faster than SHA-256, SHA-384, or SHA-512, but their cryptographic weaknesses make them unsuitable for security-critical applications. Blake2 algorithms generally offer a good speed/security trade-off.  Profiling is recommended to determine the most suitable algorithm for your specific needs and hardware.
+
+
+### Security best practices
+
+* **Use strong algorithms:** Avoid MD5 and SHA-1 for new applications.
+* **Use KDFs for password hashing:** Never directly hash passwords.
+* **Salt and pepper passwords:**  Prevent pre-computed rainbow table attacks.
+* **Use HMAC for message authentication:** Ensure both data integrity and authenticity.
+* **Handle large files efficiently:** Avoid loading everything into memory.
+* **Keep secrets secret:** Protect your keys and peppers.
+* **Use established libraries and best practices:** Avoid reinventing the wheel for cryptographic operations.
+* **Regularly update dependencies:**  Ensure you have the latest security patches for any crypto libraries.
+* **Consider code review and security audits:** Professional review helps catch subtle vulnerabilities.
+
+
+
+
+## Error Handling and Exceptions
+
+### Common errors and exceptions
+
+`hashlib` generally doesn't raise many exceptions during normal operation.  However, issues can arise from incorrect usage or external factors.  The most common error scenarios and potential exceptions include:
+
+* **TypeError:** This is the most frequent exception.  It occurs when you pass data of the wrong type to `hashlib` functions.  The `update()` method and the `hashlib.new()`'s optional `data` argument require bytes-like objects (bytes, bytearray). Passing strings without encoding them or other data types will result in a `TypeError`.
+
+* **ValueError:**  A `ValueError` might be raised if you try to use an unsupported hashing algorithm name with `hashlib.new()`.  The algorithm name must be a valid string representing a supported hash function.
+
+* **OSError (or its subclasses):** If you're working with files and encounter issues like permission errors or the file not being found, `OSError` (or a more specific subclass like `FileNotFoundError` or `PermissionError`) will be raised during file I/O operations within your hashing code.
+
+
+### Debugging hashlib code
+
+Debugging `hashlib` code often involves inspecting the input data and the intermediate steps.  Here are some techniques:
+
+* **Print statements:**  Strategically placed `print()` statements can reveal the data being hashed at various stages, helping identify if the input is correct or if there are unexpected transformations.
+
+* **Check data types:** Verify that all data passed to `hashlib` functions is of the correct type (bytes). Use type checking (`isinstance()`).
+
+* **Inspect the algorithm name:**  Ensure that the algorithm specified in `hashlib.new()` is valid and supported by your Python installation.
+
+* **Test with known inputs:** Create small test cases with known inputs and expected outputs to verify that your hashing code produces the correct results.
+
+* **Use a debugger:** A Python debugger (like pdb) allows you to step through your code line by line, inspect variables, and identify the source of errors.
+
+
+### Best practices for error handling
+
+* **Type checking:**  Always check the type of data being passed to `hashlib` functions before using them to avoid `TypeError` exceptions.
+
+* **Input validation:** Validate user inputs or data from external sources to prevent unexpected errors.
+
+* **Exception handling:** Use `try-except` blocks to gracefully handle potential exceptions like `OSError`, `TypeError`, or `ValueError`.  Catch specific exception types for better error handling.
+
+* **Informative error messages:** If exceptions are caught, provide clear and informative error messages to the user or log them for debugging purposes.
+
+
+```python
+import hashlib
+
+def hash_data(data):
+    try:
+        if isinstance(data, str):
+            data = data.encode('utf-8') #Ensure it's bytes
+        hasher = hashlib.sha256(data)  #Direct initialization if you already have bytes
+        return hasher.hexdigest()
+    except TypeError as e:
+        return f"Error: Invalid data type. {e}"
+    except ValueError as e:
+        return f"Error: Invalid hash algorithm. {e}"
+    except Exception as e: #Catch more general exceptions, be as specific as you can though
+        return f"An unexpected error occurred: {e}"
+
+#Example usage with error handling
+print(hash_data(b"This is a test"))  #Correct usage
+print(hash_data("This is a test"))   #String, which will be handled
+print(hash_data(123))              #Incorrect data type: Integer
+print(hash_data("invalid_algorithm")) #Incorrect algorithm, if exists
+```
+
+By incorporating these error handling techniques, you can create more robust and reliable applications using `hashlib`.
+
+
+## Examples and Use Cases
+
+### File integrity verification
+
+Hashing is crucial for verifying file integrity.  By generating a hash of a file and storing it securely, you can later check if the file has been modified.  Any change, however small, will result in a different hash.
+
+```python
+import hashlib
+import os
+
+def verify_file_integrity(filename, expected_hash):
+    try:
+        hasher = hashlib.sha256()
+        with open(filename, 'rb') as file:
+            while True:
+                chunk = file.read(4096)
+                if not chunk:
+                    break
+                hasher.update(chunk)
+        calculated_hash = hasher.hexdigest()
+        return calculated_hash == expected_hash
+    except FileNotFoundError:
+        return False
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return False
+
+
+expected_hash = "e5b976786642823d71b88f589003c2a167341b8d696916b2f559d9597c0f498e" #Example SHA256 hash
+filename = "myfile.txt"
+if verify_file_integrity(filename, expected_hash):
+    print(f"File '{filename}' is intact.")
+else:
+    print(f"File '{filename}' has been modified or is corrupted.")
+
+```
+
+### Password storage
+
+**Never** store passwords directly. Instead, hash them using a strong key derivation function (KDF) like PBKDF2_HMAC or Argon2 (not directly in hashlib, requires additional libraries).  Always salt each password individually.  A pepper adds an extra layer of security.
+
+```python
+import hashlib
+import os
+#Note: For production systems, use Argon2 instead of PBKDF2_HMAC for stronger security
+# and use a library specializing in password security.  This example is simplified for demonstration.
+
+def store_password(password, salt, pepper): # pepper should be a secret, environment variable is shown here
+    combined = pepper.encode('utf-8') + password.encode('utf-8') + salt.encode('utf-8')
+    hashed = hashlib.pbkdf2_hmac('sha256', combined, salt.encode('utf-8'), 100000) # Adjust iterations
+    return salt, hashed
+
+pepper = os.environ.get("PEPPER") #Obtain pepper securely from env variable
+salt = os.urandom(16).hex()
+password = "mysecretpassword"
+salt, hashed_password = store_password(password, salt, pepper)
+#Store salt and hashed_password in your database
+
+#Verification (simplified, always use constant time comparison in production)
+#... obtain salt and hashed_password from DB ...
+#if hashlib.pbkdf2_hmac('sha256', pepper.encode('utf-8')+password.encode('utf-8')+salt.encode('utf-8'), salt.encode('utf-8'), 100000) == hashed_password:
+#    print("Password verified")
+```
+
+
+### Data integrity checks
+
+Hashing can verify data integrity across different systems or during transmission.
+
+
+```python
+import hashlib
+
+data = b"This is my data"
+hasher = hashlib.sha256(data)
+data_hash = hasher.hexdigest()
+
+#Send data and data_hash to another system
+
+#On the receiving system:
+received_data = b"This is my data" #Received Data
+received_hasher = hashlib.sha256(received_data)
+received_data_hash = received_hasher.hexdigest()
+
+if data_hash == received_data_hash:
+    print("Data integrity verified.")
+else:
+    print("Data has been corrupted.")
+```
+
+### Digital signatures
+
+Digital signatures use hashing and asymmetric cryptography to ensure message authenticity and integrity.  `hashlib` is used to create the hash of the message that's then signed using a private key.  Verification involves hashing the received message and checking the signature using the sender's public key.  (Note:  This requires a cryptographic library beyond `hashlib` for the actual signing and verification).
+
+
+### Data authentication
+
+HMAC (Hash-based Message Authentication Code) provides data authentication using a shared secret key. This confirms both data integrity and authenticity.
+
+```python
+import hashlib
+import hmac
+
+message = b"This is my secret message"
+key = b"MySuperSecretKey" # Keep this secret!
+
+h = hmac.new(key, message, hashlib.sha256)
+signature = h.hexdigest()
+
+#Send message and signature
+
+#On the receiving end:
+received_message = b"This is my secret message"
+received_signature = "...." #Received Signature
+
+h_verify = hmac.new(key, received_message, hashlib.sha256)
+if h_verify.hexdigest() == received_signature:
+    print("Message authenticated.")
+else:
+    print("Message authentication failed.")
+```
+Remember to manage your secret keys securely!  Never hardcode them directly; use secure key management practices.
+
+
+## Appendix: Algorithm Details
+
+This appendix provides brief, high-level details about the hashing algorithms supported by `hashlib`.  For comprehensive technical specifications, refer to the relevant RFCs or standards documents for each algorithm.
+
+### MD5 Algorithm Details
+
+MD5 (Message Digest Algorithm 5) is a widely known but now cryptographically broken 128-bit hash function.  It operates on 512-bit blocks of data using a series of rounds involving non-linear functions and modular arithmetic.  While historically used extensively, its vulnerabilities to collision attacks render it unsuitable for security-sensitive applications.  Its presence in `hashlib` is largely for backward compatibility.
+
+
+### SHA-1 Algorithm Details
+
+SHA-1 (Secure Hash Algorithm 1) is another older 160-bit hash function. It's based on the Merkle–Damgård construction and uses a series of rounds with compression functions.  SHA-1 has also been shown to be cryptographically weak and should be avoided in new applications due to discovered vulnerabilities and practical collision attacks.
+
+
+### SHA-2 Algorithm Details
+
+SHA-2 (Secure Hash Algorithm 2) is a family of cryptographic hash functions including SHA-224, SHA-256, SHA-384, and SHA-512. These algorithms build upon the Merkle–Damgård structure but with significant improvements in design to enhance security and resistance to various attacks. They are widely used and generally considered secure.  The core differences between the variants (224, 256, 384, 512) are the hash size (and consequently the internal workings) to produce different output lengths.
+
+
+### SHA-3 Algorithm Details
+
+SHA-3 (Secure Hash Algorithm 3) is a different cryptographic hash function family *not directly related* to the SHA-2 family.  Unlike SHA-2, which uses the Merkle-Damgård construction, SHA-3 is based on a sponge construction.  This makes it resistant to attacks that exploit weaknesses in the Merkle-Damgård construction.  While SHA-3 offers a strong alternative, it's not as widely implemented as SHA-2.  Note: SHA-3 is *not* included in the standard Python `hashlib` module.
+
+
+### blake2 Algorithm Details
+
+Blake2 is a family of cryptographic hash functions (blake2b and blake2s) designed for speed and security.  It's based on the ChaCha stream cipher and uses a novel construction that provides strong collision resistance and excellent performance.  blake2b is suitable for general-purpose hashing and is particularly fast, while blake2s is optimized for smaller hash sizes (e.g., embedded systems).  blake2's design aims for both speed and security, making it a powerful and efficient alternative to other widely used hashing algorithms.
+
+
+**Important Note:** The details provided here are high-level overviews. For in-depth understanding of the mathematical and cryptographic foundations of these algorithms, consult the relevant RFCs, standards, and academic literature.  The security of cryptographic algorithms is a constantly evolving field, and it's important to stay up-to-date with the latest research and security advisories.
+

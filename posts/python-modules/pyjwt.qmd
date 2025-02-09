@@ -1,0 +1,639 @@
+---
+title: "pyjwt - Documentation"
+categories: [ "Python Modules" ]
+---
+
+
+### What is PyJWT?
+
+PyJWT is a Python library that implements JSON Web Token (JWT) creation and verification.  JWTs are a compact and self-contained way to securely transmit information between parties as a JSON object.  PyJWT provides functions for encoding and decoding JWTs, allowing developers to integrate JWT authentication and authorization into their applications.  It supports various signing algorithms, ensuring flexibility and security depending on your needs.
+
+### Why use PyJWT?
+
+PyJWT offers several advantages for handling JWTs in Python applications:
+
+* **Simplicity:**  The library provides a clean and straightforward API for both encoding and decoding JWTs, making integration easy.
+* **Security:** PyJWT supports a range of robust signing algorithms, including HMAC and RSA, protecting your data from tampering and unauthorized access.  It also provides features to help mitigate vulnerabilities.
+* **Standards Compliance:** PyJWT adheres to the relevant RFC standards for JWT, ensuring interoperability with other systems and libraries.
+* **Flexibility:** It supports various JWT header and payload configurations, allowing you to customize your tokens to suit specific application requirements.
+* **Community Support:** PyJWT is a well-established and widely used library with a supportive community, making it easier to find help and resources.
+
+
+### Installation and Setup
+
+PyJWT can be easily installed using pip:
+
+```bash
+pip install PyJWT
+```
+
+No further setup is generally required.  However, if you're using algorithms like RSA, you'll need to ensure you have the necessary cryptographic libraries installed (usually handled automatically by PyJWT's dependencies).
+
+
+### Basic Usage Example
+
+This example demonstrates creating and verifying a JWT using the HS256 algorithm:
+
+```python
+import jwt
+
+# Secret key – keep this secure!  Never hardcode this in production.
+secret_key = 'your-256-bit-secret'
+
+# Payload data
+payload = {
+    'user_id': 123,
+    'username': 'johndoe',
+    'exp': jwt.time() + 3600  # Token expires in 1 hour
+}
+
+# Encode the JWT
+encoded_jwt = jwt.encode(payload, secret_key, algorithm='HS256')
+print(f"Encoded JWT: {encoded_jwt}")
+
+# Decode the JWT
+try:
+    decoded_payload = jwt.decode(encoded_jwt, secret_key, algorithms=['HS256'])
+    print(f"Decoded Payload: {decoded_payload}")
+except jwt.ExpiredSignatureError:
+    print("Signature has expired.")
+except jwt.InvalidTokenError:
+    print("Invalid token.")
+except Exception as e:
+    print(f"An error occurred: {e}")
+
+```
+
+Remember to replace `"your-256-bit-secret"` with a strong, randomly generated secret key.  Never commit this key to version control.  For production environments, consider using more secure key management practices.
+
+
+## Encoding JSON Web Tokens (JWTs)
+
+### Understanding JWT Structure
+
+A JSON Web Token (JWT) is a compact, URL-safe method for representing claims to be transferred between parties.  It consists of three parts separated by dots (`.`):
+
+1. **Header:** Contains metadata about the token, including the algorithm used for signing.
+2. **Payload:**  Carries the claims, which are statements about an entity (e.g., user identity).
+3. **Signature:**  A cryptographically generated string that ensures the token's integrity and authenticity.
+
+
+### Header Parameters
+
+The JWT header is a JSON object typically containing:
+
+* `"alg"`: The algorithm used to create the signature (e.g., "HS256", "RS256", "ES256").  This is crucial for verification.
+* `"typ"`:  Usually set to `"JWT"`, indicating the token type.  While optional, it's best practice to include it.
+
+Other parameters can be added depending on the specific needs of the application.
+
+
+### Payload Claims
+
+The JWT payload is a JSON object carrying the claims. These claims can be custom, but some standard claims are commonly used:
+
+* `"iss"`: Issuer of the token.
+* `"sub"`: Subject (the entity the token is about).
+* `"aud"`: Audience(s) the token is intended for.
+* `"exp"`: Expiration time (Unix timestamp).
+* `"nbf"`: Not Before (Unix timestamp).
+* `"iat"`: Issued At (Unix timestamp).
+* `"jti"`: JWT ID (unique identifier for the token).
+
+
+### Signature Algorithm Selection
+
+The choice of signing algorithm significantly impacts the security of your JWTs:
+
+* **HS256 (HMAC SHA256):** Uses a shared secret key. Simpler to implement but requires secure key management.  Suitable for less sensitive applications where the client and server share a secret.
+* **RS256 (RSA SHA256):** Uses an RSA private key to sign. More secure as it doesn't require sharing a secret key.  Requires public key infrastructure (PKI).  Suitable for situations needing strong security and key separation.
+* **ES256 (ECDSA SHA256):** Uses an Elliptic Curve Digital Signature Algorithm (ECDSA) private key to sign. Offers a good balance of security and performance.  Requires PKI.
+
+Other algorithms are also supported by PyJWT,  but the above are the most common.
+
+
+### Example: Encoding a JWT with HS256
+
+```python
+import jwt
+
+secret_key = 'your-256-bit-secret'  # MUST be replaced with a strong, randomly generated secret
+
+payload = {
+    'user_id': 123,
+    'username': 'johndoe',
+    'exp': jwt.time() + 3600
+}
+
+encoded_jwt = jwt.encode(payload, secret_key, algorithm='HS256')
+print(encoded_jwt)
+```
+
+
+### Example: Encoding a JWT with RS256
+
+```python
+import jwt
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+
+# Generate an RSA key pair (replace with your existing keys in production!)
+private_key = rsa.generate_private_key(
+    public_exponent=65537, key_size=2048, backend=default_backend()
+)
+private_pem = private_key.private_bytes(
+    encoding=serialization.Encoding.PEM,
+    format=serialization.PrivateFormat.PKCS8,
+    encryption_algorithm=serialization.NoEncryption(),
+)
+
+payload = {
+    'user_id': 123,
+    'username': 'johndoe',
+    'exp': jwt.time() + 3600
+}
+
+
+encoded_jwt = jwt.encode(payload, private_pem, algorithm='RS256')
+print(encoded_jwt)
+```
+
+### Example: Encoding a JWT with ES256
+
+```python
+import jwt
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ec
+
+# Generate an EC key pair (replace with your existing keys in production!)
+private_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
+private_pem = private_key.private_bytes(
+    encoding=serialization.Encoding.PEM,
+    format=serialization.PrivateFormat.PKCS8,
+    encryption_algorithm=serialization.NoEncryption(),
+)
+
+
+payload = {
+    'user_id': 123,
+    'username': 'johndoe',
+    'exp': jwt.time() + 3600
+}
+
+encoded_jwt = jwt.encode(payload, private_pem, algorithm='ES256')
+print(encoded_jwt)
+```
+
+**Note:**  For RS256 and ES256,  replace the key generation with your actual private key loading from a secure location.  Never hardcode private keys in your application code.  The examples above are for illustrative purposes only.  Always use proper key management practices in a production environment.
+
+
+## Decoding JSON Web Tokens (JWTs)
+
+### Decoding Process
+
+Decoding a JWT involves three main steps:
+
+1. **Splitting the Token:** The JWT string is split into its three parts (header, payload, signature) using the dot (`.`) as a delimiter.
+2. **Verifying the Signature:** The signature is verified using the provided key and algorithm specified in the header.  This step ensures the token's integrity and authenticity; that it hasn't been tampered with.
+3. **Decoding the Payload:** If the signature is valid, the payload (the JSON data) is decoded and returned.
+
+
+### Verification of Signature
+
+Signature verification is crucial to ensure the JWT hasn't been altered.  PyJWT uses the provided key and algorithm to check the signature's validity.  If the verification fails, it indicates the token might be compromised. The `jwt.decode()` function handles this verification automatically.
+
+
+### Handling Signature Verification Errors
+
+If the signature verification fails, PyJWT raises a `jwt.InvalidSignatureError` or a `jwt.InvalidTokenError`.  Your application should handle these exceptions gracefully, typically by rejecting the token and taking appropriate action (e.g., logging the error, redirecting the user to a login page).  Consider logging suspicious activity for security auditing.
+
+
+### Extracting Payload Claims
+
+Once the signature is verified, the payload, a Python dictionary, is accessible and can be used to extract the claims.  These claims contain the information carried by the JWT.
+
+
+### Example: Decoding a JWT with HS256
+
+```python
+import jwt
+
+secret_key = 'your-256-bit-secret'  # MUST be replaced with the SAME secret key used for encoding
+
+encoded_jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMjMsInVzZXJuYW1lIjoiam9obmRvZSIsImV4cCI6MTY3ODc2NzQ3MX0.e5h3e5f4gS3G-f4f7gF_a5e_e5f4gS3G-f4f7gF_a5e" #Example JWT, replace with your encoded JWT
+
+try:
+    decoded_payload = jwt.decode(encoded_jwt, secret_key, algorithms=['HS256'])
+    print(decoded_payload)
+except jwt.ExpiredSignatureError:
+    print("Signature has expired.")
+except jwt.InvalidTokenError:
+    print("Invalid token.")
+except jwt.InvalidSignatureError:
+    print("Invalid signature.")
+except Exception as e:
+    print(f"An error occurred: {e}")
+
+```
+
+
+### Example: Decoding a JWT with RS256
+
+```python
+import jwt
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+
+# Load your public key (replace with your actual public key loading)
+with open("public_key.pem", "rb") as key_file:
+    public_key = serialization.load_pem_public_key(
+        key_file.read(), backend=default_backend()
+    )
+
+encoded_jwt = "your_rs256_encoded_jwt" #replace with your RS256 encoded JWT
+
+
+try:
+    decoded_payload = jwt.decode(encoded_jwt, public_key, algorithms=['RS256'])
+    print(decoded_payload)
+except jwt.ExpiredSignatureError:
+    print("Signature has expired.")
+except jwt.InvalidTokenError:
+    print("Invalid token.")
+except jwt.InvalidSignatureError:
+    print("Invalid signature.")
+except Exception as e:
+    print(f"An error occurred: {e}")
+
+```
+
+### Example: Decoding a JWT with ES256
+
+```python
+import jwt
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ec
+
+# Load your public key (replace with your actual public key loading)
+with open("public_key.pem", "rb") as key_file:
+    public_key = serialization.load_pem_public_key(
+        key_file.read(), backend=default_backend()
+    )
+
+encoded_jwt = "your_es256_encoded_jwt" #replace with your ES256 encoded JWT
+
+try:
+    decoded_payload = jwt.decode(encoded_jwt, public_key, algorithms=['ES256'])
+    print(decoded_payload)
+except jwt.ExpiredSignatureError:
+    print("Signature has expired.")
+except jwt.InvalidTokenError:
+    print("Invalid token.")
+except jwt.InvalidSignatureError:
+    print("Invalid signature.")
+except Exception as e:
+    print(f"An error occurred: {e}")
+```
+
+Remember to replace placeholder JWTs and keys with your actual values.  For RS256 and ES256, you'll need the *public* key corresponding to the private key used for encoding.
+
+
+### Dealing with Expired Tokens
+
+JWTs often include an expiration time (`exp` claim).  PyJWT automatically checks this claim during decoding. If the token is expired, it raises a `jwt.ExpiredSignatureError`.  Your application should handle this exception appropriately, typically by rejecting the token and prompting the user to re-authenticate.
+
+
+## Working with Keys
+
+### Symmetric Keys (HS256)
+
+For algorithms like HS256 (HMAC SHA256), a *symmetric* key is used.  This means the same secret key is used for both signing (encoding) and verifying (decoding) the JWT.  This key **must** be kept absolutely secret and secure.  Compromising this key compromises the security of all JWTs signed with it.
+
+**Key Requirements:**  For HS256, the key should be a 256-bit (or longer) randomly generated string.  Never use a weak or predictable key.
+
+**Example (Insecure for demonstration only - NEVER use this in production):**
+
+```python
+secret_key = "your-256-bit-secret" #This is INSECURE! Replace with a proper key generation method.
+```
+
+**Secure Key Generation:**  Use a cryptographically secure random number generator to create your keys. Libraries like `secrets` (Python 3.6+) are recommended:
+
+```python
+import secrets
+secret_key = secrets.token_hex(32) # 32 bytes = 256 bits
+```
+
+**Important:**  Never hardcode keys directly into your application code.  Use environment variables, configuration files, or dedicated secret management services.
+
+
+### Asymmetric Keys (RS256, ES256)
+
+Algorithms like RS256 (RSA SHA256) and ES256 (ECDSA SHA256) use *asymmetric* key cryptography.  This involves a pair of keys: a *private key* for signing and a *public key* for verification.  The private key must be kept extremely secure; the public key can be distributed widely.
+
+**Key Requirements:**  The key pair should be generated using a cryptographically secure method, with appropriate key sizes (e.g., 2048 bits for RSA, SECP256R1 for ECDSA).
+
+**Example (Insecure for demonstration only):**
+
+The following shows key generation; in a real application, you would load these from secure storage.
+
+
+```python
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa, ec
+
+# RSA key pair generation
+private_key = rsa.generate_private_key(
+    public_exponent=65537, key_size=2048, backend=default_backend()
+)
+public_key = private_key.public_key()
+
+# ECDSA key pair generation
+private_key_ec = ec.generate_private_key(ec.SECP256R1(), default_backend())
+public_key_ec = private_key_ec.public_key()
+
+# Serializing keys to PEM format for storage.
+# Always use appropriate encryption for private key storage in production
+private_pem = private_key.private_bytes(
+    encoding=serialization.Encoding.PEM,
+    format=serialization.PrivateFormat.PKCS8,
+    encryption_algorithm=serialization.NoEncryption(),  #INSECURE - Use a proper encryption algorithm!
+)
+
+public_pem = public_key.public_bytes(
+    encoding=serialization.Encoding.PEM,
+    format=serialization.PublicFormat.SubjectPublicKeyInfo,
+)
+
+```
+
+
+### Generating Key Pairs
+
+The examples above demonstrate key generation using the `cryptography` library.  Other libraries might offer similar functionality.  Always ensure you are using a cryptographically secure method for key generation.
+
+
+### Storing and Managing Keys Securely
+
+Never store keys directly in your source code or easily accessible files.  Use secure methods like:
+
+* **Hardware Security Modules (HSMs):**  Provide the highest level of security for storing and managing cryptographic keys.
+* **Key Management Systems (KMS):** Cloud-based services that handle key generation, storage, and rotation.
+* **Secure Encrypted Files:** Store keys in encrypted files protected by strong passwords or key encryption keys.
+* **Environment Variables:**  Can be used for development or testing, but not recommended for production.
+
+When storing private keys, **always** use strong encryption to protect them from unauthorized access.  `serialization.NoEncryption()` shown above is **highly insecure** and only for illustrative purposes.
+
+
+### Key Rotation
+
+Regularly rotating your keys is a crucial security practice.  This limits the impact of a potential key compromise.  The frequency of rotation depends on your risk tolerance and security requirements.  Consider factors like:
+
+* **Key type:** Symmetric keys need more frequent rotation than asymmetric keys.
+* **Sensitivity of data:**  If the data is highly sensitive, more frequent rotation is necessary.
+* **Regulatory requirements:**  Compliance standards may dictate specific key rotation policies.
+
+When rotating keys, plan a transition period to ensure backward compatibility.  You might need to handle both old and new keys for a certain time.
+
+
+## Advanced Usage
+
+### Custom Claims
+
+Beyond the standard claims, you can add any custom claims to the JWT payload to carry application-specific information.  These claims are defined by your application and are not standardized.
+
+```python
+import jwt
+
+payload = {
+    'user_id': 123,
+    'username': 'johndoe',
+    'exp': jwt.time() + 3600,
+    'role': 'administrator',  # Custom claim
+    'department': 'engineering' #Custom claim
+}
+
+# ... (encoding and decoding as before)
+```
+
+
+### Algorithm Configuration
+
+PyJWT supports various algorithms. You can explicitly specify the algorithm during encoding and decoding to ensure compatibility.  The `algorithms` parameter in `jwt.decode()` is crucial for security; it verifies that the token was signed with an expected algorithm.  Only specifying algorithms you trust prevents algorithm switching attacks.
+
+
+```python
+encoded_jwt = jwt.encode(payload, key, algorithm='RS256')  #Explicit algorithm specification
+
+decoded_payload = jwt.decode(encoded_jwt, key, algorithms=['RS256']) #Explicit algorithm verification
+
+```
+
+### JWT Header Customization
+
+While less common, you can add custom parameters to the JWT header beyond `alg` and `typ`.  These parameters are included in the encoded token but are typically not directly used for verification.
+
+```python
+import jwt
+
+header = {
+  "alg": "HS256",
+  "typ": "JWT",
+  "kid": "my-key-id" #Custom header parameter
+}
+
+encoded_jwt = jwt.encode(payload, key, algorithm='HS256', headers=header)
+```
+
+
+### Working with Different Key Formats (PEM, JWK)
+
+PyJWT can work with keys in various formats:
+
+* **PEM (Privacy Enhanced Mail):** A common format for storing public and private keys, often used with RSA and ECDSA.  The examples in previous sections used PEM format.
+
+* **JWK (JSON Web Key):** A JSON-based format for representing cryptographic keys.  PyJWT provides support for loading keys from JWK dictionaries.
+
+```python
+import jwt
+
+# Example JWK for RSA
+jwk = {
+  "kty": "RSA",
+  "kid": "my-key-id",
+  "use": "sig",
+  "n": "your_modulus",
+  "e": "your_exponent",
+  # ... other JWK parameters
+}
+
+decoded_payload = jwt.decode(encoded_jwt, jwk, algorithms=['RS256'])
+```
+
+
+### Using PyJWT with Frameworks (e.g., Flask, Django)
+
+PyJWT integrates easily into various web frameworks.  You can use it as a part of your authentication and authorization logic.  Here's a simplified example using Flask:
+
+
+```python
+from flask import Flask, request, jsonify
+import jwt
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'your-secret-key'  #Store key securely in production
+
+@app.route('/protected')
+def protected():
+    try:
+        token = request.headers['Authorization'].split()[1]  #Extract token from header
+        decoded = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+        return jsonify({'message': 'Protected resource accessed'}), 200
+    except jwt.ExpiredSignatureError:
+        return jsonify({'message': 'Token expired'}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({'message': 'Invalid token'}), 401
+    except Exception as e:
+        return jsonify({'message': 'An error occurred'}), 500
+```
+
+Adapt this example to your framework's authentication mechanisms.  Remember to securely manage your secret key.
+
+
+### Troubleshooting Common Errors
+
+Common PyJWT errors and solutions:
+
+* **`jwt.ExpiredSignatureError`:** The token's expiration time (`exp` claim) has passed. Check the token's expiry and ensure your system clock is synchronized.
+* **`jwt.InvalidSignatureError`:** The signature is invalid.  Verify that you're using the correct key and algorithm. Ensure that the key hasn't been compromised.
+* **`jwt.InvalidTokenError`:** The token is malformed or otherwise invalid.  Check for any structural problems in the token string.
+* **`jwt.DecodeError`:** The token cannot be decoded. Verify the token is correctly formatted.
+
+
+### Performance Considerations and Optimization
+
+For high-throughput applications, consider these optimizations:
+
+* **Caching:**  Cache frequently accessed keys to reduce the overhead of key retrieval.
+* **Asynchronous operations:** Use asynchronous functions for decoding if possible to avoid blocking operations.
+* **Algorithm selection:** Choose algorithms that balance security and performance needs.  HS256 is generally faster than RS256 or ES256.
+* **Key size:** Use appropriate key sizes for the selected algorithm, balancing security and performance.  Larger keys generally offer better security but may slow down encoding and decoding.
+
+
+
+
+
+## Security Best Practices
+
+### Secure Key Management
+
+The security of your JWTs hinges on the security of your keys.  Follow these practices:
+
+* **Generate Strong Keys:** Use cryptographically secure random number generators (like `secrets.token_hex()` in Python) to generate keys of sufficient length.
+* **Store Keys Securely:** Never hardcode keys directly into your application code. Use environment variables, secure configuration files, or dedicated secrets management systems (like HashiCorp Vault, AWS Secrets Manager, etc.).  For private keys, always encrypt them before storage.
+* **Protect Private Keys:**  For asymmetric algorithms, treat your private keys with extreme care.  Their compromise completely undermines the security of your JWTs.
+* **Regular Key Rotation:**  Periodically rotate your keys to limit the impact of a potential compromise.  The frequency depends on your risk tolerance and security requirements.
+* **Avoid Key Reuse:**  Never reuse keys across different applications or environments.
+
+
+### Protecting Against Attacks
+
+JWTs are relatively secure when used correctly, but be aware of potential attacks:
+
+* **Algorithm Switching Attacks:**  Ensure that the `algorithms` parameter in `jwt.decode()` is correctly configured to only allow the algorithms you expect and trust.  Never allow a token to specify the algorithm itself.
+* **Replay Attacks:**  Use mechanisms like `jti` (JWT ID) claims to prevent replay attacks where an attacker reuses a valid token.  Also, ensure your system handles token expiration and revocation effectively.
+* **Cross-Site Request Forgery (CSRF):** Implement proper CSRF protection measures in your application, as JWTs alone don't protect against CSRF.
+* **Timing Attacks:**  Be mindful of potential timing attacks when verifying signatures.  Some implementations might leak information through timing variations.  Use constant-time comparison functions if necessary.
+* **Key Compromise:** The most significant risk.  Strong key management practices are paramount.
+
+
+### Choosing Appropriate Algorithms
+
+Select algorithms based on your security requirements and performance needs:
+
+* **HS256 (HMAC SHA256):** Suitable for applications where the client and server share a secret key.  Simpler to implement but requires careful key management.
+* **RS256 (RSA SHA256) or ES256 (ECDSA SHA256):**  Better suited for situations demanding stronger security and key separation (as they use asymmetric cryptography).  More complex to implement, requiring PKI management.
+
+Avoid weak or deprecated algorithms.
+
+
+### Regular Updates and Patches
+
+Keep PyJWT and its dependencies up to date to benefit from bug fixes and security patches.  Regular updates mitigate vulnerabilities that might be exploited by attackers.
+
+
+### Input Validation and Sanitization
+
+Always validate and sanitize any input data before using it to generate or decode JWTs.  This prevents injection attacks and other vulnerabilities.  Never trust user-provided data without proper validation:
+
+* **Algorithm Validation:**  As mentioned before, explicitly specify allowed algorithms.
+* **Payload Validation:**  Validate the structure and content of the JWT payload to ensure it matches your expectations.  Don't blindly trust the data within the token.
+* **Header Validation:** Validate any custom headers if used.  Don't rely solely on PyJWT's default header parsing without verification.
+* **Token Format:**  Ensure the token string itself is correctly formatted before attempting to decode it.  Handle potential errors gracefully.
+
+
+
+
+## Appendix
+
+### Supported Algorithms
+
+PyJWT supports a range of JSON Web Signature (JWS) and JSON Web Encryption (JWE) algorithms.  The exact set of supported algorithms may vary slightly depending on the installed dependencies (specifically cryptographic libraries). However, commonly supported algorithms include:
+
+* **HMAC-based:** HS256, HS384, HS512
+* **RSA-based:** RS256, RS384, RS512
+* **ECDSA-based:** ES256, ES384, ES512
+* **EdDSA-based:** EdDSA (Ed25519)
+* **PS-based:** PS256, PS384, PS512
+
+
+For JWE algorithms, PyJWT supports various key management and encryption methods (e.g., A128CBC-HS256, A256GCM).  Refer to the PyJWT documentation and the relevant RFCs for a complete and up-to-date list of supported algorithms.
+
+
+### Error Codes and Exceptions
+
+PyJWT raises exceptions to signal errors during JWT encoding and decoding.  Key exceptions include:
+
+* **`jwt.DecodeError`:**  A general error during token decoding, often indicating a malformed token.
+* **`jwt.ExpiredSignatureError`:** The token's `exp` (expiration) claim has passed.
+* **`jwt.InvalidAudienceError`:** The token's `aud` (audience) claim doesn't match the expected audience.
+* **`jwt.InvalidIssuedAtError`:** The token's `iat` (issued at) claim is invalid.
+* **`jwt.InvalidIssuedAtError`:** The token's `nbf` (not before) claim is invalid.
+* **`jwt.InvalidSignatureError`:** The token's signature is invalid.
+* **`jwt.InvalidTokenError`:** A general error indicating an invalid token structure or format.
+
+
+Consult the PyJWT documentation for a more complete list and details on specific error conditions.  Appropriate error handling is crucial for robust application design.
+
+
+### Glossary of Terms
+
+* **JWT (JSON Web Token):**  A compact, URL-safe means of representing claims to be transferred between parties as a JSON object.
+* **Claim:** A statement about an entity (e.g., user identity).
+* **Payload:** The JSON object containing claims in a JWT.
+* **Header:**  The JSON object containing metadata about the JWT, including the signing algorithm.
+* **Signature:** A cryptographically generated string that ensures the integrity and authenticity of the JWT.
+* **Symmetric Key:** A secret key used for both encryption and decryption.
+* **Asymmetric Key:** A pair of keys (public and private) where one key encrypts and the other decrypts.
+* **Algorithm:** The cryptographic algorithm used to sign (and verify) the JWT.
+* **HMAC (Hash-based Message Authentication Code):** A type of message authentication code (MAC) involving a cryptographic hash function and a secret cryptographic key.
+* **RSA (Rivest-Shamir-Adleman):** A public-key cryptosystem.
+* **ECDSA (Elliptic Curve Digital Signature Algorithm):** A variant of the Digital Signature Algorithm (DSA) that uses elliptic curve cryptography.
+* **JWK (JSON Web Key):** A JSON-based format for representing cryptographic keys.
+* **PEM (Privacy Enhanced Mail):** A common format for storing cryptographic keys.
+
+
+### References and Further Reading
+
+* **RFC 7519: JSON Web Token (JWT):** [https://www.rfc-editor.org/rfc/rfc7519](https://www.rfc-editor.org/rfc/rfc7519)  The primary specification for JWTs.
+* **PyJWT Documentation:**  The official PyJWT documentation provides detailed information on usage, algorithms, and security considerations.
+* **Cryptography Libraries:**  Familiarize yourself with the documentation for the underlying cryptographic libraries used by PyJWT (e.g., `cryptography`).
+
+
+This appendix provides a concise overview.  Refer to the linked resources for more comprehensive information.
+
